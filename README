@@ -5,3 +5,4 @@ Try out SimpleDoc, our new package supporting a simple way of writing
 documentation, by running
 
      getPackage "SimpleDoc"
+ 
