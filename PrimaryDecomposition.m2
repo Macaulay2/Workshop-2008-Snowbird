@@ -120,10 +120,7 @@ primaryDecomposition Ideal := List => o -> (J) -> (
 isPrimary = method()
 isPrimary(Ideal) := Q -> isPrimary(Q, radical Q)
 isPrimary(Ideal,Ideal) := (Q,P) -> (
-     if isPrime P then (
-     	  L := primaryDecomposition Q;
-     	  #L == 1
-	  )
+     if isPrime P then I == top I
      else false
      )
 
