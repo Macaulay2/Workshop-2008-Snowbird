@@ -141,7 +141,6 @@ mat2cohom(Matrix,ZZ) := (M,lowDegree) -> (
      a = select(a, b -> b#1 =!= null);
      new CohomologyTally from a
      )
-mat2cohom Matrix := (M) -> mat2cohom(M,0)
 
 TEST ///
 m = matrix "1,0,0,0;
@@ -151,14 +150,6 @@ assert (m == matrix B)
 
 B2 = mat2betti(m,2)
 assert(m == matrix B2)
-///
-
-TEST ///
-m = matrix "5,0,0,0,0;
-     	0,1,1,0,0;
-	0,0,0,1,2"
-c = mat2cohom (oo,0)
-assert (m == Matrix c)
 ///
 
 matrix(BettiTally, ZZ, ZZ) := opts -> (B,lowestDegree, highestDegree) -> (
@@ -216,17 +207,6 @@ highestDegrees BettiTally := (B) -> (
 
 isPure = method()
 isPure BettiTally := (B) -> lowestDegrees B == highestDegrees B
-
-TEST ///
-matrix "1,0,0;
-     	0,2,3"  
-B = mat2betti oo
-assert(isPure B)
-
-matrix "1,0,0; 0,2,1; 0,1,1"
-B2 = mat2betti oo
-assert(not isPure B2)
-///
 
 TEST ///
 --load "BoijSoederberg.m2"
@@ -298,27 +278,13 @@ pureBettiDiagram List := (degs) -> (
      )
 
 TEST ///
-assert(pureBetti{0,1,2,3,4} == {1,4,6,4,1})
-B = pureBettiDiagram {0,1,2,3,4}
-assert(B == mat2betti matrix "1,4,6,4,1")
-
-B1=pureBetti{0,2,3,4}
-assert (B1 == {1,6,8,3})
+pureBetti{0,1,2,3,4}
+B=pureBetti{0,2,3,4}
 D1=pureBettiDiagram {0,2,3,4}
-assert (D1 == mat2betti matrix "1,0,0,0; 0,6,8,3")
-
-B2 = pureBetti {0,2,3,5}
-assert(B2 == {1,5,5,1})
-D2 = pureBettiDiagram {0,2,3,5}
-m = matrix "1,0,0,0;
-     	    0,5,5,0;
-	    0,0,0,1"   
-assert(D2 == mat2betti m)
-
 ///
 
 ---------------------------------------------
--- Decomposing a Betti diagram into pures --
+-- Decoomposing a Betti diagram into pures --
 ---------------------------------------------
 
 --input: list of rational numbers
@@ -368,54 +334,11 @@ decompose BettiTally := B-> (
      sum Components)
 
 TEST ///
-M=matrix "1,0,0,0;
+matrix "1,0,0,0;
         0,4,4,1"
-B=mat2betti M
-C=decompose B
-L=set apply(toList C,x->x#1)
-m1=mat2betti matrix "1,0,0,0;
-                     0,6,8,3"
-m2=mat2betti matrix "1,0,0;
-                     0,3,2"
-M'=set{m1,m2}
-assert(L===M')
-
-M=matrix "1,0,0,0;
-     	  0,5,5,1;
-	  0,0,1,1"		    
-B=mat2betti M
-C=decompose B
-L=set apply(toList C,x->x#1)
-m1=mat2betti matrix "1,0,0,0;
-                     0,6,8,3"
-m2=mat2betti matrix "1,0,0,0;
-                     0,5,5,0;
-		     0,0,0,1"
-m3=mat2betti matrix "3,0,0,0;
-                     0,10,0,0;
-		     0,0,15,8"
-M'=set{m1,m2,m3}
-assert(L===M')
-
-M=matrix"1,0,0,0;
-     	 0,2,0,0;
-	 0,1,3,1"
-B=mat2betti M
-C=decompose B
-L=set apply(toList C,x->x#1)
-m1=mat2betti matrix"1,0,0;
-     	  0,2,0;
-	  0,0,1"
-m2=mat2betti matrix"3,0,0,0;
-     	  0,10,0,0;
-	  0,0,15,8"
-m3=mat2betti matrix"1,0,0;
-     	  0,0,0;
-	  0,4,3"
-M'=set{m1,m2,m3}
-assert(L===M')
+mat2betti oo	
+decompose oo
 ///
-
 
 ---------------------------------------------
 -- Cohomology Tables ------------------------
@@ -449,20 +372,7 @@ pureCohomologyTable(List, ZZ, ZZ) := (zeros, lo, hi) -> (
 	  if v == 0 then (w=w+1; continue;);
 	  (n-w,i) => lift(v,ZZ)
 	  ));
-TEST ///
-m = matrix "4,3,2,1,0,0,0,0;
-            0,0,0,0,1,2,3,4"
-A= mat2cohom (m,-3)
-assert(pureCohomologyTable({0},-3,4) == A)
 
-m2 = matrix "120,70,36,15,4,0,0,0,0,0,0;
-     	     0,0,0,0,0,0,0,0,0,0,0;
-	     0,0,0,0,0,1,0,0,0,0,0;
-	     0,0,0,0,0,0,6,20,45,84,140" 
-A2 = mat2cohom(m2, -5)
-assert(pureCohomologyTable({-3,-2,0},-5,5)==A2)
-
-///
 ---------------------------------------------
 -- Facet equations and the quadratic form ---
 ---------------------------------------------
@@ -648,21 +558,6 @@ facetEquation(List,ZZ,ZZ,ZZ) := (de,i,lowestDegree, highestDegree) -> (
      B1:=bettiMatrix(de,lowestDegree,highestDegree);
      if dotProduct(F,B1)>0 then F else -F)
 
-TEST ///
-m = matrix "0,1,-2;
-            0,0,0;
-	    0,0,0"
-assert(facetEquation({0,1,3},1,0,2) == m)
-
-m2 = matrix "24,-7,0,0,4;
-     	     7,0,0,-4,9;
-	     0,0,4,-9,12;
-	     0,0,0,0,10;
-	     0,0,0,0,0"
-assert(facetEquation({1,2,3,5,7}, 2,-1,3) == m2)
-///
-
-
 dotProduct=method()
 
 dotProduct(Matrix, Matrix):=(A,B)->
@@ -692,33 +587,6 @@ dotProduct(Matrix, ZZ, BettiTally) := (A,lowest, B) -> dotProduct(mat2betti(A,lo
 *}
 
 dotProduct(Matrix, BettiTally) := (A,B) -> dotProduct(A,0,B)
-
-TEST ///
-A = matrix"1,1,0;
-     	   0,1,1;
-	   0,1,1"
-B = matrix"0,1,-2;
-     	   0,0,0;
-	   0,0,0"
-assert(dotProduct(A, B) == 1)
-
-A1 = mat2betti A
-B1 = mat2betti B
-assert(dotProduct(A1, B1)==1)
-
-assert(dotProduct(A, 0, B1)==1)
-
-assert(dotProduct(A, B1)==1)
-
-A2=matrix"1,0,0,0;
-    0,5,5,1;
-    0,0,1,1" 
-B2 = facetEquation({0,2,4,5}, 1,0,2)
-assert(dotProduct(A2,B2)=2)
-assert(dotProduct(mat2betti A2, mat2betti B2)==2)
-assert(dotProduct(A2, mat2betti B2) == 2)
-
-///
 
 {* supportFunctional is NOT functional yet *}
 supportFunctional=method()
@@ -826,7 +694,7 @@ for i from 0 to #W-1 list (W_i/P_0)
 -- Constructions often producing pure resolutions --
 ----------------------------------------------------
 
---Given a strictly increasing degree sequence L and a number of generators m,
+--Given a strictly increasing degree sequence L and a number of gneerators m,
 --this routine produces a "generic" module of finite length with the 
 --m generators and number of socle elements  and regularity corresponding
 --to the pure resolution with degree sequence L. The module is constructed
@@ -853,8 +721,7 @@ randomSocleModule(List, ZZ) := opts -> (L, m) -> (
 TEST ///
 L={0,1,3,4}
 B = pureBettiDiagram L
-assert(betti res randomSocleModule(L,1) == mat2betti matrix"1,2,1,0;
-					0,1,2,1")
+betti res randomSocleModule(L,1)
 assert(2*B == betti res randomSocleModule(L,2))
 assert(3*B == betti res randomSocleModule(L,3))
 
@@ -876,63 +743,11 @@ randomModule(List,ZZ) := opts -> (L, m) -> (
 TEST ///
 L={0,4,9,10}
 B = pureBetti L
-
-B'= betti res randomModule(L,1)
-M = mat2betti matrix"1,0,0,0;
-     	       	     0,0,0,0;
-		     0,0,0,0;
-		     0,3,0,0;
-		     0,0,0,0;
-		     0,0,0,0;
-		     0,0,3,0;
-		     0,0,0,0;
-		     0,0,0,0;
-		     0,0,0,1"
-assert(B' == M)
-
-B'=betti res randomModule(L,2)
-M = mat2betti matrix"2,0,0,0;
-     	       	     0,0,0,0;
-		     0,0,0,0;
-		     0,6,0,0;
-		     0,0,0,0;
-		     0,0,0,0;
-		     0,0,0,0;
-		     0,0,16,12"
-assert(B'==M)
-
-B'=betti res randomModule(L,3)
-M = mat2betti matrix"3,0,0,0;
-     	       	     0,0,0,0;
-		     0,0,0,0;
-		     0,9,0,0;
-		     0,0,0,0;
-		     0,0,0,0;
-		     0,0,0,0;
-		     0,0,24,18"
-assert(B'==M)
-
-B'=betti res randomModule(L,4)
-M = mat2betti matrix"4,0,0,0;
-     	       	     0,0,0,0;
-		     0,0,0,0;
-		     0,12,0,0;
-		     0,0,0,0;
-		     0,0,0,0;
-		     0,0,0,0;
-		     0,0,32,24"
-assert(B'==M)
-
-B'=betti res randomModule(L,2, CoefficientRing=>ZZ/5)
-M = mat2betti matrix"2,0,0,0;
-     	       	     0,0,0,0;
-		     0,0,0,0;
-		     0,6,0,0;
-		     0,0,0,0;
-		     0,0,0,0;
-		     0,0,0,0;
-		     0,0,16,12"
-assert(B'==M)
+betti res randomModule(L,1)
+betti res randomModule(L,2)
+betti res randomModule(L,3)
+betti res randomModule(L,4)
+betti res randomModule(L,2, CoefficientRing=>ZZ/5)
 ///
 
 -------------------------------------------
@@ -992,43 +807,17 @@ bott(List,ZZ,ZZ):=(L,low,high)->(
      )
      
 TEST ///
-B1=bott({3,2,1},-10,10)
-M=matrix"924,640,420,256,140,64,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
-     	 0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0;
-	 0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0;
-	 0,0,0,0,0,0,0,0,0,20,64,140,256,420,640,924,1280,1716,2240,2860,3584"
-M1=mat2cohom(M,-10)
-assert(B1==M1)
-
-B2=bott({0,0,0},-5,5)
-M=matrix"35,20,10,4,1,0,0,0,0,0,0;
-         0,0,0,0,0,0,0,0,0,0,0;
-         0,0,0,0,0,0,0,0,0,0,0;
-         0,0,0,0,0,1,4,10,20,35,56"
-M2=mat2cohom(M,-5)
-assert(B2==M2)
-
+bott({3,2,1},-10,0)
+bott({0,0,0},-5,5)
 
 L={0,0,0}
-A=apply(7,i-> bott(L,i))
-AA={{{0, 0, 0, 0}, 0, 1}, 0, 0, 0, {{0, 0, 0, 0}, 3, 1}, {{1, 0, 0, 0}, 3, 4}, {{2, 0, 0, 0}, 3, 10}}
-assert(A==AA)
-
 for u from 0 to 6 do
 print bott(L,u)
-
 L={5,2,1,1}
-A=apply(10,i->bott(L,i))
-AA={{{5, 2, 1, 1, 0}, 0, 945}, {{4, 1, 0, 0, 0}, 0, 224}, 0, 0, {{3, 0, 0, 0, 0}, 2, 35}, 0, {{3, 1, 1, 0, 0}, 3, 126}, {{3, 2, 1, 0, 0}, 3, 280}, {{3, 3, 1, 0, 0}, 3, 315}, 0}
-assert(A==AA)
-
-for u from 0 to 10 do
-print bott(L,u)
+for u from 0 to 10 do (
+  bott({0,0},-1);
+  print bott(L,-u))
 ///
-
-restart
-loadPackage "BoijSoederberg"
-
 
 beginDocumentation()
 
