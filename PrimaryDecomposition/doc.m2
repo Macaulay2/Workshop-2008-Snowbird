@@ -224,7 +224,7 @@ document {
      by monomials, then ", TT "Strategy => Monomial", " is implied.  
      In all other cases, the default is ", TT "Strategy => ShimoyamaYokoyama", ".",
      HEADER3 "Strategy => Monomial",
-     "This strategy only works for monomial ideals.  See the chapter
+     "This strategy only works for monomial ideals, and is the default strategy for such ideals.  See the chapter
      \"Monomial Ideals\" in the Macaulay 2 book.",
      EXAMPLE lines ///
      	  Q = QQ[x,y]
@@ -232,11 +232,30 @@ document {
 	  primaryDecomposition(I, Strategy => Monomial)
      ///,
      HEADER3 "Strategy => EisenbudHunekeVasconcelos",
-     "Description, example, reference",
+     "See \"Direct methods for primary decomposition\" by Eisenbud, Huneke, and Vasconcelos, Invent. Math. 110, 207-235 (1992).",
+     EXAMPLE lines ///
+     	  Q = QQ[x,y]
+	  I = ideal(x^2,x*y)
+	  primaryDecomposition(I, Strategy => EisenbudHunekeVasconcelos)
+     ///,
      HEADER3 "Strategy => ShimoyamaYokoyama", 
-     "Description, example, reference",
+     "This strategy is the default for non-monomial ideals.  See \"Localization and Primary Decomposition of Polynomial ideals\" by Shimoyama and Yokoyama, J. Symb. Comp. 22, 247-277 (1996).",
+     EXAMPLE lines ///
+     	  Q = QQ[x,y]
+	  I = ideal(x^2,x*y)
+	  primaryDecomposition(I, Strategy => ShimoyamaYokoyama)
+     ///,
      HEADER3 "Strategy => Hybrid",
-     "Description, example, reference", TO (localize,Ideal,Ideal)
+     "Use a hybrid of the Eisenbud-Huneke-Vasconcelos and Shimoyama-Yokoyama strategies.  The field ",
+     TT "Strategy", " is a list of two integers, indicating the strategy to use for finding associated primes and localizing, respectively.",
+     EXAMPLE lines ///
+     	  Q = QQ[x,y]
+	  I = ideal(x^2,x*y)
+	  primaryDecomposition(I, Strategy => new Hybrid from (1,1))
+	  primaryDecomposition(I, Strategy => new Hybrid from (1,2))
+	  primaryDecomposition(I, Strategy => new Hybrid from (2,1))
+	  primaryDecomposition(I, Strategy => new Hybrid from (2,2))
+     ///,
      }
 
 TEST ///
