@@ -247,10 +247,11 @@ document {
      ///,
      HEADER3 "Strategy => Hybrid",
      "Use a hybrid of the Eisenbud-Huneke-Vasconcelos and Shimoyama-Yokoyama strategies.  The field ",
-     TT "Strategy", " is a list of two integers, indicating the strategy to use for finding associated primes and localizing, respectively.",
+     TT "Strategy", " is a list of two integers, indicating the strategy to use for finding associated primes and localizing, respectively. ",
+     "WARNING: Setting the second paramter to 1 works only if the ideal is homogeneous and equidimensional.",
      EXAMPLE lines ///
      	  Q = QQ[x,y]
-	  I = ideal(x^2,x*y)
+	  I = intersect(ideal(x^2), ideal(y^2))
 	  primaryDecomposition(I, Strategy => new Hybrid from (1,1))
 	  primaryDecomposition(I, Strategy => new Hybrid from (1,2))
 	  primaryDecomposition(I, Strategy => new Hybrid from (2,1))
