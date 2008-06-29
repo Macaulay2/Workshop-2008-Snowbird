@@ -152,6 +152,14 @@ B2 = mat2betti(m,2)
 assert(m == matrix B2)
 ///
 
+TEST ///
+m = matrix "5,0,0,0,0;
+     	0,1,1,0,0;
+	0,0,0,1,2"
+c = mat2cohom (oo,0)
+assert (m == Matrix c)
+///
+
 matrix(BettiTally, ZZ, ZZ) := opts -> (B,lowestDegree, highestDegree) -> (
      c := pdim B + 1;
      r := highestDegree - lowestDegree + 1;
