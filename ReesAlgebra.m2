@@ -38,8 +38,6 @@ export{ symmetricKernel, universalEmbedding, reesAlgebra, reesIdeal, distinguish
      idealIntegralClosure, multiplicity}
 
 
-
-
 -- Comment : The definition of Rees algebra used in this package is 
 -- R(M) = Sym(M)/(intersection over g of L_g) where the intersection 
 -- ranges over all maps from M to free R-modules and L_g is the kernel 
