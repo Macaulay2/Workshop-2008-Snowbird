@@ -210,39 +210,14 @@ document {
 	  Headline => "for computing Schur functors"
 	 }
 
-document {
-     	  Key => {schurModule, (schurModule, List, Module)},
-	  Headline => "creates Schur module from a partition and free module",
-	  SeeAlso => schur,
-	  Usage => "schurModule(lambda,E)",
-	  Inputs => {
-	       "lambda" => List => "a list of numbers representing a partition",
-	       "E" => Module => "a free module"
-	       },
-	  Outputs => { 
-	       "M" => Module => {"the Schur functor associated to lambda applied to E. M comes with cached data
-		    (f, finv, AT, ST) where f is a map from M to exterior_mu E, 
-		    finv is a map from exterior_mu E to M,
-		    AT is a hash table of all tableaux,
-		    ST is a hash table of all standard tableaux"}
-		    }
-	       }
-	  
-document {
-     	  Key => {schur, (schur, List, Matrix)},
-	  Headline => "creates a map between Schur modules",
-	  SeeAlso => schurModule,
-	  Usage => "schur(lambda, f)",
-	  Inputs => {
-	       "lambda" => List => "a list of numbers representing a partition",
-	       "f" => Matrix => "a map between two free modules",
-	       },
-	  Outputs => {
-	       "F" => Matrix => {"the Schur functor associated to lambda applied to f"}
-	       }
-	  }
-     
+loadPackage "SimpleDoc"
+doc get (currentFileDirectory | "SchurFunctors/SchurModule.txt")
+doc get (currentFileDirectory | "SchurFunctors/schur.txt")
      
 end
 restart
 loadPackage "SchurFunctors"
+loadPackage "SimpleDoc"
+help doc
+help schurModule
+help schur
