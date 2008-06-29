@@ -692,6 +692,34 @@ dotProduct(Matrix, ZZ, BettiTally) := (A,lowest, B) -> dotProduct(mat2betti(A,lo
 
 dotProduct(Matrix, BettiTally) := (A,B) -> dotProduct(A,0,B)
 
+TEST ///
+A = matrix"1,1,0;
+     	   0,1,1;
+	   0,1,1"
+B = matrix"0,1,-2;
+     	   0,0,0;
+	   0,0,0"
+assert(dotProduct(A, B) == 1)
+
+A1 = mat2betti A
+B1 = mat2betti B
+assert(dotProduct(A1, B1)==1)
+
+assert(dotProduct(A, 0, B1)==1)
+
+assert(dotProduct(A, B1)==1)
+
+A2=matrix"1,0,0,0;
+    0,5,5,1;
+    0,0,1,1" 
+B2 = facetEquation({0,2,4,5}, 1,0,2)
+assert(dotProduct(A2,B2)=2)
+assert(dotProduct(mat2betti A2, mat2betti B2)==2)
+assert(dotProduct(A2, mat2betti B2) == 2)
+
+///
+
+
 {* supportFunctional is NOT functional yet *}
 supportFunctional=method()
 
