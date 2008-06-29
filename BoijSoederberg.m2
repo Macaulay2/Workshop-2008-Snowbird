@@ -141,6 +141,7 @@ mat2cohom(Matrix,ZZ) := (M,lowDegree) -> (
      a = select(a, b -> b#1 =!= null);
      new CohomologyTally from a
      )
+mat2cohom Matrix := (M) -> mat2cohom(M,0)
 
 TEST ///
 m = matrix "1,0,0,0;
@@ -152,7 +153,13 @@ B2 = mat2betti(m,2)
 assert(m == matrix B2)
 ///
 
-
+TEST ///
+m = matrix "5,0,0,0,0;
+     	0,1,1,0,0;
+	0,0,0,1,2"
+c = mat2cohom (oo,0)
+assert (m == Matrix c)
+///
 
 matrix(BettiTally, ZZ, ZZ) := opts -> (B,lowestDegree, highestDegree) -> (
      c := pdim B + 1;
@@ -361,11 +368,54 @@ decompose BettiTally := B-> (
      sum Components)
 
 TEST ///
-matrix "1,0,0,0;
+M=matrix "1,0,0,0;
         0,4,4,1"
-mat2betti oo	
-decompose oo
+B=mat2betti M
+C=decompose B
+L=set apply(toList C,x->x#1)
+m1=mat2betti matrix "1,0,0,0;
+                     0,6,8,3"
+m2=mat2betti matrix "1,0,0;
+                     0,3,2"
+M'=set{m1,m2}
+assert(L===M')
+
+M=matrix "1,0,0,0;
+     	  0,5,5,1;
+	  0,0,1,1"		    
+B=mat2betti M
+C=decompose B
+L=set apply(toList C,x->x#1)
+m1=mat2betti matrix "1,0,0,0;
+                     0,6,8,3"
+m2=mat2betti matrix "1,0,0,0;
+                     0,5,5,0;
+		     0,0,0,1"
+m3=mat2betti matrix "3,0,0,0;
+                     0,10,0,0;
+		     0,0,15,8"
+M'=set{m1,m2,m3}
+assert(L===M')
+
+M=matrix"1,0,0,0;
+     	 0,2,0,0;
+	 0,1,3,1"
+B=mat2betti M
+C=decompose B
+L=set apply(toList C,x->x#1)
+m1=mat2betti matrix"1,0,0;
+     	  0,2,0;
+	  0,0,1"
+m2=mat2betti matrix"3,0,0,0;
+     	  0,10,0,0;
+	  0,0,15,8"
+m3=mat2betti matrix"1,0,0;
+     	  0,0,0;
+	  0,4,3"
+M'=set{m1,m2,m3}
+assert(L===M')
 ///
+
 
 ---------------------------------------------
 -- Cohomology Tables ------------------------
