@@ -10,17 +10,17 @@
 -- distinguished -- distinguished subvarieties of  a variety 
 --                  (components of the support of the normal cone)
 -- PROGRAMMERs : Rees algebra code written by David Eisenbud and edited and 
---               maintained by Amelia Taylor.  Ideal integral closure 
---		 code written and maintained by Amelia Taylor
--- UPDATE HISTORY : 27 October 2006
+--               maintained by Amelia Taylor.  
+-- UPDATE HISTORY : created 27 October 2006 
+-- 	     	    updated 29 June 2008
 --
 -- Missing documentation and most examples are now at the end of the file
 -- waiting to be included in the documentation -- more fixes to come
 ---------------------------------------------------------------------------
 newPackage(
 	"ReesAlgebra",
-    	Version => "0.1", 
-    	Date => "October 27, 2006",
+    	Version => "1.0", 
+    	Date => "June 29, ",
     	Authors => {{
 		  Name => "David Eisenbud",
 		  Email => "de@msri.org"},
@@ -33,9 +33,8 @@ newPackage(
     	DebuggingMode => true
     	)
 
-export{ symmetricKernel, universalEmbedding, reesAlgebra, reesIdeal, distinguished, 
-     distinguishedAndMult, specialFiber, analyticSpread, isLinearType, 
-     idealIntegralClosure, multiplicity}
+export{ symmetricKernel, universalEmbedding, rees, distinguished, 
+     distinguishedAndMult, specialFiber, analyticSpread, isLinearType, multiplicity}
 
 
 -- Comment : The definition of Rees algebra used in this package is 
@@ -64,79 +63,37 @@ export{ symmetricKernel, universalEmbedding, reesAlgebra, reesIdeal, distinguish
 --           Huneke, and Ulrich.  Also the Module version just sets up 
 --           the input to use symmetric Kernel on a Module.  See "OUTPUT" 
 --           for caution.
+
+--- Assumes we have a homogeneous (multi) map
+
+///
+--- Our working example
+S = ZZ/101[x_1,x_2, Degrees => {{1,1}, {1,-3}}]
+I = ideal(x_1^4*x_2^3)
+f = matrix{{x_1,x_2, 0, 0, 0}, {0, 0 , x_1^2, x_1*x_2, x_2^2}}
+F = map(S^{{-2, 1}, {2, 2}}, S^{{-3, 0},{ -3, 4},{0,0}, {0, 4}, {0,8}}, f)
+R = S/I
+M = (image F)**R
+H = Hom(R**M, R)
+
+L = apply(rank source gens H, i -> homomorphism H_{i})
+verticalConcatMaps(L)
+
+P = transpose syz transpose presentation M
+/// 
+
 w := global w;
-symmetricKernel = method(Options=>{Variable => null})
-symmetricKernel(Matrix,Ideal) := Ideal => o -> (f, I) -> (
-     -- first four lines set up constructing key rings.
-     S := ring f;
-     if (monoid S).Options.DegreeRank =!= 1 then (
-	  R := (coefficientRing(S))(monoid[gens S, DegreeRank => 1,MonomialOrder => (monoid S).Options.MonomialOrder]);
-	  G := map(R,S);
-	  f = G(f);
-	  I = G(I);
-	  )
-     else (R = S);
-	  kk := coefficientRing(R);           
-     	  oldvarlist := flatten entries vars R;   
-     	  nR := rank source vars R;
-     	  -- Set up the key map from R to R/I.
-     	  mtar := -(min flatten degrees target f)+1;
-     	  msource := -(min flatten degrees source f)+1;
-     	  ntarf := rank target f;
-     	  nsouf := rank source f;
-     	  tardeglist :=  degrees source vars R | degrees target (f**R^{-mtar});
-	  Rtar1 := kk(monoid [oldvarlist,Y_1..Y_(ntarf),Degrees=>tardeglist]);
-     	  F := map(Rtar1, R);
-     	  Rtar := Rtar1/F(I);
-     	  oldvars := (vars Rtar)_{0..nR-1};
-     	  RtoRtar := map(Rtar, R, oldvars);
-     	  -- g builds key elements y_j*f_i to make the map R[y_j*f_i] to R/I
-     	  -- desired answer is the kernel of this map given as i.
-     	  g := oldvars|((vars Rtar)_{nR..(nR+ntarf-1)})*(RtoRtar(f**R^{-mtar}));  
-     	  if o.Variable === null then (
-	       if class w === IndexedVariableTable then indexW := #(values w)
-
-     	       Rsource := kk(monoid [oldvarlist, w_0..w_(nsouf-1), Degrees=>degrees source g]))
-     	  else (Rsource = kk(monoid [oldvarlist, (o.Variable)_0..(o.Variable)_(nsouf-1),
-	       		 Degrees=>degrees source g]));
-     	  i := ideal mingens ker map(Rtar, Rsource, g);
-     	  -- Degrees are set to desired multidegree of the rees algebra.
-     	  newdegs1 := apply(degrees source oldvars, i -> append(i,0));
-     	  newdegs2 := apply(degrees source f, i -> append(i, 1));
-      	  if o.Variable === null then (
-     	       Ranswer := kk(monoid [oldvarlist, w_0..w_(nsouf-1),
-	       		 MonomialOrder => join((monoid S).Options.MonomialOrder, 
-     			      {GRevLex => nsouf}),
-	       		 Degrees=>join(newdegs1,newdegs2)]))
-     	  else (Ranswer = kk(monoid [oldvarlist, (o.Variable)_0..(o.Variable)_(nsouf-1),
-	       		 MonomialOrder => join((monoid S).Options.MonomialOrder, 
-     			      {GRevLex => nsouf}),
-	       		 Degrees=>join(newdegs1,newdegs2)]));
-     	  (map(Ranswer, Rsource))(i)
-     )
-
-
-symmetricKernel(Module) := Ideal => o-> (M) ->(
-     S := ring M;
-     I := ideal S;
-     R := ring I;
-     symmetricKernel(lift(presentation M, R), I)
-     )    	      	   
-symmetricKernel(Ideal) := Ideal => o -> (J) -> (
-     symmetricKernel(coker gens J))
-     
-     
--- PURPOSE: Core code for the universal embedding of the image of f**R/I.
---          For more information, see below.
-universalEmbeddingCore = (f,I) ->(
-     R := ring f;
-     S := R/I;
-     F := map(S, R);
-     fbar := F(f);
-     fres := res(image fbar, LengthLimit=>2);
-     ftres := res(image transpose fres.dd_1, LengthLimit=>2);
-     fnew := transpose ftres.dd_1;
-     lift(fnew, R)
+symmetricKernel = method(Options=>{Variable => global w})
+symmetricKernel(Matrix) := Ideal => o -> (f) -> (
+     R := ring f; 
+     z := local z;
+     sourceDegs := apply(degrees source f, i -> prepend(1,i));
+     RSource := R[w_1..w_(rank source f), Degrees => sourceDegs];
+     tarDegs := apply(degrees target f, i -> prepend(1,i));
+     RTar := R[z_1..z_(rank target f), Degrees => tarDegs];
+     RTarVars := matrix{{z_1..z_(rank target f)}};
+     fRTar := (map(RTar, S)) f;
+     kernel map(RTar, RSource, RTarVars*fRTar)
      )
 
 -- PURPOSE: Front end code for the universal (or versal) embedding of the 
@@ -148,38 +105,13 @@ universalEmbeddingCore = (f,I) ->(
 --           symmetricKernel in order to compute a Rees Algebra in the most 
 --           general case possible at this time as defined in Eisenbud, Huneke 
 --           and Ulrich. 
+
 universalEmbedding = method()
-universalEmbedding(Matrix,Ideal) := Matrix => (M, I) -> universalEmbeddingCore(M,I)
-
-
--- PURPOSE :  Simply compute the rees ring of an ideal over a polynomial ring.
--- INPUT : 'J' an Ideal and 'a' a RingElement. 
--- OUTPUT : an Ideal defining the Rees algebra of an ideal saturated using the 
---          ring element given.   
--- COMMENT : Can be used independently or as a strategy for reesIdeal and reesAlgebra.  
---           Goal is for this to be only a local routine for reesIdeal and 
---           reesAlgebra as soon as we can find a way to enter the ring 
---           element for that strategy.
-
-reesSaturate = method(Options => {Variable => null})     
-reesSaturate (Ideal, RingElement)  := Ideal => o -> (J, a) -> (
-     R := ring J;
-     j := syz gens J;
-     oldvarlist := flatten entries vars R;
-     numnew := numgens J;
-     newdegs1 := apply(degrees source oldvars, i -> append(i,0));
-     newdegs2 := apply(numnew, i -> flatten{degree(I_i),1});
-     if o.Variable === null then (
-     	  Ranswer := (coefficientRing R)(monoid [oldvarlist, w_0..w_(numnew-1),
-	       MonomialOrder => { #oldvarlist, numnew},
-	       Degrees=>join(newdegs1,newdegs2)]))
-     else (Ranswer = (coefficientRing R)(monoid [oldvarlist, (o.Variable)_0..(o.Variable)_(numnew-1),
-	       MonomialOrder => { #oldvarlist, numnew},
-	       Degrees=>join(newdegs1,newdegs2)])); 
-     F := map(Ranswer, R); -- uses that oldvars are first.
-     symm := ideal(matrix{{Ranswer_n..Ranswer_(numgens R + numnew -1)}}*F(j));
-     saturate(symm,F(a))
+universalEmbedding(Module) := Matrix => (M) -> (
+     UE := transpose syz transpose presentation M;
+     map(target map1, M, UE)
      )
+
 
 -- PURPOSE : Front end for computing the defining ideal of the Rees algebra 
 --           of a module, or an ideal defined over a polynomial ring or a 
@@ -199,58 +131,56 @@ reesSaturate (Ideal, RingElement)  := Ideal => o -> (J, a) -> (
 --           In the case of an ideal over a polynomial ring the process is slightly 
 --           streamlined, skipping the unneccessary versal computation as in that 
 --           case the inclusion map is a versal map.
-reesIdeal = method(Options=>{Variable => null, Strategy => null})
-reesIdeal(Module) := Ideal => o -> (M) -> (
-     S := ring M;
-     I := ideal S;
-     R := ring I;
-     symmetricKernel(universalEmbedding(lift(presentation M, R),I), I, 
-	  Variable => o.Variable)
-	  )
-reesIdeal(Ideal) := Ideal => o-> (J) -> (
-     S := ring J;
-     if instance(S, PolynomialRing) == true then(
-     	  if Strategy == Saturate then (
-	       reesSaturate(J,J_0, Variable => o.Variable))
-     	  else symmetricKernel(gens J, ideal(0_S), Variable => o.Variable))
-     else (
-	  I := ideal S;
-     	  symmetricKernel(universalEmbedding(lift(gens J, ring I), I), I, Variable => o.Variable)
-	  )
+
+\\\
+S = ZZ/101[x,y]
+M = module ideal(x,y)
+rees(M)
+M = module (ideal(x,y))^2
+rees(M)
+M = module (ideal (x,y))^3
+rees(M)
+\\\
+
+rees = method(Options => {Variable => w, Strategy => null})
+
+rees(Module) := Ideal => o -> M -> (
+     P := presentation M;
+     UE := transpose syz transpose P;
+     symmetricKernel(UE,Variable => o.Variable)
      )
 
--- PURPOSE : Front end for computing the defining Rees algebra 
---           of a module, or an ideal defined over a polynomial ring or a 
---           quotient ring.
--- INPUT : 'M' a module OR
---         'J' an ideal 
--- Options : The computation requires additional variables.  The user 
---           can use Variable => to specify the letter used for the 
---           new indexed variable.  The default is the letter w.  The 
---           default algorithm is symmetricKernel, but in the case of 
---           an ideal over a polynomial ring the user might want to use 
---           the algorithm in reesSaturate specified by Strategy => Saturate.
--- OUTPUT : A quotient ring isomorphic to the Rees Algebra.
--- COMMENT : This is IDENTICAL to reesIdeal, but returns the quotient ring 
---           rather than the ideal.  
---           Uses proposition 1.3 in Eisenbud, Huneke, Ulrich and computes 
---           the rees algebra of a versal embedding of the 
---           Module regardless of the ring and for an ideal over a quotient ring. 
---           In the case of an ideal over a polynomial ring the process is slightly 
---           streamlined, skipping the unneccessary versal computation as in that 
---           case the inclusion map is a versal map.
-     
-reesAlgebra = method(Options=>{Variable => null, Strategy => null})
-reesAlgebra(Module) := QuotientRing => o -> (M) -> (
-     J := reesIdeal(M, Variable => o.Variable);
-     (ring J)/J)
-reesAlgebra(Ideal) := QuotientRing => o -> (J) -> (
-     if Strategy == Saturate then (
-	  J = reesSaturate(J,J_0, Variable => o.Variable))
-     else (J = reesIdeal(J, Variable => o.Variable));
-     (ring J)/J
+rees(Ideal) := Ideal => o-> (J) -> (
+     symmetricKernel(gens J, Variable => o.Variable)
      )
-          
+
+
+\\\
+S = ZZ/101[x,y]
+M = module ideal(x,y)
+reesSaturate(M,S_0)
+M = module (ideal(x,y))^2
+rees(M)
+M = module (ideal (x,y))^3
+rees(M)
+\\\
+
+---- needs singly graded or first element non-zero divisor. 
+
+rees (Module, RingElement) := Ideal => o -> (M,a) -> (
+     if ring M =!= ring a 
+     then error("Expected Module and Element over the same ring");   
+     P := presentation M;
+     sourceDegs := apply(degrees target P, i -> prepend(1,i));
+     RSource := R[o.Variable_1..o.Variable_(rank target P), Degrees =>sourceDegs];
+     I := ideal ((vars RSource)*(substitute(P, RSource)));
+     a = substitute(a, RSource);
+     saturate(I,a)
+     )
+
+rees(Ideal, RingElement) := Ideal => o -> (I,a) -> (
+     rees(module I, a)
+     )
           
 --We can use this to compute the distinguished subvarieties of
 --a variety (components of the support of the normal cone).
@@ -266,10 +196,34 @@ reesAlgebra(Ideal) := QuotientRing => o -> (J) -> (
 --           in 2000/2001.  I have no idea why.  I suspect that at the 
 --           time decompose required this.  But I think it is not necessary 
 --           now. 
+
+\\\
+T=ZZ/101[c,d]
+D = 4
+P = product(D, i -> random(1,T))
+R = ZZ/101[a,b,c,d]
+I = ideal(a^2, a*b*(substitute(P,R)), b^2)
+ass I -- there is one minimal associated prime (a thick line in PP^3) and D embedded primes (points on the line) 
+primaryDecomposition I
+distinguished(I) -- only the minimal prime is a distinguished component
+K = distinguishedAndMult(I) -- get multiplicity 2 
+intersect apply(K, i-> i_1^(i_0)) -- checks the Geometric Nullstellensatz on Ein-Lazarsfeld
+
+
+R=ZZ/32003[x,y,z]
+I=intersect(ideal(x),(ideal(x,y))^2, (ideal(x,y,z))^3)
+ass I
+distinguished I
+K = distinguishedAndMult I
+intersect apply(K, i-> i_1^(i_0)) 
+
+
+
+
 distinguished = method(Options => {Variable => null})
 distinguished(Ideal) := List => o -> i -> (
      R := ring i;
-     J := reesIdeal(i, Variable => o.Variable); -- the ideal of the Rees algebra
+     J := rees(i, Variable => o.Variable); -- the ideal of the Rees algebra
      oldDegs := (monoid (ring J)).Options.Degrees;
      newDegs := apply(oldDegs, i -> first entries (matrix{i}*matrix{{1},{1}}));
      S := (coefficientRing (ring J))(monoid[gens (ring J), Degrees => newDegs, MonomialOrder => GRevLex]);
@@ -787,6 +741,8 @@ analyticSpread image M
 
 
 {*
+
+
 restart
 loadPackage "ReesAlgebra"
 R=QQ[a..e]
