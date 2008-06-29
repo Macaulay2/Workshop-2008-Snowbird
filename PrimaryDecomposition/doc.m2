@@ -224,10 +224,13 @@ document {
      by monomials, then ", TT "Strategy => Monomial", " is implied.  
      In all other cases, the default is ", TT "Strategy => ShimoyamaYokoyama", ".",
      HEADER3 "Strategy => Monomial",
-     "Description, reference if possible, and then an example.  Also warn
-     that ideal must be monomial.",
-     HEADER3 "Strategy => Binomial",
-     "Description: get cellular resolution.  Give reference, example.",
+     "This strategy only works for monomial ideals.  See the chapter
+     \"Monomial Ideals\" in the Macaulay 2 book.",
+     EXAMPLE lines ///
+     	  Q = QQ[x,y]
+	  I = ideal(x^2,x*y)
+	  primaryDecomposition(I, Strategy => Monomial)
+     ///,
      HEADER3 "Strategy => EisenbudHunekeVasconcelos",
      "Description, example, reference",
      HEADER3 "Strategy => ShimoyamaYokoyama", 
