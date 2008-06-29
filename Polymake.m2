@@ -37,7 +37,7 @@ makemat = (L) -> (
 
 makelist = (L) -> (
      if #L == 0 then {}
-     else apply(removeComments(L), t-> replace(" ", ",", t)) 
+     else apply(removeComments(L), t-> value replace(" ", ",", t)) 
      )
 
 removeComments = (F) -> ( 
