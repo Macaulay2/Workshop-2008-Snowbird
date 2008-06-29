@@ -1,0 +1,31 @@
+  Key
+    schurModule
+    (schurModule, List, Module)
+  Headline
+    creates Schur module from a partition and free module
+  Usage
+    schurModule(lambda,E)
+  Inputs
+    lambda:List
+      a list of numbers representing a partition
+    E:Module
+      a free module
+  Outputs 
+    M:Module
+      the result of application of the Schur functor associated to lambda to E. 
+  Description
+    Text
+      Applies the Schur functor associated to lambda to the free module E.
+      The resulting M comes with cached data (f, finv, AT, ST) where 
+
+	  f is a map from exterior_mu E to M; 
+
+	  finv is a map from M to exterior_mu E;
+
+	  AT is a hash table of all tableaux, whose entries increase in every column;
+
+	  ST is a hash table of all standard tableaux (tableaux in AT, whose entries increase in every row).
+
+
+  SeeAlso
+    schur

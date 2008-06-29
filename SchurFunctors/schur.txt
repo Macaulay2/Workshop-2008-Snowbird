@@ -1,0 +1,20 @@
+  Key
+    schur
+    (schur, List, Matrix)
+  Headline
+    creates a map between Schur modules
+  Usage
+    schur(lambda,f)
+  Inputs
+    lambda:List
+      a list of numbers representing a partition
+    f:Module
+      a map between two free modules
+  Outputs 
+    F:Matrix
+      the result of spplication of the Schur functor associated to lambda to f
+  Description
+    Text
+      Applies the Schur functor associated to lambda to the map f betwwen free modules.
+  SeeAlso
+    schurModule
