@@ -1,0 +1,35 @@
+A list of projects, and people "assigned" to each:
+
+Each of these projects is designed to get us going: they all involve working on
+code which already exists.  The idea for many of these projects is to clean up
+the documentation, add examples and tests, and make sure the code is
+functional.
+
+1. Boij-Soederberg
+   Gwyn and Sonja M.
+
+2. "Clean" the primary decomposition code
+   Ed and Hiro
+
+3. Groebner walk and/or interfaces to gfan, 4ti2
+   Josephine and Andrew
+
+4. Schur functors; plethysm
+   Mauricio and Anton
+
+5. Local rings
+   Alexandra, Daniel, Tina
+
+6. Rees algebras
+   Amelia and David
+
+7. Points (Buchberger-Moeller, and code that David/Sorin have)
+   Greg and Stein
+
+8. Brunsification, possibly also "vet" a couple of packages that are
+   mostly complete (NoetherNormalization, GenericInitialIdeals, SimplicialComplexes)
+   Sonja P.
+   Adam
+
+9. (Possibly) interface to Sage
+   Bill and Mike
