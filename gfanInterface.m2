@@ -90,16 +90,26 @@ readGfanIdeals String := (f) -> (
      -- Reads using the current ring
      s := get f;
      G := separate("\n,",s);
-     G = drop(G,1); -- remove the first line, which contains the ring
+
+     firstLine := G#0;
+		 firstLine = separate("\n", firstLine);
+		 firstLine = drop(firstLine, 1);  -- remove the ring from the first line
+		 tempStr  := "";
+		 apply(firstLine, t -> tempStr = concatenate(tempStr, "\n", t)); -- build the firstline
+
+     G = drop(G,1);  -- drop the old first entry
+		 G = prepend(tempStr, G); -- and then add the first entry minus the ring
      H := apply(G, t -> replace(///[\{\}]*///,"",t));
-     apply(H, s -> value("{"|s|"}")))
+     apply(H, s -> value("{"|s|"}"))
+		)
+			
 
 
 gfan = method(Options=>{Symmetries=>{}, Tracing => 0})
 gfan Ideal := opts -> (I) -> (
      R := ring I;
      p := char R;
-     if p === 0 and p =!= QQ then 
+     if p === 0 and coefficientRing(R) =!= QQ then 
      error "expected prime field or QQ";
      -- Create the input file
      f := temporaryFileName();
