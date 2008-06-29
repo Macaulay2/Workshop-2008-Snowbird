@@ -25,7 +25,7 @@ isBlankLine = (s) -> (
      )
 
 makevec = (str) -> (
-     t := separateRegexp(" +", str);
+     t := separateRegexp(" +", removeComment str);
      t = apply(t,value);
      select(t, x-> x =!= null)
      )
@@ -44,7 +44,16 @@ removeComments = (F) -> (
      -- F is a list of lines
      -- removes comments beginning with #
      -- also removes trailing blank spaces
+		 if F === null then return null
+		 else
      apply(F, s-> replace("[[:space:]]*#.*|[[:space:]]+$","" ,s))
+     )
+
+removeComment = (str) -> ( 
+     -- F is a list of lines
+     -- removes comments beginning with #
+     -- also removes trailing blank spaces
+     replace("[[:space:]]*#.*|[[:space:]]+$","" ,str)
      )
 
 getPropertyNames = method()
@@ -64,7 +73,9 @@ getProperty(List, String) := (F, section) -> (
      if(n =!= null) then
      ( 
         p := n+1;
-        while p < #F and not isBlankLine F_p  list (p=p+1; F_(p-1))
+				if isBlankLine F_p then {} 
+				else
+       	  while p < #F and not isBlankLine F_p  list (p=p+1; F_(p-1))
      )
      else null
      ) 
@@ -98,14 +109,14 @@ getListProperty(String,String) := (filename, propertyname) -> (
 
 getVectorProperty = method()
 getVectorProperty(List, String) := (F, section) -> (
-     L := getProperty(F,propertyname);
+     L := getProperty(F,section);
      if L === null then null
      else if #L > 1 then error "property is not a vector"
      else if #L == 0 then {} 
      else makevec L_0
      )
 getVectorProperty(String,String) := (filename, propertyname) -> (
-     F = lines get filename;
+     F := lines get filename;
      getVectorProperty(F, propertyname)
      )
 

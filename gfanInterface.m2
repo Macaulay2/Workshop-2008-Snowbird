@@ -13,13 +13,14 @@ newPackage(
     	)
 
 export {
-     gfan, weightVector, inw, groebnerCone, Symmetries, Tracing
+     gfan, weightVector, inw, groebnerCone, polyhedralFan, Symmetries, Tracing
      }
 
 gfan'path = gfanInterface#Options#Configuration#"path"
 
 --needs "FourierMotzkin.m2"
 needsPackage "FourierMotzkin"
+needsPackage "Polymake"
 
 wtvec = (inL,L) -> (
   W := flatten apply(#inL, i -> (
@@ -104,6 +105,24 @@ readGfanIdeals String := (f) -> (
 		)
 			
 
+readPolyhedralfan= method()
+readPolyhedralfan String := (f) -> (
+		 s := lines get f;
+		 return hashTable{
+				"AMBIENT_DIM" => value first removeComments getProperty(f,"AMBIENT_DIM"),
+				"DIM" => value first removeComments getProperty(f,"DIM"),
+				"LINEALITY_DIM" => value first removeComments getProperty(f,"LINEALITY_DIM"),
+				"RAYS" => getMatrixProperty(f,"RAYS"),
+				"N_RAYS" => value first removeComments getProperty(f,"N_RAYS"),
+				"LINEALITY_SPACE" => getMatrixProperty(f,"LINEALITY_SPACE"),
+				"ORTH_LINEALITY_SPACE" => getMatrixProperty(f,"ORTH_LINEALITY_SPACE"),
+				"F_VECTOR" => getVectorProperty(f,"F_VECTOR"),
+				"CONES" => getListProperty(f,"CONES"),
+				"MAXIMAL_CONES" => getListProperty(f,"CONES"),
+				"PURE" => value first removeComments getProperty(f,"PURE")}
+		)
+			
+
 
 gfan = method(Options=>{Symmetries=>{}, Tracing => 0})
 gfan Ideal := opts -> (I) -> (
@@ -126,9 +145,31 @@ gfan Ideal := opts -> (I) -> (
      run ex;
      ex2 := gfan'path| "gfan_leadingterms -m <" | f | ".out >" | f | ".lt";
      run ex2;
-     L = readGfanIdeals(f | ".out");
-     M = readGfanIdeals(f | ".lt");
+     L := readGfanIdeals(f | ".out");
+     M := readGfanIdeals(f | ".lt");
      (M,L)
+     )
+
+polyhedralFan = method(Options=>{Symmetries=>{}, Tracing => 0})
+polyhedralFan Ideal := opts -> (I) -> (
+     R := ring I;
+     p := char R;
+     if p === 0 and coefficientRing(R) =!= QQ then 
+     error "expected prime field or QQ";
+     -- Create the input file
+     f := temporaryFileName();
+     << "using temporary file " << f << endl;
+     ex := "";
+     if opts.Symmetries =!= {}
+     then (
+	  if not instance(opts.Symmetries, VisibleList)
+	  then error "Symmetries value should be a list of permutations (list of lists of integers)";
+	  ex = ex|" --symmetry";
+	  );
+     ex = gfan'path| "gfan " | ex | "  <" | f | "| gfan_topolyhedralfan" | ex | " >" | f | ".out";
+     writeGfanIdeal(f, I, opts.Symmetries);
+     run ex;
+     readPolyhedralfan(f | ".out")
      )
 
 beginDocumentation()
