@@ -143,10 +143,16 @@ mat2cohom(Matrix,ZZ) := (M,lowDegree) -> (
      )
 
 TEST ///
-matrix "1,0,0,0;
+m = matrix "1,0,0,0;
         0,4,4,1"
-mat2betti oo
+B = mat2betti oo 
+assert (m == matrix B)
+
+B2 = mat2betti(m,2)
+assert(m == matrix B2)
 ///
+
+
 
 matrix(BettiTally, ZZ, ZZ) := opts -> (B,lowestDegree, highestDegree) -> (
      c := pdim B + 1;
@@ -203,6 +209,17 @@ highestDegrees BettiTally := (B) -> (
 
 isPure = method()
 isPure BettiTally := (B) -> lowestDegrees B == highestDegrees B
+
+TEST ///
+matrix "1,0,0;
+     	0,2,3"  
+B = mat2betti oo
+assert(isPure B)
+
+matrix "1,0,0; 0,2,1; 0,1,1"
+B2 = mat2betti oo
+assert(not isPure B2)
+///
 
 TEST ///
 --load "BoijSoederberg.m2"
@@ -274,9 +291,23 @@ pureBettiDiagram List := (degs) -> (
      )
 
 TEST ///
-pureBetti{0,1,2,3,4}
-B=pureBetti{0,2,3,4}
+assert(pureBetti{0,1,2,3,4} == {1,4,6,4,1})
+B = pureBettiDiagram {0,1,2,3,4}
+assert(B == mat2betti matrix "1,4,6,4,1")
+
+B1=pureBetti{0,2,3,4}
+assert (B1 == {1,6,8,3})
 D1=pureBettiDiagram {0,2,3,4}
+assert (D1 == mat2betti matrix "1,0,0,0; 0,6,8,3")
+
+B2 = pureBetti {0,2,3,5}
+assert(B2 == {1,5,5,1})
+D2 = pureBettiDiagram {0,2,3,5}
+m = matrix "1,0,0,0;
+     	    0,5,5,0;
+	    0,0,0,1"   
+assert(D2 == mat2betti m)
+
 ///
 
 ---------------------------------------------
@@ -554,6 +585,9 @@ facetEquation(List,ZZ,ZZ,ZZ) := (de,i,lowestDegree, highestDegree) -> (
      B1:=bettiMatrix(de,lowestDegree,highestDegree);
      if dotProduct(F,B1)>0 then F else -F)
 
+TEST ///
+facetEquation({0,1,3},0,0,2)
+///
 dotProduct=method()
 
 dotProduct(Matrix, Matrix):=(A,B)->
