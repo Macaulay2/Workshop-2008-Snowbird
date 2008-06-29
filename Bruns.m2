@@ -133,7 +133,7 @@ doc ///
 Key 
    Bruns
 Headline 
-   stuff
+   generates an ideal with three generators whose 2nd syzygy is a 3rd syzygy of a given module??? 
 Description 
   Text
     {\em Bruns}  is a package of functions for transforming syzygies. 
@@ -162,22 +162,24 @@ Description
 doc ///
 Key
   bruns
+  (bruns,Module)
+  (bruns,Matrix)
 Headline
-  Makes 3-generator ideal whose 2nd syz is a given 3rd syzygy
+  Makes 3-generator ideal whose 2nd syzygy is a given 3rd syzygy 
 Usage
- j= bruns M \n  j= bruns f
+ j= bruns M or  j= bruns f
 Inputs
   M:Module
-    M is a third syzygy (graded)
+    a third syzygy (graded)
   f:Matrix
-    f is a matrix whose cokernel is a second syzygy (graded)
+    whose cokernel is a second syzygy (graded)
 Outputs
   j:Ideal
-   j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
+    a homogeneous three-generator ideal whose second syzygy is M, or image f
 Description
   Text
     This function takes a graded module M over a polynomial ring S that
-    is a third syzygy, and returns a three-generator ideal j whose second syzygy is M, 
+    is a third syzygy, and returns a three-generator ideal j whose second syzygy is M,
     so that the resolution of S/j, from the third step, is isomorphic to the resolution of M.
     Alternately {\tt bruns} takes
     a matrix whose cokernel is a second syzygy, and finds a 3-generator
@@ -193,84 +195,111 @@ Description
     betti res j 
     j1=bruns f; 
     betti res j1  
-  Text
-    text moved to the description on the main page**
 ///
 
 doc ///
 Key
   elementary
+  (elementary,Matrix,ZZ,ZZ)
 Headline
-  CHANGE ME. 
+  Elementary moves used to reduce the target of a syzygy matrix
 Usage
- j= bruns M \n  j= bruns f
+  g= elementary(f,k,m)
 Inputs
-  M:Module
-    M is a third syzygy (graded)
   f:Matrix
-    f is a matrix whose cokernel is a second syzygy (graded)
+    whose target degrees are in ascending order
+  k:ZZ
+    whose value is strictly less than the number of rows of f
+  m:ZZ
+    positive
 Outputs
-  j:Matrix
-   j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
+  g:Matrix
+    obtained from f by adding random multiples of the last row by polynomials in the first m variables to the k preceding rows, 
+    and then deleting the last row.
 Description
   Text
-    Describe the function here.
+    Factors out a general element, reducing the rank of f.      
+    More precisely, the routine adds random multiples of the last row, whose coefficients are polynomials
+    in the first m variables,  to the k preceding rows and drops the last row. 
+    For this to be effective, the target degrees of f must be in ascending order.
+    
+    This is a fundamental operation in the theory of basic elements, see D. Eisenbud and E. G. Evans, 
+    {\em Basic elements: theorems from algebraic k-theory}, Bulletin of the AMS, {\bf 78}, No.4, 1972, 546-549.
+    
+    Here is a basic example:
+  Example 
+    kk=ZZ/32003
+    S=kk[a..d]
+    M=matrix{{a,0,0,0},{0,b,0,0},{0,0,c,0},{0,0,0,d}}
+    elementary(M,0,1)-- since k=0, this command simply eliminates the last row of M.
+  Text
+    Here is a more involved example. This is also how this function is used within the package.
   Example
     kk=ZZ/32003
     S=kk[a..d]
-    2+2
+    I=ideal(a^2,b^3,c^4, d^5)
+    F=res I
+    M=image F.dd_3
+    f=matrix gens M
+    fascending=transpose sort(transpose f, DegreeOrder=>Descending) -- this is f with rows sorted so that the degrees are ascending.
+    g=elementary(fascending,1,1) --k=1, so add random multiples of the last row to the preceding row
+    g1=elementary(fascending,1,3)
   Text
-    type something. 
+    This method is called by evansGriffith. 
 ///
-
 doc ///
 Key
   evansGriffith
+  (evansGriffith,Matrix,ZZ)
 Headline
   CHANGE ME. 
 Usage
- j= bruns M \n  j= bruns f
+  N = evansGriffith(M,d)
 Inputs
-  M:Module
-    M is a third syzygy (graded)
-  f:Matrix
-    f is a matrix whose cokernel is a second syzygy (graded)
+  M:Matrix
+   is a matrix
+  d:ZZ
+   is an integer
 Outputs
-  j:Matrix
-   j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
+  N:Matrix
+   a matrix
 Description
   Text
     Describe function here.
   Example
     kk=ZZ/32003
-    S=kk[a..d]
-    2+2
+    S=kk[x_0..x_5]
   Text
     type something. 
     ///
-
 doc ///
 Key
   isSyzygy
+  (isSyzygy,Matrix,ZZ)
+  (isSyzygy,Module,ZZ)
 Headline
-  CHANGE ME. 
+  tests if a module is a d-th syzygy
 Usage
- j= bruns M \n  j= bruns f
+ b = isSyzygy(M,d) or isSyzygy(N,d)
 Inputs
-  M:Module
-    M is a third syzygy (graded)
-  f:Matrix
-    f is a matrix whose cokernel is a second syzygy (graded)
+  M:Matrix
+   with entries in the polynomial ring whose cokernel defines the module
+  N:Module
+   over a polynomial ring
+  d:ZZ
+   a non-negative positive integer
 Outputs
-  j:Boolean
-   j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
+  b:Boolean
+   returns {\tt true} if M is a d-th syzygy, and {\tt false} otherwise.
 Description
   Text
     Description of the file.
   Example
     kk=ZZ/32003
     S=kk[a..d]
-    2+2
+    F=res (ideal vars S)^2
+    isSyzygy(F.dd_3,3)==false
+    isSyzygy(F.dd_4,3)==true
   Text
     type something. 
     ///
@@ -279,7 +308,7 @@ end
 
 restart
 installPackage ("Bruns", UserMode=>true)
---loadPackage "Bruns"
+loadPackage "Bruns"
 viewHelp Bruns
 
 --brunsification of a complete intersection
@@ -298,8 +327,8 @@ betti gens j
 betti res j 
 time (f1=evansGriffith(f,3);)
 time (f1=evansGriffith(f,2);)
-
-
+evansGriffith(f,2)
+isSyzygy(f,2)
 
 kk=ZZ/32003
 S=kk[x_0..x_5]
