@@ -129,10 +129,36 @@ ft:= syz transpose ff;
 bruns transpose ft)
 
 beginDocumentation()
-document { 
-	Key => Bruns,
-	Headline => " \"Every\" free resolution is the resolution of a 3-generator ideal",
-	EM "a package of functions for transforming syzygies"}
+doc ///
+Key 
+   Bruns
+Headline 
+   stuff
+Description 
+  Text
+    {\em Bruns}  is a package of functions for transforming syzygies. 
+    
+    A famous paper of Winfried Bruns, entitled  
+    {\bf ''Jede'' freie Aufl\"osung ist freie Aufl\"osung eines drei-Erzeugenden Ideals }
+    (J. Algebra 39 (1976), no. 2, 429-439.),
+    shows that every 3rd syzygy is the 2nd syzygy of a three generator ideal.
+    
+    The general context of this result uses the theory of ''basic elements'', a
+    commutative algebra version of the general position arguments of the algebraic
+    geometers. The ''Syzygy Theorem'' of Evans and Griffiths 
+    ({\bf Syzygies.} London Mathematical Society Lecture Note Series, 106. Cambridge University Press, Cambridge, 1985.)
+    asserts that if a module M over a regular local ring S containing a field (the field is conjecturally not
+    necessary), or a graded modules over polynomial ring S, is a k-th syzygy but not a free module,
+    then M has rank at least k. The theory of basic elements shows that if M is a k-th syzygy
+    of rank >k, then for a ''sufficiently general'' element m of M the module M/Sm is again a k-th syzygy. 
+    
+    The idea of Bruns theorem is if M is a second syzygy, then factoring out rank M - 2 general elements gives
+    a second syzygy N of rank 2. It turns out that 3 general homomorphisms from M to S together
+    embed N in S^3 in such a way that the quotient S^3/N is a three generator ideal.
+    
+    This is the method implemented in this package.
+///
+
 doc ///
 Key
   bruns
@@ -150,11 +176,7 @@ Outputs
    j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
 Description
   Text
-    A famous paper of Winfried Bruns is called
-   {\bf  ``Jede'' freie Aufl\"osung ist
-    freie Aufl\"osung eines drei-Erzeugenden Ideals} (J. Algebra {\bf 39} (1976), no. 2, 429-439.).
-    More precisely, Bruns shows that every 3rd syzygy is the 2nd syzygy
-    of a three generator ideal. This function takes a graded module M over a polynomial ring S that
+    This function takes a graded module M over a polynomial ring S that
     is a third syzygy, and returns a three-generator ideal j whose second syzygy is M, 
     so that the resolution of S/j, from the third step, is isomorphic to the resolution of M.
     Alternately {\tt bruns} takes
@@ -172,20 +194,121 @@ Description
     j1=bruns f; 
     betti res j1  
   Text
-    The general context of this result uses the theory of ``basic elements'', a
-    commutative algebra version of the general position arguments of the algebraic
-    geometers. The ``Syzygy Theorem'' of Evans and Griffiths (**citation**) asserts that if
-    a module M over a regular local ring S containing a field (the field is conjecturally not
-    necessary), or a graded modules over polynomial ring S, is a k-th syzygy but not a free module,
-    then M has rank at least k. The theory of basic elements shows that if M is a k-th syzygy
-    of rank >k, then for a ``sufficiently general'' element m of M the module M/Sm is again
-    a k-th syzygy. 
+    text moved to the description on the main page**
+///
 
-    The idea of Bruns theorem is if M is a second syzygy, then factoring out rank M - 2 general elements gives
-    a second syzygy N of rank 2. It turns out that 3 general homomorphisms from M to S together
-    embed N in S^3 in such a way that the quotient S^3/N is a three generator ideal.
+doc ///
+Key
+  elementary
+Headline
+  CHANGE ME. Makes 3-generator ideal whose 2nd syz is a given 3rd syzygy
+Usage
+ j= bruns M \n  j= bruns f
+Inputs
+  M:Module
+    M is a third syzygy (graded)
+  f:Matrix
+    f is a matrix whose cokernel is a second syzygy (graded)
+Outputs
+  j:Matrix
+   j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
+Description
+  Text
+    This function takes a graded module M over a polynomial ring S that
+    is a third syzygy, and returns a three-generator ideal j whose second syzygy is M, 
+    so that the resolution of S/j, from the third step, is isomorphic to the resolution of M.
+    Alternately {\tt bruns} takes
+    a matrix whose cokernel is a second syzygy, and finds a 3-generator
+    ideal whose 2nd syzygy is the image of that matrix.
+  Example
+    kk=ZZ/32003
+    S=kk[a..d]
+    i=ideal(a^2,b^3,c^4, d^5)
+    betti (F=res i)
+    M = image F.dd_3
+    f=F.dd_3
+    j=bruns M;
+    betti res j 
+    j1=bruns f; 
+    betti res j1  
+  Text
+    type something. 
+    ///
 
-    This is the method implemented in this package.
+doc ///
+Key
+  evansGriffith
+Headline
+  CHANGE ME. Makes 3-generator ideal whose 2nd syz is a given 3rd syzygy
+Usage
+ j= bruns M \n  j= bruns f
+Inputs
+  M:Module
+    M is a third syzygy (graded)
+  f:Matrix
+    f is a matrix whose cokernel is a second syzygy (graded)
+Outputs
+  j:Matrix
+   j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
+Description
+  Text
+    This function takes a graded module M over a polynomial ring S that
+    is a third syzygy, and returns a three-generator ideal j whose second syzygy is M, 
+    so that the resolution of S/j, from the third step, is isomorphic to the resolution of M.
+    Alternately {\tt bruns} takes
+    a matrix whose cokernel is a second syzygy, and finds a 3-generator
+    ideal whose 2nd syzygy is the image of that matrix.
+  Example
+    kk=ZZ/32003
+    S=kk[a..d]
+    i=ideal(a^2,b^3,c^4, d^5)
+    betti (F=res i)
+    M = image F.dd_3
+    f=F.dd_3
+    j=bruns M;
+    betti res j 
+    j1=bruns f; 
+    betti res j1  
+  Text
+    type something. 
+    ///
+
+doc ///
+Key
+  isSyzygy
+Headline
+  CHANGE ME. Makes 3-generator ideal whose 2nd syz is a given 3rd syzygy
+Usage
+ j= bruns M \n  j= bruns f
+Inputs
+  M:Module
+    M is a third syzygy (graded)
+  f:Matrix
+    f is a matrix whose cokernel is a second syzygy (graded)
+Outputs
+  j:Boolean
+   j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
+Description
+  Text
+    This function takes a graded module M over a polynomial ring S that
+    is a third syzygy, and returns a three-generator ideal j whose second syzygy is M, 
+    so that the resolution of S/j, from the third step, is isomorphic to the resolution of M.
+    Alternately {\tt bruns} takes
+    a matrix whose cokernel is a second syzygy, and finds a 3-generator
+    ideal whose 2nd syzygy is the image of that matrix.
+  Example
+    kk=ZZ/32003
+    S=kk[a..d]
+    i=ideal(a^2,b^3,c^4, d^5)
+    betti (F=res i)
+    M = image F.dd_3
+    f=F.dd_3
+    j=bruns M;
+    betti res j 
+    j1=bruns f; 
+    betti res j1  
+  Text
+    type something. 
     ///
 
 end 
