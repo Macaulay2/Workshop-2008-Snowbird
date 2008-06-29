@@ -1,0 +1,27 @@
+# HG changeset patch
+# User Mike Hansen <mhansen@gmail.com>
+# Date 1214771130 21600
+# Node ID 0b3ffa51fd3883c183c7c7c8b605a0f3f75c125c
+# Parent  c86a0973ace9d930faaff15ae9a618b379bf78c5
+imported patch notebook.patch
+
+diff -r c86a0973ace9 -r 0b3ffa51fd38 sage/server/notebook/worksheet.py
+--- a/sage/server/notebook/worksheet.py	Sat Apr 19 18:29:12 2008 -0700
++++ b/sage/server/notebook/worksheet.py	Sun Jun 29 14:25:30 2008 -0600
+@@ -2177,11 +2177,12 @@ class Worksheet:
+             if s.startswith('%sage'):
+                 s = after_first_word(s).lstrip()
+                 z = s
+-            else:
++            elif len(s) == 0 or s[0] != "%":
+                 return True, self._eval_cmd(S, s, os.path.abspath(C.directory()))
+-                
+-        if len(s) == 0 or s[0] != '%':
+-            return False, z
++        else:        
++            if len(s) == 0 or s[0] != '%':
++                return False, z
++
+         if s.startswith('%hide'):
+             t = after_first_word(s).lstrip()
+             if len(t) == 0 or t[0] != '%':
