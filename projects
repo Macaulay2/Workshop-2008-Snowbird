@@ -7,9 +7,10 @@ functional.
 
 1. Boij-Soederberg
    Gwyn and Sonja M.
+   BoijSoederberg.m2 (wait for David to check it in)
 
 2. "Clean" the primary decomposition code
-   Ed and Hiro
+   Ed and Hirotachi
 
 3. Groebner walk and/or interfaces to gfan, 4ti2
    Josephine and Andrew
@@ -27,9 +28,10 @@ functional.
    Greg and Stein
 
 8. Brunsification, possibly also "vet" a couple of packages that are
-   mostly complete (NoetherNormalization, GenericInitialIdeals, SimplicialComplexes)
+   mostly complete (NoetherNormalization, GenericInitialIdeals,
+   SimplicialComplexes)
    Sonja P.
    Adam
 
 9. (Possibly) interface to Sage
-   Bill and Mike
+   Bill and Mike H.
