@@ -99,7 +99,7 @@ gfan = method(Options=>{Symmetries=>{}, Tracing => 0})
 gfan Ideal := opts -> (I) -> (
      R := ring I;
      p := char R;
-     if p === 0 and R =!= QQ then 
+     if p === 0 and p =!= QQ then 
      error "expected prime field or QQ";
      -- Create the input file
      f := temporaryFileName();
