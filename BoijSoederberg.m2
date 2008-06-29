@@ -811,7 +811,8 @@ randomSocleModule(List, ZZ) := opts -> (L, m) -> (
 TEST ///
 L={0,1,3,4}
 B = pureBettiDiagram L
-betti res randomSocleModule(L,1)
+assert(betti res randomSocleModule(L,1) == mat2betti matrix"1,2,1,0;
+					0,1,2,1")
 assert(2*B == betti res randomSocleModule(L,2))
 assert(3*B == betti res randomSocleModule(L,3))
 
