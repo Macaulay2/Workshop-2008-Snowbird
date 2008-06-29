@@ -291,7 +291,7 @@ HprimaryDecomposition = (I,assstrategy,localizestrategy) -> (
 	  if assstrategy === 1 then ass1
 	  else ass2);
      localizeroutine := (
-	  if localizestrategy === 1 then EHVlocalize
+	  if localizestrategy === 1 then EHVlocalize assroutine
 	  else SYlocalize assroutine);
      primarycomponentroutine := primarycomponent(localizeroutine);
      Assasin := assroutine I;
