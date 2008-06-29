@@ -165,6 +165,28 @@ document {
      }
 
 document {
+     Key => {isPrimary, (isPrimary, Ideal), (isPrimary, Ideal, Ideal)},
+     Headline => "determine whether an ideal is primary",
+     Usage => concatenate("isPrimary Q\n", "isPrimary(Q,P)\n"),
+     Inputs => {
+	  "Q" => Ideal => "an ideal to be checked for being primary",
+	  "P" => Ideal => {"the ", TO "radical", " of ", TT "Q"}
+	  },
+     Outputs => {
+	  Boolean => {TO "true", " if ", TT "Q", " is primary, ",
+	       TO "false", " otherwise"}
+	  },
+     EXAMPLE lines ///
+     	  Q = ZZ/101[x,y,z]
+	  isPrimary ideal(y^6)
+	  isPrimary(ideal(y^6), ideal(y))
+	  isPrimary ideal(x^4, y^7)
+	  isPrimary ideal(x*y, y^2)
+     ///,
+     SeeAlso => {primaryDecomposition}
+     }
+
+document {
      Key => [primaryComponent,Strategy],
      "The Strategy option value sets the localize strategy 
      option, and should be one of the following.",
@@ -191,7 +213,7 @@ document {
      UL {
           ("Monomial", " -- uses Alexander duality of a monomial ideal"),
 	  ("Binomial", " -- finds a cellular resolution of a 
-	                     binomial ideal"),
+	                     binomial ideal.  NOT IMPLEMENTED YET."),
 	  ("EisenbudHunekeVasconcelos", " -- uses the algorithm of Eisenbud-Huneke-Vasconcelos"),
 	  ("ShimoyamaYokoyama", " -- uses the algorithm of Shimoyama-Yokoyama"),
 	  ("Hybrid"," -- uses parts of the above two algorithms"),
