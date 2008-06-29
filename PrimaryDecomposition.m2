@@ -137,8 +137,13 @@ TEST ///
 		    	 )
 	       	    );
 	       );
-	  scan(L, J -> (
-		    if isPrimary J then (
+	  L3 := associatedPrimes I;
+	  assert(#L == #L3);
+	  scan(#L, i -> (
+		    J := L_i;
+		    P := radical J;
+		    assert(P == L3_i);
+		    if isPrimary(J,P) then (
 			 
 			 )
 		    else (
@@ -165,7 +170,11 @@ TEST ///
 			 	   )
 			      )	    
 	       	    	 )     
-	       	    )
+	       	    );
+	       scan({new Hybrid from (1,1), new Hybrid from (2,1)}, s -> (
+			 testResult(ideal(x^4*y^5), primaryDecomposition(ideal(x^4*y^5), Strategy => s))
+			 )
+		    )	    
 	       )
 	  )
 ///
