@@ -128,121 +128,179 @@ document { Key => LocalRings,
 
 document { 
      Key => setMaxIdeal,
-     Headline => "",
-     Usage => "",
+     Headline => "set the maximal ideal for local ring methods",
+     Usage => "setMaxIdeal I",
      Inputs => {
+	  "I" => {ofClass Ideal, ", a maximal ideal of the ring R"}
 	  },
      Outputs => {
+	  Ideal => {"same ideal as input"}
 	  },
      Consequences => {
 	  },     
-     "description",
-     EXAMPLE {
-	  },
+     "The function adds new structure to the ring which specifies a maximal ideal which allows the user to employ local ring methods.",
+     EXAMPLE lines ///
+	  loadPackage "LocalRings"
+	  kk = ZZ/32003
+	  R = kk[x,y,z,w,SkewCommutative=>true]
+	  setMaxIdeal(ideal(x,y,z,w))
+	  ///,
      Caveat => {},
-     SeeAlso => {}
+     SeeAlso => {localComplement, localsyz, localMingens, localModulo, localPrune, localResolution, residueMap, maxIdeal}
      }
 
 document { 
      Key => localComplement,
-     Headline => "",
-     Usage => "",
-     Inputs => {
+     Headline => "find the splitting of the target of a map",
+     Usage => "localComplement m",
+     Inputs => { 
+	  "m" => {ofClass Matrix, ", representing a homomorphism of free modules over a local ring"},
 	  },
      Outputs => {
+	  Matrix => {"the complement of the image of the homomorphism represented by m"}
 	  },
      Consequences => {
-	  },     
-     "description",
-     EXAMPLE {
-	  },
+	  },   
+     "The function finds a splitting of the target of m as a direct sum of the image of m and the image of the output.",
+     EXAMPLE lines ///
+	  loadPackage "LocalRings"
+	  k = ZZ/32003
+	  R = k[x,y]
+	  m = matrix{{x,y-1},{0,x}}
+	  setMaxIdeal(ideal(x,y))
+	  localComplement m
+	  ///,
      Caveat => {},
-     SeeAlso => {}
+     SeeAlso => {setMaxIdeal, localsyz, localMingens, localModulo, localPrune, localResolution, residueMap, maxIdeal}
      }
 
 document { 
      Key => localsyz,
-     Headline => "",
-     Usage => "",
+     Headline => "find syzygies",
+     Usage => "localsyz m",
      Inputs => {
+	  "m" => {ofClass Matrix}
 	  },
      Outputs => {
+	  Matrix => {"giving minimal generators of the syzygies taking into account the local structure"}
 	  },
      Consequences => {
 	  },     
-     "description",
-     EXAMPLE {
-	  },
+     EXAMPLE lines ///
+	  loadPackage "LocalRings"
+	  kk = ZZ/32003
+	  R = kk[x,y,z,w,SkewCommutative=>true]
+	  m = matrix{{x,y*z},{z*w,x}}
+	  setMaxIdeal(ideal(x,y,z,w))
+     	  localsyz m
+	  m * localsyz m
+	  ///,
      Caveat => {},
-     SeeAlso => {}
+     SeeAlso => {setMaxIdeal, localComplement, localMingens, localModulo, localPrune, localResolution, residueMap, maxIdeal}
      }
 
 document { 
      Key => localMingens,
-     Headline => "",
-     Usage => "",
+     Headline => "finds a minimal set of generators",
+     Usage => "localMingens m",
      Inputs => {
+	  "m" => {ofClass Matrix}
 	  },
      Outputs => {
+	  Matrix => {"the matrix of minimal generators"}
 	  },
      Consequences => {
 	  },     
-     "description",
-     EXAMPLE {
-	  },
+     "We get a minimal set for the homogeneous case, but not necessarily otherwise.",
+     EXAMPLE lines ///
+     	  loadPackage "LocalRings"
+	  R=QQ[a,b]
+	  setMaxIdeal ideal gens R
+	  mingens image matrix{{a-1,a,b},{a-1,a,b}}
+	  localMingens matrix {{a-1,a,b},{a-1,a,b}}
+	  ///,
      Caveat => {},
-     SeeAlso => {}
+     SeeAlso => {setMaxIdeal, localComplement, localsyz, localModulo, localPrune, localResolution, residueMap, maxIdeal}
      }
 
 document { 
      Key => localModulo,
-     Headline => "",
-     Usage => "",
+     Headline => "find the pre-image (pullback) of image of a map over a local ring",
+     Usage => "localModulo(m,n)",
      Inputs => {
+	  "m" => {ofClass Matrix},
+	  "n" => {ofClass Matrix}
 	  },
      Outputs => {
+	  Matrix => {"whose image is the pre-image (pullback) of the image of n under m"}
 	  },
      Consequences => {
 	  },     
-     "description",
-     EXAMPLE {
-	  },
+     "The maps m and n must have the same target, and their sources and targets must be free. If m is null, then it is taken to be the identity. If n is null, it is taken to be zero.",
+     EXAMPLE lines ///
+	  loadPackage "LocalRings"
+	  R = QQ[x,y,z]
+	  setMaxIdeal ideal vars R
+	  m = matrix {{x-1, y}}
+	  n = matrix {{y,z}}
+	  modulo (m,n)
+	  localModulo (m,n)
+	  ///,
      Caveat => {},
-     SeeAlso => {}
+     SeeAlso => {setMaxIdeal, localComplement, localsyz, localMingens, localPrune, localResolution, residueMap, maxIdeal}
      }
 
 document { 
      Key => localPrune,
-     Headline => "",
-     Usage => "",
+     Headline => "find a minimal presentation",
+     Usage => "localPrune M",
      Inputs => {
+	  M => {ofClass Module}
 	  },
      Outputs => {
+	  Module
 	  },
      Consequences => {
 	  },     
-     "description",
-     EXAMPLE {
-	  },
+     "The output is a minimal presentation of the input.",
+     EXAMPLE lines ///
+     	  loadPackage "LocalRings"
+	  R=QQ[a,b]
+	  setMaxIdeal ideal gens R
+	  m = matrix{{a-1,a,b},{a-1,a,b}}
+	  prune m
+	  localPrune image m
+	  ///,
      Caveat => {},
-     SeeAlso => {}
+     SeeAlso => {setMaxIdeal, localComplement, localsyz, localMingens, localModulo, localResolution, residueMap, maxIdeal}
      }
 
 document { 
      Key => localResolution,
-     Headline => "",
-     Usage => "",
+     Headline => "find a resolution over a local ring",
+     Usage => "localResolution M",
      Inputs => {
-	  },
+	  M => {ofClass Module},
+      	  },
      Outputs => {
+	  ChainComplex
 	  },
      Consequences => {
 	  },     
-     "description",
-     EXAMPLE {
-	  },
+     "This function iterates", TO "localsyz", "to obtain a resolution over the local ring.  This method has option inputs that it inherits from", TO "resolution",".",
+     EXAMPLE lines ///
+	  loadPackage "LocalRings"
+	  kk = ZZ/32003
+	  R = kk[x,y,z,w,SkewCommutative=>true]
+	  m = matrix{{x,y*z},{z*w,x}}
+	  setMaxIdeal(ideal(x,y,z,w))
+	  C = localResolution(coker m, LengthLimit=>10)
+	  C = localResolution(coker m)
+	  C^2
+	  C.dd_4
+	  ///,
      Caveat => {},
-     SeeAlso => {}
+     SeeAlso => {setMaxIdeal, localComplement, localsyz, localMingens, localModulo, localPrune, residueMap, maxIdeal}
      }
 
 end
