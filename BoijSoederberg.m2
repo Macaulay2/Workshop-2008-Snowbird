@@ -280,7 +280,7 @@ D1=pureBettiDiagram {0,2,3,4}
 ///
 
 ---------------------------------------------
--- Decoomposing a Betti diagram into pures --
+-- Decomposing a Betti diagram into pures --
 ---------------------------------------------
 
 --input: list of rational numbers
