@@ -201,7 +201,7 @@ doc ///
 Key
   elementary
 Headline
-  CHANGE ME. Makes 3-generator ideal whose 2nd syz is a given 3rd syzygy
+  CHANGE ME. 
 Usage
  j= bruns M \n  j= bruns f
 Inputs
@@ -214,32 +214,20 @@ Outputs
    j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
 Description
   Text
-    This function takes a graded module M over a polynomial ring S that
-    is a third syzygy, and returns a three-generator ideal j whose second syzygy is M, 
-    so that the resolution of S/j, from the third step, is isomorphic to the resolution of M.
-    Alternately {\tt bruns} takes
-    a matrix whose cokernel is a second syzygy, and finds a 3-generator
-    ideal whose 2nd syzygy is the image of that matrix.
+    Describe the function here.
   Example
     kk=ZZ/32003
     S=kk[a..d]
-    i=ideal(a^2,b^3,c^4, d^5)
-    betti (F=res i)
-    M = image F.dd_3
-    f=F.dd_3
-    j=bruns M;
-    betti res j 
-    j1=bruns f; 
-    betti res j1  
+    2+2
   Text
     type something. 
-    ///
+///
 
 doc ///
 Key
   evansGriffith
 Headline
-  CHANGE ME. Makes 3-generator ideal whose 2nd syz is a given 3rd syzygy
+  CHANGE ME. 
 Usage
  j= bruns M \n  j= bruns f
 Inputs
@@ -252,23 +240,11 @@ Outputs
    j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
 Description
   Text
-    This function takes a graded module M over a polynomial ring S that
-    is a third syzygy, and returns a three-generator ideal j whose second syzygy is M, 
-    so that the resolution of S/j, from the third step, is isomorphic to the resolution of M.
-    Alternately {\tt bruns} takes
-    a matrix whose cokernel is a second syzygy, and finds a 3-generator
-    ideal whose 2nd syzygy is the image of that matrix.
+    Describe function here.
   Example
     kk=ZZ/32003
     S=kk[a..d]
-    i=ideal(a^2,b^3,c^4, d^5)
-    betti (F=res i)
-    M = image F.dd_3
-    f=F.dd_3
-    j=bruns M;
-    betti res j 
-    j1=bruns f; 
-    betti res j1  
+    2+2
   Text
     type something. 
     ///
@@ -277,7 +253,7 @@ doc ///
 Key
   isSyzygy
 Headline
-  CHANGE ME. Makes 3-generator ideal whose 2nd syz is a given 3rd syzygy
+  CHANGE ME. 
 Usage
  j= bruns M \n  j= bruns f
 Inputs
@@ -290,23 +266,11 @@ Outputs
    j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
 Description
   Text
-    This function takes a graded module M over a polynomial ring S that
-    is a third syzygy, and returns a three-generator ideal j whose second syzygy is M, 
-    so that the resolution of S/j, from the third step, is isomorphic to the resolution of M.
-    Alternately {\tt bruns} takes
-    a matrix whose cokernel is a second syzygy, and finds a 3-generator
-    ideal whose 2nd syzygy is the image of that matrix.
+    Description of the file.
   Example
     kk=ZZ/32003
     S=kk[a..d]
-    i=ideal(a^2,b^3,c^4, d^5)
-    betti (F=res i)
-    M = image F.dd_3
-    f=F.dd_3
-    j=bruns M;
-    betti res j 
-    j1=bruns f; 
-    betti res j1  
+    2+2
   Text
     type something. 
     ///
