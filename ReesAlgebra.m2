@@ -94,8 +94,7 @@ symmetricKernel(Matrix,Ideal) := Ideal => o -> (f, I) -> (
      	  -- desired answer is the kernel of this map given as i.
      	  g := oldvars|((vars Rtar)_{nR..(nR+ntarf-1)})*(RtoRtar(f**R^{-mtar}));  
      	  if o.Variable === null then (
-	       if class w === IndexedVariableTable then indexW :=
-#(values w)
+	       if class w === IndexedVariableTable then indexW := #(values w)
 
      	       Rsource := kk(monoid [oldvarlist, w_0..w_(nsouf-1), Degrees=>degrees source g]))
      	  else (Rsource = kk(monoid [oldvarlist, (o.Variable)_0..(o.Variable)_(nsouf-1),
@@ -461,7 +460,7 @@ document {
 document {
      Key => symmetricKernel,
      Headline => "compute the defining ideal of the rees algebra for a 
-     ma",
+     matrix",
      Usage => "symmetricKernel(f, I)",
      Inputs => {"f" => {ofClass Matrix}},
      Outputs => {{ofClass Ideal, "defining the Rees ring of 
