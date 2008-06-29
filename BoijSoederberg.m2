@@ -449,7 +449,20 @@ pureCohomologyTable(List, ZZ, ZZ) := (zeros, lo, hi) -> (
 	  if v == 0 then (w=w+1; continue;);
 	  (n-w,i) => lift(v,ZZ)
 	  ));
+TEST ///
+m = matrix "4,3,2,1,0,0,0,0;
+            0,0,0,0,1,2,3,4"
+A= mat2cohom (m,-3)
+assert(pureCohomologyTable({0},-3,4) == A)
 
+m2 = matrix "120,70,36,15,4,0,0,0,0,0,0;
+     	     0,0,0,0,0,0,0,0,0,0,0;
+	     0,0,0,0,0,1,0,0,0,0,0;
+	     0,0,0,0,0,0,6,20,45,84,140" 
+A2 = mat2cohom(m2, -5)
+assert(pureCohomologyTable({-3,-2,0},-5,5)==A2)
+
+///
 ---------------------------------------------
 -- Facet equations and the quadratic form ---
 ---------------------------------------------
@@ -648,6 +661,8 @@ m2 = matrix "24,-7,0,0,4;
 	     0,0,0,0,0"
 assert(facetEquation({1,2,3,5,7}, 2,-1,3) == m2)
 ///
+
+
 dotProduct=method()
 
 dotProduct(Matrix, Matrix):=(A,B)->
@@ -677,6 +692,33 @@ dotProduct(Matrix, ZZ, BettiTally) := (A,lowest, B) -> dotProduct(mat2betti(A,lo
 *}
 
 dotProduct(Matrix, BettiTally) := (A,B) -> dotProduct(A,0,B)
+
+TEST ///
+A = matrix"1,1,0;
+     	   0,1,1;
+	   0,1,1"
+B = matrix"0,1,-2;
+     	   0,0,0;
+	   0,0,0"
+assert(dotProduct(A, B) == 1)
+
+A1 = mat2betti A
+B1 = mat2betti B
+assert(dotProduct(A1, B1)==1)
+
+assert(dotProduct(A, 0, B1)==1)
+
+assert(dotProduct(A, B1)==1)
+
+A2=matrix"1,0,0,0;
+    0,5,5,1;
+    0,0,1,1" 
+B2 = facetEquation({0,2,4,5}, 1,0,2)
+assert(dotProduct(A2,B2)=2)
+assert(dotProduct(mat2betti A2, mat2betti B2)==2)
+assert(dotProduct(A2, mat2betti B2) == 2)
+
+///
 
 {* supportFunctional is NOT functional yet *}
 supportFunctional=method()
