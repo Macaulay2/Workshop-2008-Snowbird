@@ -448,6 +448,21 @@ pureCohomologyTable(List, ZZ, ZZ) := (zeros, lo, hi) -> (
 	  (n-w,i) => lift(v,ZZ)
 	  ));
 
+TEST ///
+m = matrix "4,3,2,1,0,0,0,0;
+            0,0,0,0,1,2,3,4"
+A= mat2cohom (m,-3)
+assert(pureCohomologyTable({0},-3,4) == A)
+
+m2 = matrix "120,70,36,15,4,0,0,0,0,0,0;
+     	     0,0,0,0,0,0,0,0,0,0,0;
+	     0,0,0,0,0,1,0,0,0,0,0;
+	     0,0,0,0,0,0,6,20,45,84,140" 
+A2 = mat2cohom(m2, -5)
+assert(pureCohomologyTable({-3,-2,0},-5,5)==A2)
+
+///
+
 ---------------------------------------------
 -- Facet equations and the quadratic form ---
 ---------------------------------------------
