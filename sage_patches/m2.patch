@@ -1,13 +1,13 @@
 # HG changeset patch
 # User Mike Hansen <mhansen@gmail.com>
-# Date 1214771130 21600
-# Node ID 45523152acb3c02a87ea16acec2b4e56c36022a8
+# Date 1214778313 21600
+# Node ID 82fd0706a5fff5104ed3675d8ec3cc2111c7a92b
 # Parent  0b3ffa51fd3883c183c7c7c8b605a0f3f75c125c
-imported patch m2.patch
+[mq]: m2.patch
 
-diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/expect.py
+diff -r 0b3ffa51fd38 -r 82fd0706a5ff sage/interfaces/expect.py
 --- a/sage/interfaces/expect.py	Sun Jun 29 14:25:30 2008 -0600
-+++ b/sage/interfaces/expect.py	Sun Jun 29 14:25:30 2008 -0600
++++ b/sage/interfaces/expect.py	Sun Jun 29 16:25:13 2008 -0600
 @@ -926,8 +926,8 @@ If this all works, you can then make cal
      def execute(self, *args, **kwds):
          return self.eval(*args, **kwds)
@@ -80,9 +80,9 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/expect.py
              except (TypeError, KeyboardInterrupt, RuntimeError, ValueError), x:
                  self._session_number = -1
                  raise TypeError, x
-diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/macaulay2.py
+diff -r 0b3ffa51fd38 -r 82fd0706a5ff sage/interfaces/macaulay2.py
 --- a/sage/interfaces/macaulay2.py	Sun Jun 29 14:25:30 2008 -0600
-+++ b/sage/interfaces/macaulay2.py	Sun Jun 29 14:25:30 2008 -0600
++++ b/sage/interfaces/macaulay2.py	Sun Jun 29 16:25:13 2008 -0600
 @@ -97,7 +97,7 @@ import os
  
  from expect import Expect, ExpectElement, AsciiArtString
@@ -145,7 +145,7 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/macaulay2.py
              ZZ
              -- [a, b, c, d, MonomialOrder => GRevLex, MonomialSize => 16]
               7
-@@ -270,45 +267,160 @@ class Macaulay2(Expect):
+@@ -270,45 +267,164 @@ class Macaulay2(Expect):
              QQ [x, y, MonomialOrder => Lex, MonomialSize => 16]
          """
          varstr = str(vars)[1:-1]
@@ -224,6 +224,10 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/macaulay2.py
 +                # M2 is actually installed.
 +                sage.misc.persist.save(v, COMMANDS_CACHE)
 +            return self.trait_names()
++
++    def use(self, r):
++        r = self(r)
++        self.eval("use %s"%r.name())
  
  class Macaulay2Element(ExpectElement):
  
@@ -317,7 +321,7 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/macaulay2.py
          return self.parent().new('%s_%s'%(self.name(), n))
  
      def __call__(self, x):
-@@ -316,10 +428,6 @@ class Macaulay2Element(ExpectElement):
+@@ -316,10 +432,6 @@ class Macaulay2Element(ExpectElement):
          P = self.parent()
          r = P(x)
          return P('%s %s'%(self.name(), r.name()))
@@ -328,7 +332,7 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/macaulay2.py
  
      def __floordiv__(self, x):
          """
-@@ -330,10 +438,12 @@ class Macaulay2Element(ExpectElement):
+@@ -330,10 +442,12 @@ class Macaulay2Element(ExpectElement):
  
          Now make the M2 version of R, so we can coerce elements of R to M2:
              sage: macaulay2(R)                              # optional
@@ -344,7 +348,7 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/macaulay2.py
               21     7 14
              x   + 2x y
              sage: f1 = (x^2 + 2*y*x)                   # optional
-@@ -341,7 +451,7 @@ class Macaulay2Element(ExpectElement):
+@@ -341,7 +455,7 @@ class Macaulay2Element(ExpectElement):
              sage: f2 = (x^3 + 2*y*x)                   # optional
              sage: h2 = macaulay2(f2)                   # optional
              sage: u = h // [h1,h2]                     # optional
@@ -353,7 +357,7 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/macaulay2.py
              ('x^19-2*x^18*y-3*x^17*y^2-x^16*y^3+2*x^15*y^4+3*x^14*y^5+x^13*y^6-2*x^12*y^7-3*x^11*y^8-x^10*y^9+2*x^9*y^10+3*x^8*y^11+x^7*y^12-2*x^6*y^13-x^5*y^14+2*x^4*y^15+3*x^3*y^16+x^2*y^17-x*y^17+2*y^18-3*x*y^16-y^17-2*x*y^15-3*y^16+x*y^14-2*y^15+3*x*y^13+y^14+2*x*y^12+3*y^13-x*y^11+2*y^12-3*x*y^10-y^11-2*x*y^9-3*y^10+x*y^8-2*y^9+3*x*y^7+y^8+2*x*y^6+3*y^7-x*y^5+2*y^6-3*x*y^4-y^5-2*x*y^3-3*y^4+x*y^2-2*y^3+3*x*y+y^2+2*x+3*y', '-2*y^18+y^17+3*y^16+2*y^15-y^14-3*y^13-2*y^12+y^11+3*y^10+2*y^9-y^8-3*y^7-2*y^6+y^5+3*y^4+2*y^3-y^2-3*y-2')
              sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2]) # optional
              True
-@@ -362,7 +472,9 @@ class Macaulay2Element(ExpectElement):
+@@ -362,7 +476,9 @@ class Macaulay2Element(ExpectElement):
  
          Now make the M2 version of R, so we can coerce elements of R to M2:
              sage: macaulay2(R)                              # optional
@@ -364,7 +368,7 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/macaulay2.py
              sage: f = (x^3 + 2*y^2*x)^7; f                  # optional
              x^21 + 2*x^7*y^14
              sage: h = macaulay2(f); print h                 # optional
-@@ -373,7 +485,7 @@ class Macaulay2Element(ExpectElement):
+@@ -373,7 +489,7 @@ class Macaulay2Element(ExpectElement):
              sage: f2 = (x^3 + 2*y*x)                        # optional
              sage: h2 = macaulay2(f2)                        # optional
              sage: h % [h1,h2]                               # optional
@@ -373,7 +377,7 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/macaulay2.py
              sage: u = h // [h1,h2]                          # optional
              sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2])    # optional
              True
-@@ -386,6 +498,14 @@ class Macaulay2Element(ExpectElement):
+@@ -386,6 +502,14 @@ class Macaulay2Element(ExpectElement):
          return self.parent().new('%s %% %s'%(self.name(), x.name()))
  
      def __nonzero__(self):
@@ -388,7 +392,7 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/macaulay2.py
          P = self.parent()
          return P.eval('%s == 0'%self.name()) == 'false'        
  
-@@ -406,7 +526,7 @@ class Macaulay2Element(ExpectElement):
+@@ -406,7 +530,7 @@ class Macaulay2Element(ExpectElement):
              sage: f.sage_polystring()                            # optional
              'x**3+3*y**11+5'
  	"""
@@ -397,7 +401,7 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/macaulay2.py
  
      def structure_sheaf(self):
          """
-@@ -416,11 +536,19 @@ class Macaulay2Element(ExpectElement):
+@@ -416,11 +540,19 @@ class Macaulay2Element(ExpectElement):
              sage: X = R.Proj()                                  # optional
              sage: print X.structure_sheaf()                     # optional
              OO
@@ -418,9 +422,9 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/interfaces/macaulay2.py
      return isinstance(x, Macaulay2Element)        
  
  # An instance
-diff -r 0b3ffa51fd38 -r 45523152acb3 sage/rings/polynomial/multi_polynomial_ideal.py
+diff -r 0b3ffa51fd38 -r 82fd0706a5ff sage/rings/polynomial/multi_polynomial_ideal.py
 --- a/sage/rings/polynomial/multi_polynomial_ideal.py	Sun Jun 29 14:25:30 2008 -0600
-+++ b/sage/rings/polynomial/multi_polynomial_ideal.py	Sun Jun 29 14:25:30 2008 -0600
++++ b/sage/rings/polynomial/multi_polynomial_ideal.py	Sun Jun 29 16:25:13 2008 -0600
 @@ -1641,7 +1641,7 @@ class MPolynomialIdeal_macaulay2_repr:
              return self.__groebner_basis
          except AttributeError:
@@ -437,9 +441,9 @@ diff -r 0b3ffa51fd38 -r 45523152acb3 sage/rings/polynomial/multi_polynomial_idea
 -            return list(singular.kbase(self.ring().ideal(gb)))
 \ No newline at end of file
 +            return list(singular.kbase(self.ring().ideal(gb)))
-diff -r 0b3ffa51fd38 -r 45523152acb3 sage/rings/polynomial/multi_polynomial_libsingular.pyx
+diff -r 0b3ffa51fd38 -r 82fd0706a5ff sage/rings/polynomial/multi_polynomial_libsingular.pyx
 --- a/sage/rings/polynomial/multi_polynomial_libsingular.pyx	Sun Jun 29 14:25:30 2008 -0600
-+++ b/sage/rings/polynomial/multi_polynomial_libsingular.pyx	Sun Jun 29 14:25:30 2008 -0600
++++ b/sage/rings/polynomial/multi_polynomial_libsingular.pyx	Sun Jun 29 16:25:13 2008 -0600
 @@ -646,7 +646,7 @@ cdef class MPolynomialRing_libsingular(M
              return element._polynomial_(self)
  
