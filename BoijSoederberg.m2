@@ -217,6 +217,17 @@ isPure = method()
 isPure BettiTally := (B) -> lowestDegrees B == highestDegrees B
 
 TEST ///
+matrix "1,0,0;
+     	0,2,3"  
+B = mat2betti oo
+assert(isPure B)
+
+matrix "1,0,0; 0,2,1; 0,1,1"
+B2 = mat2betti oo
+assert(not isPure B2)
+///
+
+TEST ///
 --load "BoijSoederberg.m2"
 m=matrix"1,0,0;
 0,1,1;
