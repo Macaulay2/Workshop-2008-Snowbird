@@ -72,10 +72,7 @@ symmetricKernel(Matrix,Ideal) := Ideal => o -> (f, I) -> (
      -- first four lines set up constructing key rings.
      S := ring f;
      if (monoid S).Options.DegreeRank =!= 1 then (
-	  -- foldedDegs := apply((monoid S).Options.Degrees, i -> sum(i));
-	  -- R := (coefficientRing(S))(monoid[gens S, Degrees => foldedDegs, MonomialOrder => GRevLex]);
-	  -- Caveat: folded degrees is just a hack till towers of multigraded rings will work. Fix me!
-     	  R := (coefficientRing(S))(monoid[gens S, DegreeRank => 1, MonomialOrder => GRevLex]);
+	  R := (coefficientRing(S))(monoid[gens S, DegreeRank => 1,MonomialOrder => (monoid S).Options.MonomialOrder]);
 	  G := map(R,S);
 	  f = G(f);
 	  I = G(I);
@@ -89,7 +86,6 @@ symmetricKernel(Matrix,Ideal) := Ideal => o -> (f, I) -> (
      	  msource := -(min flatten degrees source f)+1;
      	  ntarf := rank target f;
      	  nsouf := rank source f;
---	  error "debug me";
      	  tardeglist :=  degrees source vars R | degrees target (f**R^{-mtar});
 	  Rtar1 := kk(monoid [oldvarlist,Y_1..Y_(ntarf),Degrees=>tardeglist]);
      	  F := map(Rtar1, R);
@@ -100,6 +96,9 @@ symmetricKernel(Matrix,Ideal) := Ideal => o -> (f, I) -> (
      	  -- desired answer is the kernel of this map given as i.
      	  g := oldvars|((vars Rtar)_{nR..(nR+ntarf-1)})*(RtoRtar(f**R^{-mtar}));  
      	  if o.Variable === null then (
+	       if class w === IndexedVariableTable then indexW :=
+#(values w)
+
      	       Rsource := kk(monoid [oldvarlist, w_0..w_(nsouf-1), Degrees=>degrees source g]))
      	  else (Rsource = kk(monoid [oldvarlist, (o.Variable)_0..(o.Variable)_(nsouf-1),
 	       		 Degrees=>degrees source g]));
@@ -109,10 +108,12 @@ symmetricKernel(Matrix,Ideal) := Ideal => o -> (f, I) -> (
      	  newdegs2 := apply(degrees source f, i -> append(i, 1));
       	  if o.Variable === null then (
      	       Ranswer := kk(monoid [oldvarlist, w_0..w_(nsouf-1),
-	       		 MonomialOrder => { #oldvarlist, nsouf},
+	       		 MonomialOrder => join((monoid S).Options.MonomialOrder, 
+     			      {GRevLex => nsouf}),
 	       		 Degrees=>join(newdegs1,newdegs2)]))
      	  else (Ranswer = kk(monoid [oldvarlist, (o.Variable)_0..(o.Variable)_(nsouf-1),
-	       		 MonomialOrder => { #oldvarlist, nsouf},
+	       		 MonomialOrder => join((monoid S).Options.MonomialOrder, 
+     			      {GRevLex => nsouf}),
 	       		 Degrees=>join(newdegs1,newdegs2)]));
      	  (map(Ranswer, Rsource))(i)
      )
@@ -789,7 +790,6 @@ analyticSpread image M
 
 
 {*
-
 restart
 loadPackage "ReesAlgebra"
 R=QQ[a..e]
