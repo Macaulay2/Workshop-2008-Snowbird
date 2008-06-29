@@ -636,7 +636,17 @@ facetEquation(List,ZZ,ZZ,ZZ) := (de,i,lowestDegree, highestDegree) -> (
      if dotProduct(F,B1)>0 then F else -F)
 
 TEST ///
-facetEquation({0,1,3},0,0,2)
+m = matrix "0,1,-2;
+            0,0,0;
+	    0,0,0"
+assert(facetEquation({0,1,3},1,0,2) == m)
+
+m2 = matrix "24,-7,0,0,4;
+     	     7,0,0,-4,9;
+	     0,0,4,-9,12;
+	     0,0,0,0,10;
+	     0,0,0,0,0"
+assert(facetEquation({1,2,3,5,7}, 2,-1,3) == m2)
 ///
 dotProduct=method()
 
