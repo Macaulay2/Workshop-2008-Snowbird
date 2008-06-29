@@ -9,7 +9,7 @@ newPackage(
      DebuggingMode => true
      )
 loadPackage "SimpleDoc"
-export{isSyzygy, elementary, brunsify1, brunsify}
+export{isSyzygy, elementary, evansGriffith, bruns}
 
 isSyzygy=method(TypicalValue=>Boolean)
 isSyzygy(Matrix,ZZ) := (f,d)->(
@@ -68,11 +68,11 @@ elementary(Matrix, ZZ, ZZ) := (f,k,m)->(
      )
 
 
-brunsify1 = method(TypicalValue => Matrix)
-brunsify1(Matrix, ZZ) := (f,n)->(
+evansGriffith = method(TypicalValue => Matrix)
+evansGriffith(Matrix, ZZ) := (f,n)->(
      --f must be a matrix over a polynomial ring S
      --whose cokernel is an n-th syzygy.
-     --The result f1=brunsify1(f,n) 
+     --The result f1=evansGriffith(f,n) 
      --is a matrix with the same source and kernel as f but
      --such that coker f1 is an nth syzygy of rank n.
      --rank target f1 = (rank f)+n. 
@@ -102,31 +102,31 @@ brunsify1(Matrix, ZZ) := (f,n)->(
     f1)
 
 
-brunsify = method(TypicalValue => Ideal)
-brunsify Matrix := f->(
+bruns = method(TypicalValue => Ideal)
+bruns Matrix := f->(
      --given a matrix f, whose cokernel is a 2-rd syzygy,
-     --brunsify f returns a 3-generator ideal whose second syzygy is the image of f
-     f1:=brunsify1(f,2);
+     --bruns f returns a 3-generator ideal whose second syzygy is the image of f
+     f1:=evansGriffith(f,2);
      FF:=res coker(transpose f1);
      g:=transpose FF.dd_2;
-     --the row degrees of g are in the reverse order for brunsify 1, so reverse them
+     --the row degrees of g are in the reverse order for bruns 1, so reverse them
      Lsource := flatten degrees source g;
      Ltar := flatten degrees target g;
      grev=map((ring g)^(-reverse Ltar), (ring g)^(-Lsource), g^(reverse splice {0..#Ltar-1}));
-     h:=brunsify1(grev,1);
+     h:=evansGriffith(grev,1);
      KK:=res coker transpose h;
      ideal transpose KK.dd_2)
 
-brunsify Module := M->(
+bruns Module := M->(
      --Given a module M that is at least a 3rd syzygy, 
      --the function returns a 3-generator ideal with 2nd syzygy
      --isomorphic to M.
      --It does this by constructing a matrix f whose image is M and 
      --whose cokernel is a second syzygy, and then calling 
-     --brunsify f.
+     --bruns f.
 ff:=presentation M;
 ft:= syz transpose ff;
-brunsify transpose ft)
+bruns transpose ft)
 
 beginDocumentation()
 document { 
@@ -135,11 +135,11 @@ document {
 	EM "a package of functions for transforming syzygies"}
 doc ///
 Key
-  brunsify
+  bruns
 Headline
   Makes 3-generator ideal whose 2nd syz is a given 3rd syzygy
 Usage
- j= brunsify M \n  j= brunsify f
+ j= bruns M \n  j= bruns f
 Inputs
   M:Module
     M is a third syzygy (graded)
@@ -157,7 +157,7 @@ Description
     of a three generator ideal. This function takes a graded module M over a polynomial ring S that
     is a third syzygy, and returns a three-generator ideal j whose second syzygy is M, 
     so that the resolution of S/j, from the third step, is isomorphic to the resolution of M.
-    Alternately {\tt brunsify} takes
+    Alternately {\tt bruns} takes
     a matrix whose cokernel is a second syzygy, and finds a 3-generator
     ideal whose 2nd syzygy is the image of that matrix.
   Example
@@ -167,34 +167,50 @@ Description
     betti (F=res i)
     M = image F.dd_3
     f=F.dd_3
-    j=brunsify M;
+    j=bruns M;
     betti res j 
-    j1=brunsify f; 
+    j1=bruns f; 
     betti res j1  
-///
+  Text
+    The general context of this result uses the theory of ``basic elements'', a
+    commutative algebra version of the general position arguments of the algebraic
+    geometers. The ``Syzygy Theorem'' of Evans and Griffiths (**citation**) asserts that if
+    a module M over a regular local ring S containing a field (the field is conjecturally not
+    necessary), or a graded modules over polynomial ring S, is a k-th syzygy but not a free module,
+    then M has rank at least k. The theory of basic elements shows that if M is a k-th syzygy
+    of rank >k, then for a ``sufficiently general'' element m of M the module M/Sm is again
+    a k-th syzygy. 
+
+    The idea of Bruns theorem is if M is a second syzygy, then factoring out rank M - 2 general elements gives
+    a second syzygy N of rank 2. It turns out that 3 general homomorphisms from M to S together
+    embed N in S^3 in such a way that the quotient S^3/N is a three generator ideal.
+
+    This is the method implemented in this package.
+    ///
 
 end 
 
 restart
-installPackage "Bruns"
+installPackage ("Bruns", UserMode=>true)
 --loadPackage "Bruns"
 viewHelp Bruns
+
 --brunsification of a complete intersection
 kk=ZZ/32003
 S=kk[a..e]
 i=ideal(a^2,b^3,c^4, d^5)
 betti (F=res i)
 F.dd_4
-time (j=brunsify coker F.dd_4)
+time (j=bruns coker F.dd_4)
 betti res j
-time j=brunsify image F.dd_3;
+time j=bruns image F.dd_3;
 betti res j
 f=F.dd_3
-time j=brunsify f; -- 25 sec on macbook pro
+time j=bruns f; -- 25 sec on macbook pro
 betti gens j
 betti res j 
-time (f1=brunsify1(f,3);)
-time (f1=brunsify1(f,2);)
+time (f1=evansGriffith(f,3);)
+time (f1=evansGriffith(f,2);)
 
 
 
@@ -207,8 +223,8 @@ f=F.dd_(codim i-1)
 isSyzygy(f, 4) --true
 betti res coker f
 
-brunsify1(f,2)
-time j=brunsify f;
+evansGriffith(f,2)
+time j=bruns f;
 
 betti (G=res j) 
 r=rank G.dd_3
@@ -221,7 +237,7 @@ kk=ZZ/32003
 S=kk[a..f]
 m=matrix"a,b,c,d,e,0;0,a,b,c,d,e"
 n=transpose syz m
-time j= brunsify n; -- 20 sec on macbook pro
+time j= bruns n; -- 20 sec on macbook pro
 betti (G=res j)
 r=rank G.dd_3
 
@@ -231,7 +247,7 @@ S=QQ[a,b,c,d]
 j=ideal"b2d2+d4,b2c2+a2d2+c2d2,b4-b2d2-d4"
 betti (G=res j)
 codim minors(3, G.dd_3)
-brunsify G.dd_4
+bruns G.dd_4
 
 --try a small field
 kk=ZZ/2
@@ -239,8 +255,8 @@ S=kk[a..e]
 i=ideal(a^2,b^3,c^4, d^5)
 betti (F=res i)
 f=F.dd_3;
-time f1=brunsify1(f,2);
-time j=brunsify f;
+time f1=evansGriffith(f,2);
+time j=bruns f;
 
 --5 variables
 kk=ZZ/101
@@ -248,8 +264,8 @@ S=kk[a..e]
 i=ideal(a^3,b,c,d,e)
 betti (F=res i)
 f=F.dd_4;
---time f1=brunsify1(f,2);
-time j=brunsify f;
+--time f1=evansGriffith(f,2);
+time j=bruns f;
 betti res j
 --(ass j)/codim
 k=top j;
@@ -264,7 +280,7 @@ betti (F=res i)
 --          1: . 2  . . .
 --          2: . 3  5 1 .
 --          3: . 1  6 7 2
-time j=brunsify F.dd_3
+time j=bruns F.dd_3
 --229 sec v 2.0 does it in 60 sec
 betti res j
 --          0: 1 . . . .
