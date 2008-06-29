@@ -8,6 +8,7 @@ newPackage(
      Headline => "make a 3-generator ideal with an \"any\" resolution",
      DebuggingMode => true
      )
+loadPackage "SimpleDoc"
 export{isSyzygy, elementary, brunsify1, brunsify}
 
 isSyzygy=method(TypicalValue=>Boolean)
@@ -127,11 +128,57 @@ ff:=presentation M;
 ft:= syz transpose ff;
 brunsify transpose ft)
 
+beginDocumentation()
+document { 
+	Key => Bruns,
+	Headline => " \"Every\" free resolution is the resolution of a 3-generator ideal",
+	EM "a package of functions for transforming syzygies"}
+doc ///
+Key
+  brunsify
+Headline
+  Makes 3-generator ideal whose 2nd syz is a given 3rd syzygy
+Usage
+ j= brunsify M \n  j= brunsify f
+Inputs
+  M:Module
+    M is a third syzygy (graded)
+  f:Matrix
+    f is a matrix whose cokernel is a second syzygy (graded)
+Outputs
+  j:Ideal
+   j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
+Description
+  Text
+    A famous paper of Winfried Bruns is called
+   {\bf  ``Jede'' freie Aufl\"osung ist
+    freie Aufl\"osung eines drei-Erzeugenden Ideals} (Journal reference).
+    More precisely, Bruns shows that every 3rd syzygy is the 2nd syzygy
+    of a three generator ideal. This function takes a graded module M over a polynomial ring S that
+    is a third syzygy, and returns a three-generator ideal j whose second syzygy is M, 
+    so that the resolution of S/j, from the third step, is isomorphic to the resolution of M.
+    Alternately {\tt brunsify} takes
+    a matrix whose cokernel is a second syzygy, and finds a 3-generator
+    ideal whose 2nd syzygy is the image of that matrix.
+  Example
+    kk=ZZ/32003
+    S=kk[a..d]
+    i=ideal(a^2,b^3,c^4, d^5)
+    betti (F=res i)
+    M = image F.dd_3
+    f=F.dd_3
+    j=brunsify M;
+    betti res j 
+    j1=brunsify f; 
+    betti res j1  
+///
+
 end 
 
 restart
-loadPackage "Bruns"
-
+installPackage "Bruns"
+--loadPackage "Bruns"
+viewHelp Bruns
 --brunsification of a complete intersection
 kk=ZZ/32003
 S=kk[a..e]
@@ -267,50 +314,4 @@ betti oo
 
 
 ----------------------
-beginDocumentation()
-document { 
-	Key => Bruns,
-	Headline => " \"Every\" free resolution is the resolution of a 3-generator ideal",
-	EM "a package of functions for transforming syzygies"}
-doc ///
-Key
-  brunsify
-Headline
-  Makes a 3-generator ideal whose resolution from the second step is the resolution of a given 
-  homogeneous matrix over a polynomial ring.
-Usage
- j= brunsify M
- j= brunsify f
-Inputs
-  M:Module
-    M is a third syzygy (graded)
-  f:Matrix
-    f is a matrix whose cokernel is a second syzygy (graded)
-Outputs
-  j:Ideal
-   j is a homogeneous three-generator ideal whose second syzygy is M, or image f.
-Description
-  PARA
-    A famous paper of Winfried Bruns is called
-    ``Jede'' freie Aufl\"osung ist
-    freie Aufl\"osung eines drei-Erzeugenden Ideals'' (Journal reference).
-    More precisely, Bruns shows that every 3rd syzygy is the 3rd syzygy
-    of a three generator ideal. This function takes a graded module M over a polynomial ring S that
-    is a third syzygy, and returns a three-generator ideal j whose second syzygy is M, 
-    so that the resolution of S/j, from the third step, is isomorphic to the resolution of M.
-    Alternately {\tt brunsify} takes
-    a matrix whose cokernel is a second syzygy, and finds a 3-generator
-    ideal whose third syzygy is the image of that matrix.
-  EXAMPLE
-    kk=ZZ/32003
-    S=kk[a..d]
-    i=ideal(a^2,b^3,c^4, d^5)
-    betti (F=res i)
-    M = image F.dd_3
-    f=F.dd_3
-    j=brunsify M;
-    betti res j 
-    j1=brunsify f; 
-    betti res j1  
-///
 
