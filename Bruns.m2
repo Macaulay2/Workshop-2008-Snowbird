@@ -152,7 +152,7 @@ Description
   Text
     A famous paper of Winfried Bruns is called
    {\bf  ``Jede'' freie Aufl\"osung ist
-    freie Aufl\"osung eines drei-Erzeugenden Ideals} (Journal reference).
+    freie Aufl\"osung eines drei-Erzeugenden Ideals} (J. Algebra {\bf 39} (1976), no. 2, 429-439.).
     More precisely, Bruns shows that every 3rd syzygy is the 2nd syzygy
     of a three generator ideal. This function takes a graded module M over a polynomial ring S that
     is a third syzygy, and returns a three-generator ideal j whose second syzygy is M, 
