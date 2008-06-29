@@ -784,7 +784,7 @@ for i from 0 to #W-1 list (W_i/P_0)
 -- Constructions often producing pure resolutions --
 ----------------------------------------------------
 
---Given a strictly increasing degree sequence L and a number of gneerators m,
+--Given a strictly increasing degree sequence L and a number of generators m,
 --this routine produces a "generic" module of finite length with the 
 --m generators and number of socle elements  and regularity corresponding
 --to the pure resolution with degree sequence L. The module is constructed
@@ -833,11 +833,63 @@ randomModule(List,ZZ) := opts -> (L, m) -> (
 TEST ///
 L={0,4,9,10}
 B = pureBetti L
-betti res randomModule(L,1)
-betti res randomModule(L,2)
-betti res randomModule(L,3)
-betti res randomModule(L,4)
-betti res randomModule(L,2, CoefficientRing=>ZZ/5)
+
+B'= betti res randomModule(L,1)
+M = mat2betti matrix"1,0,0,0;
+     	       	     0,0,0,0;
+		     0,0,0,0;
+		     0,3,0,0;
+		     0,0,0,0;
+		     0,0,0,0;
+		     0,0,3,0;
+		     0,0,0,0;
+		     0,0,0,0;
+		     0,0,0,1"
+assert(B' == M)
+
+B'=betti res randomModule(L,2)
+M = mat2betti matrix"2,0,0,0;
+     	       	     0,0,0,0;
+		     0,0,0,0;
+		     0,6,0,0;
+		     0,0,0,0;
+		     0,0,0,0;
+		     0,0,0,0;
+		     0,0,16,12"
+assert(B'==M)
+
+B'=betti res randomModule(L,3)
+M = mat2betti matrix"3,0,0,0;
+     	       	     0,0,0,0;
+		     0,0,0,0;
+		     0,9,0,0;
+		     0,0,0,0;
+		     0,0,0,0;
+		     0,0,0,0;
+		     0,0,24,18"
+assert(B'==M)
+
+B'=betti res randomModule(L,4)
+M = mat2betti matrix"4,0,0,0;
+     	       	     0,0,0,0;
+		     0,0,0,0;
+		     0,12,0,0;
+		     0,0,0,0;
+		     0,0,0,0;
+		     0,0,0,0;
+		     0,0,32,24"
+assert(B'==M)
+
+B'=betti res randomModule(L,2, CoefficientRing=>ZZ/5)
+M = mat2betti matrix"2,0,0,0;
+     	       	     0,0,0,0;
+		     0,0,0,0;
+		     0,6,0,0;
+		     0,0,0,0;
+		     0,0,0,0;
+		     0,0,0,0;
+		     0,0,16,12"
+assert(B'==M)
 ///
 
 -------------------------------------------
