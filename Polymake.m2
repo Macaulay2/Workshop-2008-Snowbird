@@ -12,7 +12,7 @@ newPackage(
 export {PolymakeObject, polymakeObject,
      removeComments,
      getPropertyNames,
-     getProperty, getMatrixProperty, 
+     getProperty, getMatrixProperty, getListProperty,
      getVectorProperty, makevec, makemat, 
      toPolymakeFormat, runPolymake, NewtonPolytope}
 
@@ -20,8 +20,8 @@ PolymakeObject = new Type of MutableHashTable
 
 isBlankLine = (s) -> (
      #s == 0 or
-     match(s, "^[:space:]*$") or
-     match(s, "^[:space:]*#")
+     match("^[[:space:]]*$",s) or
+     match("^[[:space:]]*#",s)
      )
 
 makevec = (str) -> (
@@ -33,6 +33,11 @@ makevec = (str) -> (
 makemat = (L) -> (
      if #L == 0 then map(ZZ^0,ZZ^0,0)
      else matrix(L/makevec)
+     )
+
+makelist = (L) -> (
+     if #L == 0 then {}
+     else apply(removeComments(L), t-> replace(" ", ",", t)) 
      )
 
 removeComments = (F) -> ( 
@@ -64,7 +69,7 @@ getProperty(List, String) := (F, section) -> (
      else null
      ) 
 getProperty(String,String) := (filename, propertyname) -> (
-     F = lines get filename;
+     F := lines get filename;
      getProperty(F, propertyname)
      )
 
@@ -75,9 +80,21 @@ getMatrixProperty(List, String) := (F, section) -> (
      else makemat L
      )
 getMatrixProperty(String,String) := (filename, propertyname) -> (
-     F = lines get filename;
+     F := lines get filename;
      getMatrixProperty(F, propertyname)
      )
+
+getListProperty = method()
+getListProperty(List, String) := (F, section) -> (
+		 L := getProperty(F,section);
+		 if L === null then null
+	   else makelist L
+		 )
+getListProperty(String,String) := (filename, propertyname) -> (
+     F := lines get filename;
+     getListProperty(F, propertyname)
+     )
+
 
 getVectorProperty = method()
 getVectorProperty(List, String) := (F, section) -> (
