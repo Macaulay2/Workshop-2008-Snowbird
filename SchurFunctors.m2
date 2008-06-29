@@ -10,7 +10,7 @@ newPackage(
 	  DebuggingMode => false
 	  )
      
-export{ schur, schurModule }
+export{ schur, schurModule, Schur }
 
 exteriorPower(List, Module) := opts -> (L,M) -> (
      if #L == 0 then exteriorPower(0,M)
