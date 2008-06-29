@@ -3,12 +3,12 @@ newPackage(
      	  Version => "0.1",
 	  Date => "March 5, 2008",
 	  Authors => {
-	       {Name => "Steven V Sam", Email => "ssam@berkeley.edu"},
 	       {Name => "Michael E. Stillman", Email => "mike@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Faculty/stillman.html"}
 	       },
 	  Headline => "computations of Schur modules and maps between them",
-	  DebuggingMode => false
-	  )
+	  DebuggingMode => false,
+	  AuxiliaryFiles=>true
+     	  )
      
 export{ schur, schurModule, Schur }
 
@@ -23,6 +23,7 @@ exteriorPower(List, Matrix) := opts -> (L,f) -> (
      )
 
 Filling = new Type of BasicList
+
 
 conjugate Filling := (T) -> (
      a := #T#0;
@@ -50,6 +51,21 @@ Filling ? Filling := (T,U) -> (
 
 -- return subset of rows
 Filling _ List := (T,L) -> (toList T)_L
+
+-----New Function: Adds an entry t a given column of a filling
+T={{1,2,3},{2,3}}
+F=new Filling from T
+F#1
+c=0
+apply(#T,j->if j!=c then T_j else T_j|{e})
+join(F,{{1}})
+
+AddColumn=method()
+AddColumn (Filling,ZZ,ZZ):=(T,c,e)->(
+     if c>=#T then join(T,{{e}})
+     else new Filling from apply(#T,j->if j!=c then T#j else T#j|{e})
+    )
+
 
 normalize = method()
 normalize Filling := (T) -> (
@@ -221,3 +237,5 @@ loadPackage "SimpleDoc"
 help doc
 help schurModule
 help schur
+installPackage "SchurFunctors"
+viewHelp schur
