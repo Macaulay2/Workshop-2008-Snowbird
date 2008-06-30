@@ -1325,7 +1325,7 @@ document {
 	  resolution construction"
 	  }, 
      TT "pureCharFree", " corresponds to the construction in math.AC/0712.1843v2, \"Betti Numbers of
-     Graded Modules and Cohomology of Vector Bundles\".", 
+     Graded Modules and Cohomology of Vector Bundles\", Section 5.", 
      EXAMPLE lines ///
      	  L = {0,2,3,9}
 	  B = pureBettiDiagram L
