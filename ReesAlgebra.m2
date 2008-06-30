@@ -151,7 +151,7 @@ M
 reesIdeal(M)
 ///
 
-reesIdeal = method(Options => {Variable => w)
+reesIdeal = method(Options => {Variable => w})
 
 reesIdeal(Module) := Ideal => o -> M -> (
      P := presentation M;
