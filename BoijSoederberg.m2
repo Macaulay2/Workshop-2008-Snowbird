@@ -1319,7 +1319,8 @@ document {
 	  ZZ => "The zero-th betti number of the corresponding pure
 	  resolution construction"
 	  }, 
-     TT "pureCharFree", " corresponds to the construction in ...", 
+     TT "pureCharFree", " corresponds to the construction in math.AC/0712.1843v2, \"Betti Numbers of
+     Graded Modules and Cohomology of Vector Bundles\".", 
      EXAMPLE lines ///
      	  L = {0,2,3,9}
 	  B = pureBettiDiagram L
@@ -1356,7 +1357,7 @@ document {
 	  ZZ => "The zero-th betti number of the corresponding pure
 	  resolution construction"
 	  },
-     TO "pureCharFree", " corresponds to the construction in ...", 
+     TO "pureTwoInvariants", " corresponds to the construction in math.AC/0709.1529v3 \"The Existence of Pure Free Resolutions\", Section 3.", 
      EXAMPLE lines ///
      	  L = {0,2,3,9}
 	  B = pureBettiDiagram L
@@ -1393,7 +1394,7 @@ document {
 	  ZZ => "The zero-th betti number of the corresponding pure
 	  resolution construction"
 	  },
-     TO "pureWeyman", " corresponds to the construction in ...", 
+     TO "pureWeyman", " corresponds to the construction in math.AC/0709.1529v3 \"The Existence of Pure Free Resolutions\", Section 4.", 
      EXAMPLE lines ///
      	  L = {0,2,3,9}
 	  B = pureBettiDiagram L
@@ -1559,7 +1560,8 @@ document {
      Returns either 0, if all cohomology is zero,
      or a list of three elements: A weakly decreasing list of n+1 integers M;
      a number i such that H^i(E)=S_M(V); and 
-     the rank of this module.",
+     the rank of this module.  For more information on how the partition M is constructed, see
+     math.AC/0709.1529v3, \"The Existence of Pure Free Resolutions\", section 3.",
      PARA{},
      "For example, on P^3, E = S_3(Q) has H^0(S_3(Q)) = S_3(kk^4) = kk^20.",
      EXAMPLE lines ///
