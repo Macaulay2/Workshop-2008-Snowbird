@@ -337,6 +337,11 @@ installPackage ("Bruns", UserMode=>true)
 loadPackage "Bruns"
 viewHelp Bruns
 
+
+
+
+---------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------
 --Here is some useful examples not included in documentation, for example
 --the times for various operations.
 
