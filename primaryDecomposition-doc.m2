@@ -16,7 +16,9 @@ document {
      "This routine returns an irredundant primary decomposition
      for the ideal ", TT "I", ".  The specific algorithm used varies
      depending on the characteristics of the ideal, and can also be specified
-     using the optional argument ", TT "Strategy", ".",
+     using the optional argument ", TT "Strategy", ". ",
+     "In all cases, the radical of each entry of the output is equal to the corresponding ",
+     "entry of the output of ", TO "associatedPrimes", ".",
      PARA{},
      "Primary decompositions algorithms are very sensitive to their input.  Some
      algorithms work very well on certain classes of ideals, but poorly on other classes.
