@@ -417,34 +417,6 @@ multiplicity(Module,Ideal) := ZZ => (M, I) -> (
      degree (H**M)
      )
 
--- PURPOSE : Compute the integral closure of an ideal.
--- INPUT : 'I' and ideal.
--- OUTPUT: an ideal, the integral closure of I.
--- COMMENT : Computed by finding the degree 1 piece of the integral 
---           closure of the Rees algebra R[It].
--- WARNING:  The Rees algebra involves as many new variables as you 
---           have generators of I.  Thus taking the integral closure of such
---           a ring can take up all of your memory and time (most likely time!).
-idealIntegralClosure = method()
-idealIntegralClosure(Ideal) := Ideal => (I) -> (
-     R := ring I;
-     n1 := numgens R;
-     Rees := reesAlgebra(I);  --defining ideal of Rees algebra
-     J1 := ideal presentation Rees;
-     R2 := ring J1;
-     n2 := numgens R2;
-     NewVars := take(gens R2,{n1,n2-1});
-     S := R2/J1;  -- the rees algebra.
-     Sfrac1 := first entries ICfractions(S,Strategy => {});  -- The slow part is this! 
-     Sfrac2 := apply(#Sfrac1-n1, i-> Sfrac1#i);
-     toLift := select(Sfrac2, i-> (degree i)#1 == 1);
-     VarImage := flatten append (first entries gens I,gens R);
-     LiftMap := map(R,R2,VarImage);
-     NewNums := apply(toLift, i-> LiftMap(substitute(numerator i, R2)));
-     NewDenoms := apply(toLift, i-> LiftMap(substitute(denominator i, R2)));
-     NewGens := apply(#toLift, i-> substitute((NewNums#i)/(NewDenoms#i),R));
-     ideal mingens(I + ideal(NewGens)) 
-     )
  
  
 
@@ -737,17 +709,6 @@ document {
      Outputs => {{"true if the ideal is of linear 
 	  type and false otherwise."}},
      "Stuff."
-     }
-
-
-document {
-     Key => {idealIntegralClosure, (idealIntegralClosure,Ideal)},
-     Headline => "compute the integral closure of an ideal",
-     Usage =>  " idealIntegralClosure(I)",
-     Inputs =>  {"I" => {ofClass Ideal, " in ", ofClass PolynomialRing}},
-     Outputs => {{ofClass Ideal, " that is the integral closure of ", TT "I"}},
-     "Computed as the degree 1 piece of 
-	  the integral closure of the Rees algebra of ", TT "I", "."
      }
 
 document {
