@@ -33,8 +33,8 @@ newPackage(
     	DebuggingMode => true
     	)
 
-export{ symmetricKernel, universalEmbedding, rees, distinguished, 
-     distinguishedAndMult, specialFiber, analyticSpread, isLinearType, multiplicity}
+export{reesAlgebra, symmetricKernel, universalEmbedding, reesIdeal, distinguished, 
+     distinguishedAndMult, specialFiberIdeal, analyticSpread, isLinearType, multiplicity}
 
 
 -- Comment : The definition of Rees algebra used in this package is 
@@ -92,7 +92,7 @@ symmetricKernel(Matrix) := Ideal => o -> (f) -> (
      tarDegs := apply(degrees target f, i -> prepend(1,i));
      RTar := R[z_1..z_(rank target f), Degrees => tarDegs];
      RTarVars := matrix{{z_1..z_(rank target f)}};
-     fRTar := (map(RTar, S)) f;
+     fRTar := (map(RTar, R)) f;
      kernel map(RTar, RSource, RTarVars*fRTar)
      )
 
@@ -132,43 +132,49 @@ universalEmbedding(Module) := Matrix => (M) -> (
 --           streamlined, skipping the unneccessary versal computation as in that 
 --           case the inclusion map is a versal map.
 
-\\\
+///
 S = ZZ/101[x,y]
 M = module ideal(x,y)
-rees(M)
+reesIdeal(M)
 M = module (ideal(x,y))^2
-rees(M)
+reesIdeal(M)
 M = module (ideal (x,y))^3
-rees(M)
-\\\
+reesIdeal(M)
+///
 
-rees = method(Options => {Variable => w, Strategy => null})
+reesIdeal = method(Options => {Variable => w, Strategy => null})
 
-rees(Module) := Ideal => o -> M -> (
+reesIdeal(Module) := Ideal => o -> M -> (
      P := presentation M;
      UE := transpose syz transpose P;
      symmetricKernel(UE,Variable => o.Variable)
      )
 
-rees(Ideal) := Ideal => o-> (J) -> (
-     symmetricKernel(gens J, Variable => o.Variable)
+reesIdeal(Ideal) := Ideal => o-> (J) -> (
+symmetricKernel(gens J, Variable => o.Variable)
      )
 
 
-\\\
+///
+restart
+S=ZZ/101[x][y]
+
+loadPackage "ReesAlgebra"
 S = ZZ/101[x,y]
 M = module ideal(x,y)
-reesSaturate(M,S_0)
+reesIdeal(M,S_0)
+reesIdeal(M)
 M = module (ideal(x,y))^2
-rees(M)
+reesIdeal(M)
 M = module (ideal (x,y))^3
-rees(M)
-\\\
+reesIdeal(M)
+///
 
----- needs singly graded or first element non-zero divisor. 
+---- needs user-provided non-zerodivisor. 
 
-rees (Module, RingElement) := Ideal => o -> (M,a) -> (
-     if ring M =!= ring a 
+reesIdeal (Module, RingElement) := Ideal => o -> (M,a) -> (
+     R:= ring M;
+     if R =!= ring a 
      then error("Expected Module and Element over the same ring");   
      P := presentation M;
      sourceDegs := apply(degrees target P, i -> prepend(1,i));
@@ -178,9 +184,59 @@ rees (Module, RingElement) := Ideal => o -> (M,a) -> (
      saturate(I,a)
      )
 
-rees(Ideal, RingElement) := Ideal => o -> (I,a) -> (
-     rees(module I, a)
+reesIdeal(Ideal, RingElement) := Ideal => o -> (I,a) -> (
+     reesIdeal(module I, a)
      )
+
+reesAlgebra = method (TypicalValue=>(Ring,RingMap),Options=>{Variable => w})
+--reesAlgebra = method (Options=>{Variable => w})
+
+reesAlgebra(Module) := o-> M -> (
+     R:=ring M;
+     reesIM := reesIdeal M;
+     reesAM := (ring reesIM)/reesIM;
+     A:= map(reesAM, R);
+     (reesAM,A)
+     )
+
+reesAlgebra(Ideal) := o-> M -> (
+     R:=ring M;
+     reesIM := reesIdeal M;
+     reesAM := (ring reesIM)/reesIM;
+     A:= map(reesAM, R);
+     (reesAM,A)
+     )
+
+reesAlgebra(Module, RingElement) := o->(M,a)->(
+     R:=ring M;
+     reesIM := reesIdeal(M,a);
+     reesAM := (ring reesIM)/reesIM;
+     A:= map(reesAM, R);
+     (reesAM,A)
+     )
+reesAlgebra(Ideal, RingElement) := o->(M,a)->(
+     R:=ring M;
+     reesIM := reesIdeal(M,a);
+     reesAM := (ring reesIM)/reesIM;
+     A:= map(reesAM, R);
+     (reesAM,A)
+     )
+     
+///
+restart
+
+loadPackage "ReesAlgebra"
+S = ZZ/101[x,y]
+M = module ideal(x,y)
+reesAlgebra(M,S_0)
+reesAlgebra(M)
+reesIdeal M
+
+M = module (ideal(x,y))^2
+reesAlgebra(M)
+M = module (ideal (x,y))^3
+reesAlgebra(M)
+///
           
 --We can use this to compute the distinguished subvarieties of
 --a variety (components of the support of the normal cone).
@@ -197,7 +253,11 @@ rees(Ideal, RingElement) := Ideal => o -> (I,a) -> (
 --           time decompose required this.  But I think it is not necessary 
 --           now. 
 
-\\\
+
+
+///
+restart
+loadPackage "ReesAlgebra"
 T=ZZ/101[c,d]
 D = 4
 P = product(D, i -> random(1,T))
@@ -205,7 +265,8 @@ R = ZZ/101[a,b,c,d]
 I = ideal(a^2, a*b*(substitute(P,R)), b^2)
 ass I -- there is one minimal associated prime (a thick line in PP^3) and D embedded primes (points on the line) 
 primaryDecomposition I
-distinguished(I) -- only the minimal prime is a distinguished component
+distinguished I -- only the minimal prime is a distinguished component
+
 K = distinguishedAndMult(I) -- get multiplicity 2 
 intersect apply(K, i-> i_1^(i_0)) -- checks the Geometric Nullstellensatz on Ein-Lazarsfeld
 
@@ -213,26 +274,21 @@ intersect apply(K, i-> i_1^(i_0)) -- checks the Geometric Nullstellensatz on Ein
 R=ZZ/32003[x,y,z]
 I=intersect(ideal(x),(ideal(x,y))^2, (ideal(x,y,z))^3)
 ass I
-distinguished I
+distinguished  I
 K = distinguishedAndMult I
 intersect apply(K, i-> i_1^(i_0)) 
+///
 
 
-
-
-distinguished = method(Options => {Variable => null})
+distinguished = method(Options => {Variable => w})
 distinguished(Ideal) := List => o -> i -> (
-     R := ring i;
-     J := rees(i, Variable => o.Variable); -- the ideal of the Rees algebra
-     oldDegs := (monoid (ring J)).Options.Degrees;
-     newDegs := apply(oldDegs, i -> first entries (matrix{i}*matrix{{1},{1}}));
-     S := (coefficientRing (ring J))(monoid[gens (ring J), Degrees => newDegs, MonomialOrder => GRevLex]);
-     mapToSfromRees:= map(S, (ring J));
-     mapToSfromR := map(S, R);
-     L := decompose (mapToSfromR(i)+mapToSfromRees(J));                 
-     apply(L,P->kernel(map(S/P, R)))
+     R:=ring i;
+     (reesAi,A) := reesAlgebra (i,Variable=>o.Variable);
+     (T,B) := flattenRing reesAi;
+     L:=decompose substitute(i,T);
+     apply(L, p->kernel(map(T/p, T)*B*A))
      )
-
+     
 -- PURPOSE : Compute the distinguised subvarieties of a variety  
 --           (components of the support of the normal cone) WITH their 
 --           multiplicities.
@@ -240,55 +296,46 @@ distinguished(Ideal) := List => o -> i -> (
 -- OUTPUT : ideals that are the components of the support of the normal 
 --          cone of V(i) and integers that are their corresponding 
 --          multiplicities.
--- COMMENT : I have a note stating that "right now" this computation 
---           requires a polynomial ring over a finite field - written 
---           in 2000/2001.  I have no idea why.  I suspect that at the 
---           time decompose required this.  But I think it is not necessary 
---           now. 
-distinguishedAndMult = method(Options => {Variable => null})
+-- CAVEAT: R must be a polynomial ring.
+
+distinguishedAndMult = method(Options => {Variable => w})
 distinguishedAndMult(Ideal) := List => o -> i -> (
-     R := ring i;
-     J := reesIdeal(i, Variable => o.Variable); -- the ideal of the Rees algebra
-     oldDegs := (monoid (ring J)).Options.Degrees;
-     newDegs := apply(oldDegs, i -> first entries (matrix{i}*matrix{{1},{1}}));
-     S := (coefficientRing (ring J))(monoid[gens (ring J), Degrees => newDegs, MonomialOrder => GRevLex]);
-     mapToSfromRees:= map(S, (ring J));
-     mapToSfromR := map(S, R);
-     I := mapToSfromR(i)+mapToSfromRees(J);    
-     Itop := top I; -- we only need the irreducibles of codim 1 mod J.
-     L := decompose (I); -- find its irred components
+    R:=ring i;
+    ReesI := reesIdeal( i, Variable => o.Variable);
+    (S,toFlatS) := flattenRing ring ReesI;
+     I:=(toFlatS ReesI)+substitute(i,S);
+     Itop:=top I;
+     L:=decompose Itop;
      apply(L,P->(Pcomponent := Itop:(saturate(Itop,P)); 
 	       --the P-primary component. The multiplicity is
 	       --computed as (degree Pcomponent)/(degree P)
        	  {(degree Pcomponent)/(degree P), kernel(map(S/P, R))})))
 
 
--- PURPOSE : Core code of the special fiber of the rees algebra 
---           over a quotient ring. For use, see front end. 
-specialFiberCore = (f,V) -> (
-     J := reesAlgebra(f, Variable => V);
-     R := ring f;
-     S := ring J;
-     nR := (rank source vars S) - (rank source vars R);
-     fiberdeglist := take(degrees S, nR);
-     if V === null then Rfiber := coefficientRing(R)[w_1..w_nR, Degrees=>fiberdeglist]
-     else Rfiber = coefficientRing(R)[V_1..V_nR, Degrees=>fiberdeglist];
-     specialize := map(Rfiber,ring J);
-     trim (specialize J))
+--Special fiber is here defined to be the fiber of the blowup over the
+--homogeneous maximal ideal of the original ring.
 
--- PURPOSE : The special fiber of the rees algebra over a quotient ring.
--- INPUT : 'f' a map or 
---         'M' a module or 
---         'J' an ideal over a ring R.
--- Options : The ring R can be a quotient ring, or, the user can define 
---           f, M or J over a polynomial ring R and an ideal I can be given 
---           as the option Strategy and the special fiber is then computed 
---           over the quotient ring R/I.
--- OUTPUT : an ideal defining the special fiber of the rees algebra over 
---          a quotient ring, in a NEW polynomial ring. 
-specialFiber = method(Options=>{Variable => null})
-specialFiber(Module) := Ideal => o-> (M) -> specialFiberCore(M, o.Variable)
-specialFiber(Ideal) :=  Ideal => o -> (J) -> specialFiberCore(J, o.Variable)
+specialFiberIdeal=method(TypicalValue=>Ideal, Options=>{Variable=>w})
+
+specialFiberIdeal(Ideal):= o->i->(
+     Reesi:= reesIdeal(i, Variable=>o.Variable);
+     trim (Reesi + substitute(ideal vars ring i, ring Reesi))
+     )
+specialFiberIdeal(Module):= o->i->(
+     Reesi:= reesIdeal(i, Variable=>o.Variable);
+     trim (Reesi + substitute(ideal vars ring i, ring Reesi))
+     )
+
+///
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+R=kk[x,y]
+i=(ideal vars R)^2
+reesAlgebra i
+reesIdeal i
+specialFiberIdeal i
+///
 
 -- PURPOSE : Analytic spread of a module as defined in M2 by a matrix, 
 --           a module or ideal over a quotient ring R/I.
@@ -301,33 +348,36 @@ specialFiber(Ideal) :=  Ideal => o -> (J) -> specialFiberCore(J, o.Variable)
 -- OUTPUT : The analytic spread of f/M/or J over over the ring R, or if 
 --          the option is given, R/I.
 analyticSpread = method()
-analyticSpread(Module) := ZZ => (M) -> dim specialFiber(M)
-analyticSpread(Ideal) := ZZ => (J) ->  dim specialFiber(J)
+analyticSpread(Module) := ZZ => (M) -> dim specialFiberIdeal(M)
+analyticSpread(Ideal) := ZZ => (J) ->  dim specialFiberIdeal(J)
  
--- PURPOSE : Core code for isLinearType.  For more information, see below.
-isLinearTypeCore = (f) -> ( 
-     K := reesAlgebra(f);
-     T := ring K;
-     oldvars := substitute(vars ring I, T);
-     newvars := compress ((vars T)%oldvars);
-     test := compress contract(newvars,contract(newvars, gens K));
-     (rank source test)==0
-     )
+isLinearType=method(TypicalValue =>Boolean)
 
--- PURPOSE : Test if a module is of linear type.
--- INPUT : 'M' a module OR
---         'J' an ideal 
--- Options : The ring R can be a quotient ring, or, the user can define 
---           f, M or J over a polynomial ring R and an ideal I can be given 
---           as the option Strategy and the special fiber is then computed 
---           over the quotient ring R/I.
--- OUTPUT : The boolean true if the rees algebra of the image of f, M, 
---         or J is equal to its symmetric algebra and false otherwise.
--- COMMENT : Tests whether the rees relations are linear forms in the 
---           new variables.
-isLinearType = method(Options=>{Strategy => null})
-isLinearType(Module) := Boolean => o -> (M) -> isLinearTypeCore(M)
-isLinearType(Ideal) := Boolean => o -> (J) -> isLinearTypeCore(J)
+isLinearType(Module):= M->(
+     I:=reesIdeal M;
+     P:=substitute(presentation M, ring I);
+     J:=ideal((vars ring I)*P);
+     ((gens I)%J)==0)
+     
+isLinearType(Ideal):= M->(
+     I:=reesIdeal M;
+     P:=substitute(presentation module M, ring I);
+     J:=ideal((vars ring I)*P);
+     ((gens I)%J)==0)
+     
+///
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+R=kk[x,y]
+i=(ideal vars R)^2
+reesAlgebra i
+reesIdeal i
+specialFiberIdeal i
+assert (isLinearType i==false)
+isLinearType (ideal vars R)
+///
+
 
 
 -- PURPOSE : Compute the multipicity e_I(M) and e(I) = e_I(R), 
@@ -395,6 +445,8 @@ idealIntegralClosure(Ideal) := Ideal => (I) -> (
      NewGens := apply(#toLift, i-> substitute((NewNums#i)/(NewDenoms#i),R));
      ideal mingens(I + ideal(NewGens)) 
      )
+ 
+ 
 
 beginDocumentation()
 
@@ -727,36 +779,34 @@ document {
      }
 
 
--- symmetricKernel, rees, reesClassic, analyticSpread, 
--- distinguishedAndMult, specialFiber, distinguished, universalEmbedding, 
--- idealIntegralClosure, isLinearType, multiplicity
-
-TEST ///
-R=QQ[a,b,c,d,e,f]
-M=matrix{{a,c,e},{b,d,f}}
-analyticSpread image M
---status: analyticSpread dies because it asks for the ring of a polynomial ring
---status: David, Amelia, and Sorin should fix it
-///
-
-
-{*
-
+end    
 
 restart
 loadPackage "ReesAlgebra"
+
 R=QQ[a..e]
 j=monomialCurveIdeal(R, {1,2,3,5})
 IS = symmetricKernel(j)
 time L = reesAlgebra(j)
 M = coker gens j
 IM = reesAlgebra(M)
-IR= time rees(j)
+IR= time reesIdeal(j)
 betti gens IR
 degrees source vars ring IR
 specialFiber(j, Strategy => I)
 analyticSpread(j, Strategy => I)
 ----
+
+
+--TEST 
+
+R=QQ[a,b,c,d,e,f]
+M=matrix{{a,c,e},{b,d,f}}
+analyticSpread image M
+--status: analyticSpread dies because it asks for the ring of a polynomial ring
+--status: David, Amelia, and Sorin should fix it
+
+
 restart
 loadPackage "ReesAlgebraNew"
 --kk=ZZ/32003
@@ -784,7 +834,7 @@ N=transpose (res coker transpose M).dd_2
 
 uN=universalEmbedding(N)
 symmetricKernel(uN)
-IR=rees(N)
+IR=reesIdeal(N)
 
 SIR= specialFiber(N)
 *}
