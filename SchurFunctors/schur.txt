@@ -16,5 +16,15 @@
   Description
     Text
       Applies the Schur functor associated to lambda to the map f betwwen free modules.
+    Example
+      R=QQ[x_1,x_2,x_3]
+      F=map(R^1,R^3,vars R)
+      L=schur({2},F) -- 2nd veronese embedding
+      F=matrix{{1_QQ,2,4},{3,9,27},{4,16,64}}
+      schur({1,1},F)
+      minors(2,F)
+      schur({1,1,1},F) == det F
+  Caveat
+    The partition lambda should be a valid nonempty partition.
   SeeAlso
     schurModule

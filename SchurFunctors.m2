@@ -10,7 +10,7 @@ newPackage(
 	  AuxiliaryFiles=>true
      	  )
      
-export{ schur, schurModule, Schur }
+export{ schur, schurModule, Schur, Filling }
 
 exteriorPower(List, Module) := opts -> (L,M) -> (
      if #L == 0 then exteriorPower(0,M)
@@ -53,19 +53,11 @@ Filling ? Filling := (T,U) -> (
 Filling _ List := (T,L) -> (toList T)_L
 
 -----New Function: Adds an entry t a given column of a filling
-T={{1,2,3},{2,3}}
-F=new Filling from T
-F#1
-c=0
-apply(#T,j->if j!=c then T_j else T_j|{e})
-join(F,{{1}})
-
-AddColumn=method()
-AddColumn (Filling,ZZ,ZZ):=(T,c,e)->(
+addColumn=method()
+addColumn (Filling,ZZ,ZZ):=(T,c,e)->(
      if c>=#T then join(T,{{e}})
      else new Filling from apply(#T,j->if j!=c then T#j else T#j|{e})
     )
-
 
 normalize = method()
 normalize Filling := (T) -> (
@@ -220,6 +212,51 @@ schur(List,Matrix) := (lambda,f) -> (
      gN * F * gM
      )
 
+straighten = method(TypicalValue=>Vector)
+straighten (Filling, Module) := (T, M) -> (
+     (c, S) := normalize T;
+     if c == 0 then 0_M
+     else (
+	  if not M.cache.Schur#2#?S then error "tableau and Schur module incompatible"
+	  else (
+	       i := M.cache.Schur#2#S;
+	       f := M.cache.Schur#0;
+	       c*f*(source f)_i
+	       ) 
+	  ) 
+     )
+///
+M = schurModule({1,1,1}, QQ^4);
+v = straighten(new Filling from {{3,2,1}}, M)
+///  
+
+printSchurModuleElement = method()
+printSchurModuleElement (Vector, Module) := (v,M) -> (
+     l := applyPairs(M.cache.Schur#3, (T,i)->(i,T));
+     scanKeys(l, i->  
+	       if v_i != 0 then 
+	       << v_i << "*" << l#i << endl )
+     )
+///
+printSchurModuleElement(v,M)
+///
+
+schurModulesMap = method() 
+schurModulesMap (Module, Module, Function) := (N,M,F) -> (
+     l := applyPairs(M.cache.Schur#3, (T,i)->(i,T));
+     matrix apply(#l, j->sum(F(l#j), a->a#0*straighten(a#1,N)))      
+     )
+///
+R = QQ[x_1..x_4];
+F = T -> apply(numgens R, j -> (R_j, addColumn(T,0,j)))
+
+SMM = apply(3, i->(
+	  M = schurModule(toList(i+1:1),R^4);
+	  N = schurModule(toList(i+2:1),R^4);
+	  schurModulesMap(N,M,F) ))
+SMM#1*SMM#0
+///
+     
 beginDocumentation()
 document {
      	  Key => SchurFunctors,
@@ -229,12 +266,16 @@ document {
 loadPackage "SimpleDoc"
 doc get (currentFileDirectory | "SchurFunctors/SchurModule.txt")
 doc get (currentFileDirectory | "SchurFunctors/schur.txt")
-     
+
+TEST ///
+      M = schurModule({2,2,2}, QQ^4)
+      assert(rank M == 10)
+      (f, finv, AT, ST) = toSequence M.cache.Schur;
+      assert(f*finv == map(QQ^10)) 
+///     
 end
 restart
 loadPackage "SchurFunctors"
-loadPackage "SimpleDoc"
-help doc
 help schurModule
 help schur
 installPackage "SchurFunctors"
