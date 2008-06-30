@@ -350,6 +350,11 @@ multiplicity(Ideal) := ZZ => I ->  (
      RInew := newRing(ring presentation RI, Degrees => apply(#gens RI, i -> {1}));
      degree (RInew/(substitute(ideal presentation RI, RInew)))
      )
+multiplicity(Ideal,RingElement) := ZZ => (I,a) ->  (
+     RI := normalCone (I,a);
+     RInew := newRing(ring presentation RI, Degrees => apply(#gens RI, i -> {1}));
+     degree (RInew/(substitute(ideal presentation RI, RInew)))
+     )
 
 
 --Special fiber is here defined to be the fiber of the blowup over the
@@ -363,6 +368,14 @@ specialFiberIdeal(Ideal):= o->i->(
      )
 specialFiberIdeal(Module):= o->i->(
      Reesi:= reesIdeal(i, Variable=>o.Variable);
+     trim (Reesi + substitute(ideal vars ring i, ring Reesi))
+     )
+specialFiberIdeal(Ideal, RingElement):= o->(i,a)->(
+     Reesi:= reesIdeal(i,a, Variable=>o.Variable);
+     trim (Reesi + substitute(ideal vars ring i, ring Reesi))
+     )
+specialFiberIdeal(Module,RingElement):= o->(i,a)->(
+     Reesi:= reesIdeal(i, a, Variable=>o.Variable);
      trim (Reesi + substitute(ideal vars ring i, ring Reesi))
      )
 
@@ -390,6 +403,8 @@ specialFiberIdeal i
 analyticSpread = method()
 analyticSpread(Module) := ZZ => (M) -> dim specialFiberIdeal(M)
 analyticSpread(Ideal) := ZZ => (J) ->  dim specialFiberIdeal(J)
+analyticSpread(Module,RingElement) := ZZ => (M,a) -> dim specialFiberIdeal(M,a)
+analyticSpread(Ideal,RingElement) := ZZ => (J,a) ->  dim specialFiberIdeal(J,a)
 
 ----- distinguished and Mult still does not work!!!!!
    
@@ -412,6 +427,13 @@ distinguished = method(Options => {Variable => w})
 distinguished(Ideal) := List => o -> i -> (
      R:=ring i;
      (reesAi,A) := reesAlgebra (i,Variable=>o.Variable);
+     (T,B) := flattenRing reesAi;
+     L:=decompose substitute(i,T);
+     apply(L, p->kernel(map(T/p, T)*B*A))
+     )
+distinguished(Ideal,RingElement) := List => o -> (i,a) -> (
+     R:=ring i;
+     (reesAi,A) := reesAlgebra (i,a,Variable=>o.Variable);
      (T,B) := flattenRing reesAi;
      L:=decompose substitute(i,T);
      apply(L, p->kernel(map(T/p, T)*B*A))
@@ -455,6 +477,17 @@ distinguishedAndMult = method(Options => {Variable => w})
 distinguishedAndMult(Ideal) := List => o -> i -> (
     R:=ring i;
     ReesI := reesIdeal( i, Variable => o.Variable);
+    (S,toFlatS) := flattenRing ring ReesI;
+     I:=(toFlatS ReesI)+substitute(i,S);
+     Itop:=top I;
+     L:=decompose Itop;
+     apply(L,P->(Pcomponent := Itop:(saturate(Itop,P)); 
+	       --the P-primary component. The multiplicity is
+	       --computed as (degree Pcomponent)/(degree P)
+       	  {(degree Pcomponent)/(degree P), kernel(map(S/P, R))})))
+distinguishedAndMult(Ideal,RingElement) := List => o -> (i,a) -> (
+    R:=ring i;
+    ReesI := reesIdeal( i,a, Variable => o.Variable);
     (S,toFlatS) := flattenRing ring ReesI;
      I:=(toFlatS ReesI)+substitute(i,S);
      Itop:=top I;
@@ -597,6 +630,13 @@ document {
 
 
 document {
+     Key => reesIdeal,
+     Headline => "compute the Rees ideal"
+     }
+
+--put in "variable"
+
+document {
      Key => reesAlgebra, 
      Headline => "compute the Rees algebra"
      }
@@ -636,41 +676,56 @@ document {
      "Stuff."
      }
 
+
 document {
-     Key => {distinguished, (distinguished,Ideal)},
-     Headline => "computes the distinguished subvarieties of a scheme",
-     Usage => "distinguished I" ,
-     Inputs =>  {"I" => {ofClass Ideal, " in ", ofClass PolynomialRing}},
-     Outputs => {{ofClass List, " of prime ideals defining the components 
-	  of the support of the normal cone over ", TT "I"}},
+     Key => isLinearType, 
+     Headline => "determine if a module is of linear type"
+     }
+
+document {
+     Key => (isLinearType,Module), 
+     Headline => "determine if the image of a matrix is of linear type",
+     Usage =>  "isLinearType(M)",
+     Inputs =>  {"M"},
+     Outputs => {{"true if the module is of linear 
+	  type and false otherwise."}},
      "Stuff."
      }
 
 document {
-     Key => [distinguished, Variable],
-     Headline=> "distinguished introduces new variables and the option 
-     Variable allows the user to specify a variable name for this purpose, 
-     the default is", TT  "w"     
-     }
-
-document {
-     Key => {distinguishedAndMult, (distinguishedAndMult,Ideal)},
-     Headline => "compute the distinguished subvarieties of a variety along 
-     with their multiplicities",
-     Usage => "distinguishedAndMult I" ,
-     Inputs => {"I" => {ofClass Ideal, " in ", ofClass PolynomialRing}},
-     Outputs => {{ofClass List, " of pairs where the first entry 
-	       is the multiplicity of the second entry which is one 
-	       of the ideals defining a component of the support of 
-	       the normal cone over ", TT "I"}},
+     Key => (isLinearType,Ideal),
+     Headline => "determine if the image of a matrix is of linear type",
+     Usage =>  "isLinearType(J)",
+     Inputs =>  {"J"},
+     Outputs => {{"true if the ideal is of linear 
+	  type and false otherwise."}},
      "Stuff."
      }
 
 document {
-     Key => [distinguishedAndMult, Variable],
-     Headline=> "distinguishedAndMult introduces new variables and the option 
-     Variable allows the user to specify a variable name for this purpose, 
-     the default is", TT  "w"     
+     Key => normalCone,
+     Headline => ""
+     }
+document {
+     Key => associatedGradedRing, 
+     Headline => ""
+     }
+
+
+document {
+     Key => multiplicity, 
+     Headline => "compute the multiplicity of an ideal or module"
+     }
+
+document {
+     Key => (multiplicity,Ideal),
+     Headline => "compute the Hilbert-Samuel multiplicty of an ideal",
+     Usage =>  "multiplicity I",
+     Inputs =>  {"I"},
+     Outputs => {{"  that is the normalized leading 
+	  coefficient of the associated graded ring of ", TT "R", 
+	  " with respect to ", TT "I"}},
+     "Stuff."
      }
 
 document {
@@ -732,56 +787,40 @@ document {
      }
 
 document {
-     Key => isLinearType, 
-     Headline => "determine if a module is of linear type"
-     }
-
-document {
-     Key => (isLinearType,Module), 
-     Headline => "determine if the image of a matrix is of linear type",
-     Usage =>  "isLinearType(M)",
-     Inputs =>  {"M"},
-     Outputs => {{"true if the module is of linear 
-	  type and false otherwise."}},
+     Key => {distinguished, (distinguished,Ideal)},
+     Headline => "computes the distinguished subvarieties of a scheme",
+     Usage => "distinguished I" ,
+     Inputs =>  {"I" => {ofClass Ideal, " in ", ofClass PolynomialRing}},
+     Outputs => {{ofClass List, " of prime ideals defining the components 
+	  of the support of the normal cone over ", TT "I"}},
      "Stuff."
      }
 
 document {
-     Key => (isLinearType,Ideal),
-     Headline => "determine if the image of a matrix is of linear type",
-     Usage =>  "isLinearType(J)",
-     Inputs =>  {"J"},
-     Outputs => {{"true if the ideal is of linear 
-	  type and false otherwise."}},
+     Key => [distinguished, Variable],
+     Headline=> "distinguished introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default is", TT  "w"     
+     }
+
+document {
+     Key => {distinguishedAndMult, (distinguishedAndMult,Ideal)},
+     Headline => "compute the distinguished subvarieties of a variety along 
+     with their multiplicities",
+     Usage => "distinguishedAndMult I" ,
+     Inputs => {"I" => {ofClass Ideal, " in ", ofClass PolynomialRing}},
+     Outputs => {{ofClass List, " of pairs where the first entry 
+	       is the multiplicity of the second entry which is one 
+	       of the ideals defining a component of the support of 
+	       the normal cone over ", TT "I"}},
      "Stuff."
      }
 
 document {
-     Key => multiplicity, 
-     Headline => "compute the multiplicity of an ideal or module"
-     }
-
-document {
-     Key => (multiplicity,Ideal),
-     Headline => "compute the Hilbert-Samuel multiplicty of an ideal",
-     Usage =>  "multiplicity I",
-     Inputs =>  {"I"},
-     Outputs => {{"  that is the normalized leading 
-	  coefficient of the associated graded ring of ", TT "R", 
-	  " with respect to ", TT "I"}},
-     "Stuff."
-     }
-
-document {
-     Key => (multiplicity,Module,Ideal),
-     Headline => "compute the Hilbert-Samule multiplicity of a module with 
-     respect to an ideal",
-     Usage =>  "multiplicity(M,I)",
-     Inputs =>  {"M", "I"},
-     Outputs => {{" that is the normalized leading coefficient of 
-	       the associated graded module of ", TT "M", " with 
-	       respect to ", TT "I"}},
-     "Stuff."
+     Key => [distinguishedAndMult, Variable],
+     Headline=> "distinguishedAndMult introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default is", TT  "w"     
      }
 
 
