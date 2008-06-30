@@ -1,10 +1,26 @@
-;; This buffer is for notes you don't want to save, and for Lisp evaluation.
-;; If you want to create a file, visit that file with C-x C-f,
-;; then enter the text in that file's own buffer.
-
+restart
 loadPackage "SchurFunctors"
 help schur
 debug SchurFunctors
+
+-- Koszul complex check
+n = 4;
+R = QQ[x_1..x_n];
+g = map(R^n,R^n,(i,j)->(i+1)^j)
+sg = apply(n,i->schur(toList(i+1:1), g));
+Kx = T -> apply(numgens R, j -> (R_j, addColumn(T,0,j)))
+Ktop = apply(n-1, i->schurModulesMap(source sg#(i+1), source sg#i,Kx));
+y = flatten entries(g * transpose vars R);
+Ky = T -> apply(numgens R, j -> (y_j, addColumn(T,0,j)))
+Kbottom = apply(n-1, i->schurModulesMap(source sg#(i+1), source sg#i,Ky));
+--check commutativity
+all(toList(0..n-2), i->sg#(i+1)*Ktop#i==Kbottom#i*sg#i)
+
+SMM = apply(3, i->(
+	  M = schurModule(toList(i+1:1),R^4);
+	  N = schurModule(toList(i+2:1),R^4);
+	  schurModulesMap(N,M,F) ))
+SMM#1*SMM#0
 
 L={{1,0}}
 normalize L

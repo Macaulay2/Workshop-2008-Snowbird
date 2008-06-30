@@ -209,8 +209,12 @@ schur(List,Matrix) := (lambda,f) -> (
      F := exteriorPower(mu,f);
      gM := SM.cache.Schur_1;
      gN := SN.cache.Schur_0;
-     gN * F * gM
+     schurNM := gN * F * gM;
+     (source schurNM).cache.Schur = SM.cache.Schur;
+     (target schurNM).cache.Schur = SN.cache.Schur;
+     schurNM
      )
+
 
 straighten = method(TypicalValue=>Vector)
 straighten (Filling, Module) := (T, M) -> (
