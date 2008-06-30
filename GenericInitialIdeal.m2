@@ -74,6 +74,7 @@ gin(Ideal) := opts -> (I) -> (
 	  << "--potential generic ideal showed up "<< (tally attempts)#(genericI)<< " out of " << opts.AttemptCount << " times." << endl;
 	  print netList pairs tally attempts;
 	  );
+     use S;
      generic       
      );
 
@@ -115,11 +116,20 @@ document {
      Caveat => { "The method ", TT " gin"," uses a probabilistic algorithm. The returned answer is correct with high probability in characteristic zero and large positive characteristic, but might be wrong in small positive characteristic. For details in this situation it is recommended to use the Verbose option.",},
      SeeAlso =>"lexgin",
      PARA {"Example: a complete intersection of type (3,3) in P^3"},
-     EXAMPLE {	
+     EXAMPLE lines ///
 	  "R = QQ[a..d];",
 	  "I = ideal(a^3+c^2*d, b^3-a*d^2);",
 	  "gin(I)"
-	  },
+	  ///,
+     PARA{"The Stanley-Reisner ideal of RP^2"},
+     EXAMPLE lines ///
+     loadPackage "GenericInitialIdeal"
+     R = QQ[x0,x1,x2,x3,x4,x5]
+     M = matrix {{x1*x3*x4, x0*x3*x4, x1*x2*x4, x0*x2*x3, x0*x1*x2, x2*x4*x5, x0*x4*x5, x2*x3*x5, x1*x3*x5, x0*x1*x5}} --Stanley-Reisner ideal of RP^2
+     I=ideal flatten entries M
+     J=(ideal{x0,x1,x2})^3
+     assert(gin(I)==J)
+     ///,	  
      PARA {"This symbol is provided by the package ", TO GenericInitialIdeal, "." }
      }
 
@@ -146,9 +156,17 @@ document { Key => {(lexgin,Ideal)} }
 document { Key => {(lexgin,QuotientRing)} }
 
 
-
+TEST ///
+loadPackage "GenericInitialIdeal"
 R = QQ[x0,x1,x2,x3,x4,x5]
+M = matrix {{x1*x3*x4, x0*x3*x4, x1*x2*x4, x0*x2*x3, x0*x1*x2, x2*x4*x5, x0*x4*x5, x2*x3*x5, x1*x3*x5, x0*x1*x5}} --Stanley-Reisner ideal of RP^2
+I=ideal flatten entries M
+J=(ideal{x0,x1,x2})^3
+assert(gin(I)==J)
+///
 
-M = matrix {{x1*x3*x4, x0*x3*x4, x1*x2*x4, x0*x2*x3, x0*x1*x2, x2*x4*x5, x0*x4*x5, x2*x3*x5, x1*x3*x5, x0*x1*x5}}
-
-
+TEST ///
+R=QQ[x,y,z]
+I=ideal{x+y-6*z,x*y+5*x*z+y*z,x*y*z+4}
+assert(lexgin I==ideal(x,y,z^6))
+///
