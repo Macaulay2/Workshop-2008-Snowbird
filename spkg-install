@@ -1,0 +1,13 @@
+set -e
+SYS=`./src/config/config.guess`
+cd src
+make
+mkdir -p BUILD/normal
+cd BUILD/normal
+../../configure --prefix=$SAGE_LOCAL --disable-encap --disable-building \
+		LDFLAGS="-L$SAGE_LOCAL/lib/" CFLAGS="" CPPFLAGS="-I$SAGE_LOCAL/include/" \
+		FC=sage_fortran \
+		LIBS="-llapack -lf77blas -latlas -lcblas -lpthread -ldl -lc $SAGE_LOCAL/lib/gcc-lib/$SYS/4.0.3/libf95.a" \
+		--enable-static --disable-fc-lib-ldflags --disable-dumpdata
+make IgnoreExampleErrors=true
+make IgnoreExampleErrors=true install
