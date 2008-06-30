@@ -1308,12 +1308,47 @@ document {
      }
 
 document { 
-     Key => {pureCharFree, pureWeyman, pureTwoInvariant,
-	  (pureCharFree,List),
-	  (pureTwoInvariant,List),
-	  (pureWeyman,List)},
+     Key => {pureCharFree,
+	  (pureCharFree,List)},
      Headline => "first betti number of specific exact complex",
-     Usage => "pureCharFree L\n pureTwoInvariant L\npureWeyman L",
+     Usage => "pureCharFree",
+     Inputs => {
+	  List => "a strictly increasing sequence of degrees"
+	  },
+     Outputs => {
+	  ZZ => "The zero-th betti number of the corresponding pure
+	  resolution construction"
+	  }, 
+     TT "pureCharFree", " corresponds to the construction in ...", 
+     EXAMPLE lines ///
+     	  L = {0,2,3,9}
+	  B = pureBettiDiagram L
+     	  pureCharFree L
+     	  L1 = {0,3,4,6}
+	  B1 = pureBettiDiagram L1
+	  pureCharFree L1
+	  ///,
+     "Thus, for large enough multiples m, m*B occurs as the Betti diagram of a module from the pureCharFree construction",
+     PARA{},
+     "However, we can find B itself as the Betti diagram of a module:",
+     EXAMPLE lines ///
+     	  betti res randomSocleModule(L,1)
+     	  betti res randomModule(L,1)
+     	  betti res randomModule({0,6,7,9},1)
+
+     	  betti res randomSocleModule(L1,1)
+     	  betti res randomModule(L1,1)
+     	  betti res randomModule({0,2,3,6},1)
+	  betti res randomSocleModule({0,2,3,6},1)
+     	  ///,
+     SeeAlso => {pureAll, pureWeyman, pureTwoInvariant}
+     }
+
+document { 
+     Key => {pureTwoInvariant,
+	  (pureTwoInvariant,List)},
+     Headline => "first betti number of specific exact complex",
+     Usage => "pureTwoInvariant",
      Inputs => {
 	  List => "a strictly increasing sequence of degrees"
 	  },
@@ -1321,10 +1356,83 @@ document {
 	  ZZ => "The zero-th betti number of the corresponding pure
 	  resolution construction"
 	  },
+     TO "pureCharFree", " corresponds to the construction in ...", 
+     EXAMPLE lines ///
+     	  L = {0,2,3,9}
+	  B = pureBettiDiagram L
+     	  pureTwoInvariant L 
+     	  L1 = {0,4,5,7}
+	  B1 = pureBettiDiagram L1
+	  pureTwoInvariant L1
+	  ///,
+     "Thus, for large enough multiples m, m*B occurs as the Betti diagram of a module from the pureTwoInvariant construction",
+     PARA{},
+     "However, B itself occurs as the betti table of a module:",
+     EXAMPLE lines ///
+     	  betti res randomSocleModule(L,1)
+     	  betti res randomModule(L,1)
+     	  betti res randomModule({0,6,7,9},1)
+
+     	  betti res randomSocleModule(L1,1)
+     	  betti res randomModule(L1,1)
+     	  betti res randomModule({0,2,3,7},1)
+     	  betti res randomSocleModule({0,2,3,7},1)
+     	  ///,
+     SeeAlso => {pureAll}
+     }
+
+document { 
+     Key => {pureWeyman,
+	  (pureWeyman,List)},
+     Headline => "first betti number of specific exact complex",
+     Usage => "pureWeyman L",
+     Inputs => {
+	  List => "a strictly increasing sequence of degrees"
+	  },
+     Outputs => {
+	  ZZ => "The zero-th betti number of the corresponding pure
+	  resolution construction"
+	  },
+     TO "pureWeyman", " corresponds to the construction in ...", 
+     EXAMPLE lines ///
+     	  L = {0,2,3,9}
+	  B = pureBettiDiagram L
+     	  pureWeyman L
+	  
+	  L1 = {0,3,5,6}
+	  B1 = pureBettiDiagram L1
+	  pureWeyman L1
+	  
+	  ///,
+     "Thus, for large enough multiples m, m*B occurs as the Betti diagram of a module in the Weyman construction",
+     PARA{},
+     "However, B itself occurs for some modules:",
+     EXAMPLE lines ///
+     	  betti res randomSocleModule(L,1)
+     	  betti res randomModule(L,1)
+     	  betti res randomModule({0,6,7,9},1)
+
+     	  betti res randomSocleModule(L1,1)
+     	  betti res randomModule(L1,1)
+     	  betti res randomModule({0,1,3,6},1)
+     	  betti res randomSocleModule({0,1,3,6},1)     	  
+	  ///,
+     SeeAlso => {pureAll}
+     }
+
+document { 
+     Key => {pureAll,
+	  (pureAll, List)},
+     Headline => "Vector of first betti number of our three specific exact complexes",
+     Usage => "pureAll",
+     Inputs => {
+	  List => "a strictly increasing sequence of degrees"
+	  },
+     Outputs => {
+	  ZZ => "The vector of zero-th betti numbers of the three corresponding pure
+	  resolution construction"
+	  },
      TO "pureAll", " returns all three numbers at one time.",
-     TT "pureTwoInvariant", " corresponds to the construction in ...", 
-     TT "pureCharFree", " corresponds to the construction in ...", 
-     TT "pureWeyman", " corresponds to the construction in ...", 
      EXAMPLE lines ///
      	  L = {0,2,3,9}
 	  B = pureBettiDiagram L
@@ -1342,8 +1450,9 @@ document {
      	  betti res randomModule(L,1)
      	  betti res randomModule({0,6,7,9},1)
      	  ///,
-     SeeAlso => {pureAll}
+     SeeAlso => {pureWeyman, pureTwoInvariant, pureCharFree}
      }
+
 
 document { 
      Key => {(randomModule,List,ZZ),randomModule},
