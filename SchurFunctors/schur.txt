@@ -15,7 +15,9 @@
       the result of spplication of the Schur functor associated to lambda to f
   Description
     Text
-      Applies the Schur functor associated to lambda to the map f betwwen free modules.
+      Applies the Schur functor associated to lambda to the map f between free modules.
+      The modules @TT "source F"@ and @TT "target F"@ are Schur modules containing 
+      certain data in cache (see @TO schurModule@).  
     Example
       R=QQ[x_1,x_2,x_3]
       F=map(R^1,R^3,vars R)

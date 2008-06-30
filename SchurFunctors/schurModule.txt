@@ -31,6 +31,9 @@
     Example
       M=QQ^3;
       scan(4, i-> << i+1 << "-th symmetric power of M = " << schurModule({i+1},M) << endl)
+      S = schurModule({3,2,1}, M);
+      v = sum(numgens S, i-> (i+1)*S_i) -- an element of S represented by a vector
+      printSchurModuleElement(v, S); 
   Caveat
     The partition lambda should be a valid nonempty partition.
   SeeAlso
