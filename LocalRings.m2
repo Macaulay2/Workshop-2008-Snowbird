@@ -246,7 +246,7 @@ document {
 	  modulo (m,n)
 	  localModulo (m,n)
 	  ///,
-     Caveat => {},
+          Caveat => {},
      SeeAlso => {setMaxIdeal, localComplement, localsyz, localMingens, localPrune, localResolution, residueMap, maxIdeal}
      }
 
@@ -255,7 +255,7 @@ document {
      Headline => "find a minimal presentation",
      Usage => "localPrune M",
      Inputs => {
-	  M => {ofClass Module}
+	  "M" => {ofClass Module}
 	  },
      Outputs => {
 	  Module
@@ -280,7 +280,7 @@ document {
      Headline => "find a resolution over a local ring",
      Usage => "localResolution M",
      Inputs => {
-	  M => {ofClass Module},
+	  "M" => {ofClass Module},
       	  },
      Outputs => {
 	  ChainComplex
@@ -299,10 +299,45 @@ document {
 	  C^2
 	  C.dd_4
 	  ///,
+     EXAMPLE lines ///
+     	  R = QQ[x,y,z]
+	  setMaxIdeal ideal vars R
+	  m = matrix {{x-1, y, z-1}}
+	  C = resolution coker m
+	  C.dd
+	  LC = localResolution coker m
+	  LC.dd
+          ///,
+
      Caveat => {},
      SeeAlso => {setMaxIdeal, localComplement, localsyz, localMingens, localModulo, localPrune, residueMap, maxIdeal}
      }
 
+
+
+TEST ///
+     --loadPackage "LocalRings"
+     R = QQ[x,y,z]
+     setMaxIdeal ideal vars R
+     m = matrix {{x-1, y, z-1}}
+     LC = localResolution coker m
+     LC.dd
+     assert (length LC == 2)
+     ///
+
+TEST ///
+     --loadPackage "LocalRings"
+     kk=ZZ/101
+     S=kk[t,x,y,z]
+     setMaxIdeal ideal vars S
+     assert(S.residueMap == map(S,S,{0,0,0,0}))
+     m=matrix"x,y2;z3,x4"
+     M=coker m
+     assert(localsyz m == 0)
+     ///
+     
+     
+     
 end
 -- ###
 restart
