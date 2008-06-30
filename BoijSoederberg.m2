@@ -133,7 +133,7 @@ mat2betti Matrix := (M) -> mat2betti(M,0)
 
 mat2cohom = method()
 mat2cohom(Matrix,ZZ) := (M,lowDegree) -> (
-     -- lowDegreeis the degree of the first column
+     -- lowDegree is the degree of the first column
      e := entries M;
      n := #e-1; -- row indices are n-1 .. 0
      a := flatten apply(#e, i -> 
@@ -186,8 +186,12 @@ TEST ///
 R = ZZ/101[a..e]
 I = ideal borel monomialIdeal"abc,ad3,e4"
 B = betti res I
-matrix(B,0,3)
-matrix B
+M = matrix "1,0,0,0,0,0;
+     	    0,0,0,0,0,0;
+	    0,5,6,2,0,0;
+	    0,51,176,230,135,30"
+assert(matrix(B,0,3) == M)
+assert(matrix B == M)
 B = pureBettiDiagram{0,3,4,7,9}
 C = matrix B
 assert(B == mat2betti C)
@@ -1086,9 +1090,10 @@ document {
      Key => CohomologyTally,
      Headline => "cohomology table",
      "A ", TT "CohomologyTally", " is designed to hold cohomology dimensions 
-     h^i(E(d)), for some sheaf or vector bundle F on P^n.  The initial motivation
+     h^i(E(d-i)) in the i-th row and the d-th column of the table, for some sheaf or vector bundle E on P^n.  The initial motivation
      was to provide a nice visual display of this information.  However, some
      computations involving CohomologyTally are implemented."
+     
      }
 
 document { 
@@ -1522,8 +1527,10 @@ document {
 	     "hi" => "the rightmost degree of the table"
 	     },
 	Outputs => {"the cohomology table, truncated at the given degrees "},
+	"Given a list of distinct integers this function produces a truncated cohomology table for a 
+	supernatural vector bundle with root sequence L. ",
 	EXAMPLE lines ///
-	   B = pureCohomologyTable({-3,-2,0},-5,5)
+	   pureCohomologyTable({-3,-2,0},-5,5)
      	///,
 	SeeAlso => {bott}
 	}
@@ -1697,17 +1704,18 @@ assert(dotProduct(A,-5,Bde) == 180)
 ///
 
 document { 
-     Key => dotProduct,
+     Key =>  {dotProduct,(dotProduct,Matrix,ZZ,BettiTally),(dotProduct,Matrix,BettiTally),(dotProduct,BettiTally,BettiTally),(dotProduct,Matrix,Matrix)},
      Headline => "entry by entry dot product of two Betti diagrams",
-     Usage => "dotProduct(M,lowestDeg,B)\ndotProduct(B,C)",
+     Usage => "dotProduct(M,lowestDeg,B)\ndotProduct(M,B)\ndotProduct(B,C)\ndotProduct(M,N)",
      Inputs => {
 	  "M" => Matrix,
+	  "N" => Matrix,
 	  "lowestDeg" => ZZ,
 	  "B" => BettiTally,
 	  "C" => BettiTally
 	  },
-     "In the first version , (M, lowestDeg) refers to
-     mat2betti(M, lowestDeg).",
+     "In the first version (M, lowestDeg) refers to
+     mat2betti(M, lowestDeg), and in the second version (M,B) refers to (M,0,B).",
      Outputs => {
 	  ZZ => "the entry by entry dot product"
 	  },
@@ -1716,6 +1724,15 @@ document {
      	  M = facetEquation(d,1,-5,5)
 	  B = pureBettiDiagram d
 	  dotProduct(M,-5,B)
+	  
+	  A = matrix"1,1,0; 0,1,1; 0,1,1"
+	  B = matrix"0,1,-2;0,0,0;0,0,0"
+	  dotProduct(A, B)
+	  A1 = mat2betti A
+	  B1 = mat2betti B
+	  dotProduct(A1, B1)
+	  dotProduct(A, 0, B1)
+	  dotProduct(A, B1)
 	  ///,
      SeeAlso => {facetEquation, pureBettiDiagram}
      }
