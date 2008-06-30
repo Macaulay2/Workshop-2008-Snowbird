@@ -33,9 +33,9 @@ newPackage(
     	DebuggingMode => true
     	)
 
-export{reesAlgebra, symmetricKernel, universalEmbedding, reesIdeal, distinguished, 
-     distinguishedAndMult, specialFiberIdeal, analyticSpread,
-isLinearType, normalCone, multiplicity}
+export{symmetricKernel, universalEmbedding,reesIdeal,reesAlgebra,
+isLinearType, normalCone, associatedGradedRing, multiplicity,
+specialFiberIdeal,analyticSpread, distinguished,distinguishedAndMult}
 
 
 -- Comment : The definition of Rees algebra used in this package is 
