@@ -318,9 +318,35 @@ document {
      SeeAlso => {points},
      }
 
+TEST ///
+R = ZZ/32003[vars(0..4), MonomialOrder=>Lex]
+M = matrix(ZZ/32003,  {{0, -9, 4, -2, -4, -9, -10, 6, -8, 0}, 
+            {1, 0, -10, 9, 3, -4, 1, 1, -10, -3}, 
+	    {5, 7, -4, -5, -7, 7, 4, 6, -3, 2}, 
+	    {2, 8, 6, -6, 4, 3, 8, -10, 7, 8}, 
+	    {-9, -9, 0, 4, -3, 9, 4, 4, -4, -4}})
+phi = makeRingMaps(M,R)
+apply (gens(R),r->phi#2 r)
+assert ( {4, -10, -4, 6, 0} == apply (gens(R),r->phi#2 r) )
 
+J = pointsByIntersection(M,R);
+C = points(M,R);
+assert ( J == C_2 )
+assert ( C_1 == ideal(e^6,d*e^3,d^2*e,d^3,c,b,a) )
+assert ( C_0 == sort apply (standardPairs monomialIdeal C_2, p -> p#0) )
+assert (
+     (pointsMat(M,R))#0 == 
+      matrix(ZZ/32003, {{1, -9, 81, -729, 6561, 4957, 2, -18, 162, 4}, {1, -9, 81, -729, 6561,
+      4957, 8, -72, 648, 64}, {1, 0, 0, 0, 0, 0, 6, 0, 0, 36}, {1, 4, 16, 64, 256, 1024,
+      -6, -24, -96, 36}, {1, -3, 9, -27, 81, -243, 4, -12, 36, 16}, {1, 9, 81, 729, 6561,
+      -4957, 3, 27, 243, 9}, {1, 4, 16, 64, 256, 1024, 8, 32, 128, 64}, {1, 4, 16, 64,
+      256, 1024, -10, -40, -160, 100}, {1, -4, 16, -64, 256, -1024, 7, -28, 112, 49}, {1,
+      -4, 16, -64, 256, -1024, 8, -32, 128, 64}})
+)
+assert ( first entries transpose (pointsMat(M,R))#1 == C_0 )
+///
 end
-
+toString C_1
 restart
 errorDepth = 0
 
@@ -336,6 +362,9 @@ M = matrix(ZZ/32003,  {{0, -9, 4, -2, -4, -9, -10, 6, -8, 0},
 
 phi = makeRingMaps(M,R)
 apply (gens(R),r->phi#2 r)
+assert ( {4, -10, -4, 6, 0} == apply (gens(R),r->phi#2 r) )
+
+
 phi#2
 time J = pointsByIntersection(M,R)
 transpose matrix{oo}
