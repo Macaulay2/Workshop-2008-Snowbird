@@ -68,18 +68,16 @@ export{reesAlgebra, symmetricKernel, universalEmbedding, reesIdeal, distinguishe
 
 ///
 --- Our working example
+restart
+loadPackage "ReesAlgebra"
 S = ZZ/101[x_1,x_2, Degrees => {{1,1}, {1,-3}}]
 I = ideal(x_1^4*x_2^3)
 f = matrix{{x_1,x_2, 0, 0, 0}, {0, 0 , x_1^2, x_1*x_2, x_2^2}}
 F = map(S^{{-2, 1}, {2, 2}}, S^{{-3, 0},{ -3, 4},{0,0}, {0, 4}, {0,8}}, f)
 R = S/I
 M = (image F)**R
-H = Hom(R**M, R)
-
-L = apply(rank source gens H, i -> homomorphism H_{i})
-verticalConcatMaps(L)
-
-P = transpose syz transpose presentation M
+symmetricKernel F
+degrees ring oo
 /// 
 
 w := global w;
@@ -88,12 +86,16 @@ symmetricKernel(Matrix) := Ideal => o -> (f) -> (
      R := ring f; 
      z := local z;
      sourceDegs := apply(degrees source f, i -> prepend(1,i));
-     RSource := R[w_1..w_(rank source f), Degrees => sourceDegs];
+     RSourceTemp:=(coefficientRing R)(monoid[w_1..w_(rank source f)]**monoid R);
+     RSource:=newRing(RSourceTemp, 
+	  Degrees=>join(sourceDegs,drop ( (monoid RSourceTemp).Options.Degrees, rank source f)));
      tarDegs := apply(degrees target f, i -> prepend(1,i));
-     RTar := R[z_1..z_(rank target f), Degrees => tarDegs];
-     RTarVars := matrix{{z_1..z_(rank target f)}};
+     RTar := (flattenRing (R[z_1..z_(rank target f), Degrees => tarDegs]))_0;
+     RTarNewVars := matrix{
+	  apply(rank target f, i->RTar_i)};
+     RTarOldVars := substitute(vars R, RTar);
      fRTar := (map(RTar, R)) f;
-     kernel map(RTar, RSource, RTarVars*fRTar)
+     kernel map(RTar, RSource, RTarNewVars*fRTar|RTarOldVars)
      )
 
 -- PURPOSE: Front end code for the universal (or versal) embedding of the 
@@ -136,9 +138,12 @@ universalEmbedding(Module) := Matrix => (M) -> (
 S = ZZ/101[x,y]
 M = module ideal(x,y)
 reesIdeal(M)
+use S
 M = module (ideal(x,y))^2
 reesIdeal(M)
+use S
 M = module (ideal (x,y))^3
+M
 reesIdeal(M)
 ///
 
@@ -158,15 +163,14 @@ symmetricKernel(gens J, Variable => o.Variable)
 ///
 restart
 S=ZZ/101[x][y]
-
 loadPackage "ReesAlgebra"
 S = ZZ/101[x,y]
 M = module ideal(x,y)
 reesIdeal(M,S_0)
 reesIdeal(M)
+use S
 M = module (ideal(x,y))^2
-reesIdeal(M)
-M = module (ideal (x,y))^3
+reesIdeal(M,S_0)
 reesIdeal(M)
 ///
 
@@ -178,11 +182,31 @@ reesIdeal (Module, RingElement) := Ideal => o -> (M,a) -> (
      then error("Expected Module and Element over the same ring");   
      P := presentation M;
      sourceDegs := apply(degrees target P, i -> prepend(1,i));
-     RSource := R[o.Variable_1..o.Variable_(rank target P), Degrees =>sourceDegs];
-     I := ideal ((vars RSource)*(substitute(P, RSource)));
+     RSourceTemp:=(coefficientRing R)(monoid[w_1..w_(rank target P)]**monoid R);
+     RSource:=newRing(RSourceTemp, 
+	  Degrees=>join(sourceDegs,drop ( (monoid RSourceTemp).Options.Degrees, rank target P)));
+--     RSource := R[o.Variable_1..o.Variable_(rank target P), Degrees =>sourceDegs];
+     NewVars:=matrix{apply(rank target P, i->RSource_i)};
+     I := ideal (NewVars*(substitute(P, RSource)));
      a = substitute(a, RSource);
      saturate(I,a)
      )
+
+///
+restart
+
+loadPackage "ReesAlgebra"
+S = ZZ/101[x,y]
+M = module ideal(x,y)
+reesAlgebra(M,S_0)
+reesAlgebra(M)
+reesIdeal M
+
+M = module (ideal(x,y))^2
+reesAlgebra(M)
+M = module (ideal (x,y))^3
+reesAlgebra(M)
+///
 
 reesIdeal(Ideal, RingElement) := Ideal => o -> (I,a) -> (
      reesIdeal(module I, a)
@@ -222,21 +246,6 @@ reesAlgebra(Ideal, RingElement) := o->(M,a)->(
      (reesAM,A)
      )
      
-///
-restart
-
-loadPackage "ReesAlgebra"
-S = ZZ/101[x,y]
-M = module ideal(x,y)
-reesAlgebra(M,S_0)
-reesAlgebra(M)
-reesIdeal M
-
-M = module (ideal(x,y))^2
-reesAlgebra(M)
-M = module (ideal (x,y))^3
-reesAlgebra(M)
-///
           
 --We can use this to compute the distinguished subvarieties of
 --a variety (components of the support of the normal cone).
@@ -253,6 +262,27 @@ reesAlgebra(M)
 --           time decompose required this.  But I think it is not necessary 
 --           now. 
 
+
+
+
+
+distinguished = method(Options => {Variable => w})
+distinguished(Ideal) := List => o -> i -> (
+     R:=ring i;
+     (reesAi,A) := reesAlgebra (i,Variable=>o.Variable);
+     (T,B) := flattenRing reesAi;
+     L:=decompose substitute(i,T);
+     apply(L, p->kernel(map(T/p, T)*B*A))
+     )
+     
+-- PURPOSE : Compute the distinguised subvarieties of a variety  
+--           (components of the support of the normal cone) WITH their 
+--           multiplicities.
+-- INPUT : 'i' an ideal over a polynomial ring. 
+-- OUTPUT : ideals that are the components of the support of the normal 
+--          cone of V(i) and integers that are their corresponding 
+--          multiplicities.
+-- CAVEAT: R must be a polynomial ring.
 
 
 ///
@@ -279,31 +309,13 @@ K = distinguishedAndMult I
 intersect apply(K, i-> i_1^(i_0)) 
 ///
 
-
-distinguished = method(Options => {Variable => w})
-distinguished(Ideal) := List => o -> i -> (
-     R:=ring i;
-     (reesAi,A) := reesAlgebra (i,Variable=>o.Variable);
-     (T,B) := flattenRing reesAi;
-     L:=decompose substitute(i,T);
-     apply(L, p->kernel(map(T/p, T)*B*A))
-     )
-     
--- PURPOSE : Compute the distinguised subvarieties of a variety  
---           (components of the support of the normal cone) WITH their 
---           multiplicities.
--- INPUT : 'i' an ideal over a polynomial ring. 
--- OUTPUT : ideals that are the components of the support of the normal 
---          cone of V(i) and integers that are their corresponding 
---          multiplicities.
--- CAVEAT: R must be a polynomial ring.
-
 distinguishedAndMult = method(Options => {Variable => w})
 distinguishedAndMult(Ideal) := List => o -> i -> (
     R:=ring i;
     ReesI := reesIdeal( i, Variable => o.Variable);
     (S,toFlatS) := flattenRing ring ReesI;
      I:=(toFlatS ReesI)+substitute(i,S);
+error();
      Itop:=top I;
      L:=decompose Itop;
      apply(L,P->(Pcomponent := Itop:(saturate(Itop,P)); 

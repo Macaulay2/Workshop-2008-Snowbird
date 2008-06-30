@@ -27,5 +27,9 @@ degree M/degree R used in the current function rank is correct.
 Is there a better algorithm in general??
 
 ----------
-
+ RTar := (flattenRing (R[z_1..z_(rank target f), Degrees => tarDegs]))_0;
+  RTarNewVars := matrix{{RTar_0..RTar_((rank target f)-1)}};
+ --puts the vars in the wrong ring!
+	 
+	 
 
