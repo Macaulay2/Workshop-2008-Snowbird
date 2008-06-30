@@ -95,8 +95,8 @@ localResolution Module := options -> (M) -> (
      R := ring M;
      if not R.?maxIdeal then error "use setMaxIdeal first!";
      maxlength := resolutionLength(R,options);
-     if M.cache.?resolution
-     then (C := M.cache.resolution;
+     if M.cache.?localResolution
+     then (C := M.cache.localResolution;
      C.length = length C)
      else (
 	  C = new ChainComplex;
@@ -107,12 +107,12 @@ localResolution Module := options -> (M) -> (
 	  C#0 = target f;
 	  C#1 = source f;
 	  C.dd#1 = f;
-	  M.cache.resolution = C;
+	  M.cache.localResolution = C;
 	  C.length = 1;
 	  );
      i := C.length;
-     while i < maxlength and C.dd#i != 0 do (
-	  g := localsyz C.dd#i;
+     while i < maxlength and C.dd_i != 0 do (
+	  g := localsyz C.dd_i;
 	  shield (
 	       i = i+1;
 	       C.dd#i = g;
@@ -345,6 +345,17 @@ TEST ///
      assert(numgens source G == 1)
      ///
      
+TEST ///
+     loadPackage "LocalRings"
+     kk = ZZ/32003
+     R = kk[x,y,z,w,SkewCommutative=>true]
+     m = matrix{{x,y*z},{z*w,x}}
+     setMaxIdeal(ideal(x,y,z,w))
+     C = localResolution(coker m, LengthLimit=>10)
+     C = localResolution(coker m)
+     for i from 1 to 10 do
+     	  assert(zero(C.dd_(i-1) * C.dd_i))
+     ///     
      
      
 end
@@ -378,6 +389,26 @@ localResolution N -- and this MES: WORKING NOW
 NN=coker map (S^2, S^2, m)
 resolution NN
 localResolution NN
+
+
+
+
+restart
+loadPackage "LocalRings"
+kk=ZZ/101
+S=kk[t,x,y,z]
+setMaxIdeal ideal vars S
+m=matrix"x,y2;z3,x4"
+M=coker m
+C = localResolution M -- wrong answer, OK now: MES
+N=coker map (S^{-2,0},S^{-3,-4}, m)
+
+localResolution N
+errorDepth = 0
+res N
+
+
+
 
 
 
