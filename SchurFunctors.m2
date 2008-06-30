@@ -10,7 +10,8 @@ newPackage(
 	  AuxiliaryFiles=>true
      	  )
      
-export{ schur, schurModule, Schur, Filling }
+export{ schur, schurModule, Schur, Filling, 
+     straighten, printSchurModuleElement, schurModulesMap, augmentFilling}
 
 exteriorPower(List, Module) := opts -> (L,M) -> (
      if #L == 0 then exteriorPower(0,M)
@@ -52,12 +53,6 @@ Filling ? Filling := (T,U) -> (
 -- return subset of rows
 Filling _ List := (T,L) -> (toList T)_L
 
------New Function: Adds an entry t a given column of a filling
-addColumn=method()
-addColumn (Filling,ZZ,ZZ):=(T,c,e)->(
-     if c>=#T then join(T,{{e}})
-     else new Filling from apply(#T,j->if j!=c then T#j else T#j|{e})
-    )
 
 normalize = method()
 normalize Filling := (T) -> (
@@ -215,6 +210,14 @@ schur(List,Matrix) := (lambda,f) -> (
      schurNM
      )
 
+---- MAURICIO and ANTON's additions ---------------------------------
+net Filling := T -> netList {apply(toList T, c->stack apply(c, e->net e))};
+
+augmentFilling=method()
+augmentFilling (Filling,ZZ,ZZ):=(T,c,e)->(
+     if c>=#T then join(T,{{e}})
+     else new Filling from apply(#T,j->if j!=c then T#j else T#j|{e})
+    )
 
 straighten = method(TypicalValue=>Vector)
 straighten (Filling, Module) := (T, M) -> (
@@ -229,38 +232,22 @@ straighten (Filling, Module) := (T, M) -> (
 	       ) 
 	  ) 
      )
-///
-M = schurModule({1,1,1}, QQ^4);
-v = straighten(new Filling from {{3,2,1}}, M)
-///  
 
 printSchurModuleElement = method()
 printSchurModuleElement (Vector, Module) := (v,M) -> (
      l := applyPairs(M.cache.Schur#3, (T,i)->(i,T));
      scanKeys(l, i->  
-	       if v_i != 0 then 
-	       << v_i << "*" << l#i << endl )
+	  if v_i != 0 then 
+	  << v_i << "*" << l#i << " " );
+     << endl;     
      )
-///
-printSchurModuleElement(v,M)
-///
 
 schurModulesMap = method() 
 schurModulesMap (Module, Module, Function) := (N,M,F) -> (
      l := applyPairs(M.cache.Schur#3, (T,i)->(i,T));
      matrix apply(#l, j->sum(F(l#j), a->a#0*straighten(a#1,N)))      
      )
-///
-R = QQ[x_1..x_4];
-F = T -> apply(numgens R, j -> (R_j, addColumn(T,0,j)))
 
-SMM = apply(3, i->(
-	  M = schurModule(toList(i+1:1),R^4);
-	  N = schurModule(toList(i+2:1),R^4);
-	  schurModulesMap(N,M,F) ))
-SMM#1*SMM#0
-///
-     
 beginDocumentation()
 document {
      	  Key => SchurFunctors,
@@ -270,16 +257,21 @@ document {
 loadPackage "SimpleDoc"
 doc get (currentFileDirectory | "SchurFunctors/schurModule.txt")
 doc get (currentFileDirectory | "SchurFunctors/schur.txt")
-doc get (currentFileDirectory | "SchurFunctors/schurModulesMap.txt")
+--doc get (currentFileDirectory | "SchurFunctors/schurModulesMap.txt")
 TEST ///
       M = schurModule({2,2,2}, QQ^4)
       assert(rank M == 10)
       (f, finv, AT, ST) = toSequence M.cache.Schur;
-      assert(f*finv == map(QQ^10)) 
+      assert(f*finv == map(QQ^10))
+      -- straighten 
+      M = schurModule({1,1,1}, QQ^4);
+      v = straighten(new Filling from {{3,2,1}}, M)
+      assert(v == vector{0_QQ,0,0,-1}) 
 ///     
 end
 restart
 loadPackage "SchurFunctors"
+debug SchurFunctors
 help schurModule
 help schur
 installPackage "SchurFunctors"
