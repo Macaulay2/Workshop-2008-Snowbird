@@ -34,7 +34,8 @@ newPackage(
     	)
 
 export{reesAlgebra, symmetricKernel, universalEmbedding, reesIdeal, distinguished, 
-     distinguishedAndMult, specialFiberIdeal, analyticSpread, isLinearType, multiplicity}
+     distinguishedAndMult, specialFiberIdeal, analyticSpread,
+isLinearType, normalCone, multiplicity}
 
 
 -- Comment : The definition of Rees algebra used in this package is 
@@ -85,10 +86,13 @@ symmetricKernel = method(Options=>{Variable => global w})
 symmetricKernel(Matrix) := Ideal => o -> (f) -> (
      R := ring f; 
      z := local z;
+     heftR := (monoid R).Options.Heft;
+     newHeft := prepend(1, heftR);
      sourceDegs := apply(degrees source f, i -> prepend(1,i));
-     RSourceTemp:=(coefficientRing R)(monoid[w_1..w_(rank source f)]**monoid R);
+     RSourceTemp:=(coefficientRing R)(
+	  tensor(monoid[w_1..w_(rank source f)],monoid R,Heft =>newHeft));
      RSource:=newRing(RSourceTemp, 
-	  Degrees=>join(sourceDegs,drop ( (monoid RSourceTemp).Options.Degrees, rank source f)));
+	  Degrees=>join(sourceDegs,drop ((monoid RSourceTemp).Options.Degrees, rank source f)));
      tarDegs := apply(degrees target f, i -> prepend(1,i));
      RTar := (flattenRing (R[z_1..z_(rank target f), Degrees => tarDegs]))_0;
      RTarNewVars := matrix{
@@ -315,7 +319,6 @@ distinguishedAndMult(Ideal) := List => o -> i -> (
     ReesI := reesIdeal( i, Variable => o.Variable);
     (S,toFlatS) := flattenRing ring ReesI;
      I:=(toFlatS ReesI)+substitute(i,S);
-error();
      Itop:=top I;
      L:=decompose Itop;
      apply(L,P->(Pcomponent := Itop:(saturate(Itop,P)); 
@@ -368,14 +371,27 @@ isLinearType=method(TypicalValue =>Boolean)
 isLinearType(Module):= M->(
      I:=reesIdeal M;
      P:=substitute(presentation M, ring I);
-     J:=ideal((vars ring I)*P);
+     newVars := matrix{apply(rank target P, i -> (ring I)_i)};
+     J:=ideal(newVars*P);
      ((gens I)%J)==0)
      
 isLinearType(Ideal):= M->(
      I:=reesIdeal M;
      P:=substitute(presentation module M, ring I);
-     J:=ideal((vars ring I)*P);
+     newVars := matrix{apply(rank target P, i -> (ring I)_i)};
+     J:=ideal(newVars*P);
      ((gens I)%J)==0)
+
+///
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+R=kk[x,y]
+i=(ideal vars R)^2
+i = ideal(x^2, y^2)
+isLinearType i
+///
+
      
 ///
 restart
@@ -388,9 +404,31 @@ reesIdeal i
 specialFiberIdeal i
 assert (isLinearType i==false)
 isLinearType (ideal vars R)
+normalCone i
+
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+R=kk[x,y]
+i = ideal(x^2,y^2)
+i = ideal(x+y^2)
+multiplicity i
+
+R = ZZ/101[x,y]/ideal(x^3-y^3)
+I = ideal(x^2,y^2)
+multiplicity I
+
 ///
 
-
+normalCone = method(TypicalValue => Ring, Options => {Variable => w})
+normalCone(Ideal) := o -> I -> (
+     RI := reesAlgebra(I);
+     (RI_0)/(RI_1 I)
+     )
+     
+associatedGradedRing= method(TypicalValue => Ring, Options => {Variable => w})
+associatedGradedRing (Ideal) := o -> I -> normalCone(I)
+     
 
 -- PURPOSE : Compute the multipicity e_I(M) and e(I) = e_I(R), 
 --           the normalized leading coefficient of the corresponding 
@@ -401,36 +439,15 @@ isLinearType (ideal vars R)
 -- WARNING : Computing a quotient like R[It]/IR[It] requires a 
 --           Groebner basis computation and thus can quickly take all of your
 --           memory and time (most likely memory).   
+
 multiplicity = method()
-multiplicity(Ideal) := ZZ => (I) -> (  
-     R := ring I;
-     J1 := reesAlgebra(I);  --defining ideal of Rees algebra
-     SJ1 := ring J1;
-     S := coefficientRing(SJ1)[gens SJ1];
-	       --Degrees => apply(degrees SJ1, i -> first i)]);
-     F := map(S, SJ1);
-     BS := S/F(J1);  -- The Rees algebra
-     G := map(BS, R);
-     -- coker gens G(I) is the associated graded ring.
-     degree coker gens G(I)
+multiplicity(Ideal) := ZZ => I ->  (
+     RI := normalCone I;
+     RInew := newRing(ring presentation RI, Degrees => apply(#gens RI, i -> {1}));
+     degree (RInew/(substitute(ideal presentation RI, RInew)))
      )
 
-multiplicity(Module,Ideal) := ZZ => (M, I) -> (  
-     R := ring M;
-     J1 := reesAlgebra(I);  --defining ideal of Rees algebra
-     SJ1 := ring J1;
-     S := coefficientRing(SJ1)[gens SJ1];
-	       --Degrees => apply(degrees SJ1, i -> first i)]);
-     F := map(S, SJ1);
-     BS := S/F(J1);  -- the Rees algebra
-     G := map(BS, R);
-     AssGI := minimalPresentation(BS/G(I)); -- the associated graded ring.
-     H := map(AssGI, R);
-     degree (H**M)
-     )
-
- 
- 
+----- distinguished and Mult still does not work!!!!!
 
 beginDocumentation()
 
