@@ -151,7 +151,7 @@ M
 reesIdeal(M)
 ///
 
-reesIdeal = method(Options => {Variable => w, Strategy => null})
+reesIdeal = method(Options => {Variable => w)
 
 reesIdeal(Module) := Ideal => o -> M -> (
      P := presentation M;
@@ -250,7 +250,149 @@ reesAlgebra(Ideal, RingElement) := o->(M,a)->(
      (reesAM,A)
      )
      
-          
+       
+isLinearType=method(TypicalValue =>Boolean)
+
+isLinearType(Module):= M->(
+     I:=reesIdeal M;
+     P:=substitute(presentation M, ring I);
+     newVars := matrix{apply(rank target P, i -> (ring I)_i)};
+     J:=ideal(newVars*P);
+     ((gens I)%J)==0)
+     
+isLinearType(Ideal):= M->(
+     I:=reesIdeal M;
+     P:=substitute(presentation module M, ring I);
+     newVars := matrix{apply(rank target P, i -> (ring I)_i)};
+     J:=ideal(newVars*P);
+     ((gens I)%J)==0)
+
+isLinearType(Module, RingElement):= (M,a)->(
+     I:=reesIdeal (M,a);
+     P:=substitute(presentation M, ring I);
+     newVars := matrix{apply(rank target P, i -> (ring I)_i)};
+     J:=ideal(newVars*P);
+     ((gens I)%J)==0)
+     
+isLinearType(Ideal, RingElement):= M->(
+     I:=reesIdeal (M,a);
+     P:=substitute(presentation module M, ring I);
+     newVars := matrix{apply(rank target P, i -> (ring I)_i)};
+     J:=ideal(newVars*P);
+     ((gens I)%J)==0)
+
+///
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+R=kk[x,y]
+i=(ideal vars R)^2
+i = ideal(x^2, y^2)
+isLinearType i
+///
+
+     
+///
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+R=kk[x,y]
+i=(ideal vars R)^2
+reesAlgebra i
+reesIdeal i
+specialFiberIdeal i
+assert (isLinearType i==false)
+isLinearType (ideal vars R)
+normalCone i
+
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+R=kk[x,y]
+i = ideal(x^2,y^2)
+i = ideal(x+y^2)
+multiplicity i
+
+R = ZZ/101[x,y]/ideal(x^3-y^3)
+I = ideal(x^2,y^2)
+multiplicity I
+
+///
+
+normalCone = method(TypicalValue => Ring, Options => {Variable => w})
+normalCone(Ideal) := o -> I -> (
+     RI := reesAlgebra(I);
+     (RI_0)/(RI_1 I)
+     )
+normalCone(Ideal, RingElement) := o -> (I,a) -> (
+     RI := reesAlgebra(I,a);
+     (RI_0)/(RI_1 I)
+     )
+     
+associatedGradedRing= method(TypicalValue => Ring, Options => {Variable => w})
+associatedGradedRing (Ideal) := o -> I -> normalCone(I)
+associatedGradedRing (Ideal, RingElement) := o -> (I,a) -> normalCone(I)
+     
+
+-- PURPOSE : Compute the multipicity e_I(M) and e(I) = e_I(R), 
+--           the normalized leading coefficient of the corresponding 
+--           associated graded ring.  
+-- INPUT : 'I' an Ideal, for e(I) or 'I' and 'M' for e_I(M)
+-- OUTPUT : the Hilbert-Samuel multiplicity
+-- COMMENT : The associated graded ring is computed using the Rees algebra.
+-- WARNING : Computing a quotient like R[It]/IR[It] requires a 
+--           Groebner basis computation and thus can quickly take all of your
+--           memory and time (most likely memory).   
+
+multiplicity = method()
+multiplicity(Ideal) := ZZ => I ->  (
+     RI := normalCone I;
+     RInew := newRing(ring presentation RI, Degrees => apply(#gens RI, i -> {1}));
+     degree (RInew/(substitute(ideal presentation RI, RInew)))
+     )
+
+
+--Special fiber is here defined to be the fiber of the blowup over the
+--homogeneous maximal ideal of the original ring.
+
+specialFiberIdeal=method(TypicalValue=>Ideal, Options=>{Variable=>w})
+
+specialFiberIdeal(Ideal):= o->i->(
+     Reesi:= reesIdeal(i, Variable=>o.Variable);
+     trim (Reesi + substitute(ideal vars ring i, ring Reesi))
+     )
+specialFiberIdeal(Module):= o->i->(
+     Reesi:= reesIdeal(i, Variable=>o.Variable);
+     trim (Reesi + substitute(ideal vars ring i, ring Reesi))
+     )
+
+///
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+R=kk[x,y]
+i=(ideal vars R)^2
+reesAlgebra i
+reesIdeal i
+specialFiberIdeal i
+///
+
+-- PURPOSE : Analytic spread of a module as defined in M2 by a matrix, 
+--           a module or ideal over a quotient ring R/I.
+-- INPUT : 'M' a module OR
+--         'J' an ideal  
+-- Options : The ring R can be a quotient ring, or, the user can define 
+--           f, M or J over a polynomial ring R and an ideal I can be given 
+--           as the option Strategy and the special fiber is then computed 
+--           over the quotient ring R/I.
+-- OUTPUT : The analytic spread of f/M/or J over over the ring R, or if 
+--          the option is given, R/I.
+analyticSpread = method()
+analyticSpread(Module) := ZZ => (M) -> dim specialFiberIdeal(M)
+analyticSpread(Ideal) := ZZ => (J) ->  dim specialFiberIdeal(J)
+
+----- distinguished and Mult still does not work!!!!!
+   
 --We can use this to compute the distinguished subvarieties of
 --a variety (components of the support of the normal cone).
 --In the following routine i must be an ideal of a polynomial ring, not a 
@@ -265,10 +407,6 @@ reesAlgebra(Ideal, RingElement) := o->(M,a)->(
 --           in 2000/2001.  I have no idea why.  I suspect that at the 
 --           time decompose required this.  But I think it is not necessary 
 --           now. 
-
-
-
-
 
 distinguished = method(Options => {Variable => w})
 distinguished(Ideal) := List => o -> i -> (
@@ -326,129 +464,7 @@ distinguishedAndMult(Ideal) := List => o -> i -> (
 	       --computed as (degree Pcomponent)/(degree P)
        	  {(degree Pcomponent)/(degree P), kernel(map(S/P, R))})))
 
-
---Special fiber is here defined to be the fiber of the blowup over the
---homogeneous maximal ideal of the original ring.
-
-specialFiberIdeal=method(TypicalValue=>Ideal, Options=>{Variable=>w})
-
-specialFiberIdeal(Ideal):= o->i->(
-     Reesi:= reesIdeal(i, Variable=>o.Variable);
-     trim (Reesi + substitute(ideal vars ring i, ring Reesi))
-     )
-specialFiberIdeal(Module):= o->i->(
-     Reesi:= reesIdeal(i, Variable=>o.Variable);
-     trim (Reesi + substitute(ideal vars ring i, ring Reesi))
-     )
-
-///
-restart
-loadPackage "ReesAlgebra"
-kk=ZZ/101
-R=kk[x,y]
-i=(ideal vars R)^2
-reesAlgebra i
-reesIdeal i
-specialFiberIdeal i
-///
-
--- PURPOSE : Analytic spread of a module as defined in M2 by a matrix, 
---           a module or ideal over a quotient ring R/I.
--- INPUT : 'M' a module OR
---         'J' an ideal  
--- Options : The ring R can be a quotient ring, or, the user can define 
---           f, M or J over a polynomial ring R and an ideal I can be given 
---           as the option Strategy and the special fiber is then computed 
---           over the quotient ring R/I.
--- OUTPUT : The analytic spread of f/M/or J over over the ring R, or if 
---          the option is given, R/I.
-analyticSpread = method()
-analyticSpread(Module) := ZZ => (M) -> dim specialFiberIdeal(M)
-analyticSpread(Ideal) := ZZ => (J) ->  dim specialFiberIdeal(J)
  
-isLinearType=method(TypicalValue =>Boolean)
-
-isLinearType(Module):= M->(
-     I:=reesIdeal M;
-     P:=substitute(presentation M, ring I);
-     newVars := matrix{apply(rank target P, i -> (ring I)_i)};
-     J:=ideal(newVars*P);
-     ((gens I)%J)==0)
-     
-isLinearType(Ideal):= M->(
-     I:=reesIdeal M;
-     P:=substitute(presentation module M, ring I);
-     newVars := matrix{apply(rank target P, i -> (ring I)_i)};
-     J:=ideal(newVars*P);
-     ((gens I)%J)==0)
-
-///
-restart
-loadPackage "ReesAlgebra"
-kk=ZZ/101
-R=kk[x,y]
-i=(ideal vars R)^2
-i = ideal(x^2, y^2)
-isLinearType i
-///
-
-     
-///
-restart
-loadPackage "ReesAlgebra"
-kk=ZZ/101
-R=kk[x,y]
-i=(ideal vars R)^2
-reesAlgebra i
-reesIdeal i
-specialFiberIdeal i
-assert (isLinearType i==false)
-isLinearType (ideal vars R)
-normalCone i
-
-restart
-loadPackage "ReesAlgebra"
-kk=ZZ/101
-R=kk[x,y]
-i = ideal(x^2,y^2)
-i = ideal(x+y^2)
-multiplicity i
-
-R = ZZ/101[x,y]/ideal(x^3-y^3)
-I = ideal(x^2,y^2)
-multiplicity I
-
-///
-
-normalCone = method(TypicalValue => Ring, Options => {Variable => w})
-normalCone(Ideal) := o -> I -> (
-     RI := reesAlgebra(I);
-     (RI_0)/(RI_1 I)
-     )
-     
-associatedGradedRing= method(TypicalValue => Ring, Options => {Variable => w})
-associatedGradedRing (Ideal) := o -> I -> normalCone(I)
-     
-
--- PURPOSE : Compute the multipicity e_I(M) and e(I) = e_I(R), 
---           the normalized leading coefficient of the corresponding 
---           associated graded ring.  
--- INPUT : 'I' an Ideal, for e(I) or 'I' and 'M' for e_I(M)
--- OUTPUT : the Hilbert-Samuel multiplicity
--- COMMENT : The associated graded ring is computed using the Rees algebra.
--- WARNING : Computing a quotient like R[It]/IR[It] requires a 
---           Groebner basis computation and thus can quickly take all of your
---           memory and time (most likely memory).   
-
-multiplicity = method()
-multiplicity(Ideal) := ZZ => I ->  (
-     RI := normalCone I;
-     RInew := newRing(ring presentation RI, Degrees => apply(#gens RI, i -> {1}));
-     degree (RInew/(substitute(ideal presentation RI, RInew)))
-     )
-
------ distinguished and Mult still does not work!!!!!
-
 beginDocumentation()
 
 document {
