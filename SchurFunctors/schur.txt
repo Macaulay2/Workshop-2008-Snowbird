@@ -12,7 +12,7 @@
       a map between two free modules
   Outputs 
     F:Matrix
-      the result of spplication of the Schur functor associated to lambda to f
+      the result of applying the Schur functor associated to lambda to f
   Description
     Text
       Applies the Schur functor associated to lambda to the map f between free modules.
@@ -30,3 +30,6 @@
     The partition lambda should be a valid nonempty partition.
   SeeAlso
     schurModule
+
+
+

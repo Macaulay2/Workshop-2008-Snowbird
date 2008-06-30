@@ -1,8 +1,27 @@
 restart
+restart
 loadPackage "SchurFunctors"
 help schur
 debug SchurFunctors
+peek loadedFiles
+addColumn
+debug SchurFunctors
+<<<<<<< .mine
 
+E=QQ^4
+mu={2,1}
+
+M=schurModule(mu,E)
+
+F=new Filling from {{0,1},{2}}
+
+M = schurModule({1,1,1}, QQ^4);
+
+v = straighten(new Filling from {{3,2,1}}, M)
+
+
+straighten(F,M)
+=======
 -- Koszul complex check
 n = 4;
 R = QQ[x_1..x_n];
@@ -22,6 +41,7 @@ SMM = apply(3, i->(
 	  schurModulesMap(N,M,F) ))
 SMM#1*SMM#0
 
+>>>>>>> .r7062
 L={{1,0}}
 normalize L
 ---examples
@@ -62,10 +82,63 @@ d=4
 R=kk[x_1..x_d]
 Partitions=apply(d,j->apply(j+1,s->1))
 Koszul=apply(d,j->schurModule(Partitions_j,R^d))
+SEQ=apply(Koszul,j->toSequence(j.cache.Schur))
+-----Koszul map form 
+Koszul_1
+Koszul_2
+------Map from Koszul 1 to Koszul 2
+-----basis for the module
+ST=keys((SEQ_1)_2)
+TAB=ST_0
+L2=apply(d,s->(AddColumn(TAB,0,s),x_s))
 
-SEQ=toSequence((Koszul_2).cache.Schur)
-SEQ_3
-(Koszul_3).cache.Schur
+Limage=apply(L2,j->(
+     N:=normalize(j_0);
+     if N_0!=0 then (j_1*N_0,N_1)
+     ))          
+Limage=select(Limage,x->x=!=null)
+F=(x)->(x)
+G=(x)->(x-2)
+
+F(10)
+Nueva=(F)->(
+     F(34))
+Nueva(G)
+
+MODU=Koszul_2
+TAB=(SEQ_2)_3
+sum apply(Limage,j->j_0*MODU_(TAB#(j_1)))
+
+apply(
+
+
+
+apply(IMAGE,j->
+apply(ST,j->
+map(Koszul_2,Koszul_1,
+
+
+
+ST=keys ((Koszul_2).cache.Schur)_2
+ST_0
+L=apply(d,j->AddColumn(ST_0,0,j))
+(normalize(L_1))_0
+L_0
+Koszul_3.
+N=(normalize(L_3))_1
+AT=((Koszul_3).cache.Schur)_3
+N
+(Koszul_3)_(AT#N)
+AT
+
+(Koszul_3)_((normalize(L_3))_1)
+apply(L,j->if (normalize(j))_0!=0 then (Koszul_2)#(normalize(j))_1)
+
+
+apply(
+apply(ST,j->(
+	  apply(d,s->
+
 
 ---- Functoriality
 kk=QQ
@@ -97,6 +170,23 @@ I=ideal(x_1,x_2,x_3,x_4)
 J=I^2
 res coker gens J
 
+----------------Koszul complex
+kk=QQ
+d=4
+R=kk[x_1..x_d]
+Partitions=apply(d,j->apply(j+1,s->1))
+apply(Partitions,j->schurModule(j,R^d))
+Kmap=(T)->(
+     apply(d,j->(addColumn(T,0,j),x_j))
+)
+T=new Filling from {{1,2,3}}
+Kmap(T)
+
+AddColumn(0
+
+F=(T)->(
+
+     )
 
  
  
