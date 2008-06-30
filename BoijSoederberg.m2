@@ -1530,6 +1530,13 @@ document {
 document { 
      Key => bott,
      Headline => "cohomology of Schur functors of tautological bundle on P^n",
+     "Given a weakly decreasing sequence of integers L and an integer u, bott(L,u) will compute
+     perform a cohomology calculation for a vector bundle E=O(-u)\\tensor S_L(Q), on P^n, producing
+     another weakly decreasing sequence of integers corresponding to a partition M, a number i such that
+     H^i(E)=S_M(V) and the rank of this module.",
+     PARA{},
+     "The function bott(L,u,v) on a list of weaking decreasing integers L and integers u,v will compute 
+     our entire cohomology table for our Schur Functor between degrees u and v.",
      }
 
 document { 
