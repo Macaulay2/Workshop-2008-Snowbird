@@ -1362,7 +1362,7 @@ document {
 	  ZZ => "The zero-th betti number of the corresponding pure
 	  resolution construction"
 	  },
-     TO "pureTwoInvariants", " corresponds to the construction in math.AC/0709.1529v3 \"The Existence of Pure Free Resolutions\", Section 3.", 
+     TO "pureTwoInvariant", " corresponds to the construction in math.AC/0709.1529v3 \"The Existence of Pure Free Resolutions\", Section 3.", 
      EXAMPLE lines ///
      	  L = {0,2,3,9}
 	  B = pureBettiDiagram L
@@ -1384,7 +1384,7 @@ document {
      	  betti res randomModule({0,2,3,7},1)
      	  betti res randomSocleModule({0,2,3,7},1)
      	  ///,
-     SeeAlso => {pureAll}
+     SeeAlso => {pureAll, pureWeyman, pureCharFree}
      }
 
 document { 
@@ -1423,7 +1423,7 @@ document {
      	  betti res randomModule({0,1,3,6},1)
      	  betti res randomSocleModule({0,1,3,6},1)     	  
 	  ///,
-     SeeAlso => {pureAll}
+     SeeAlso => {pureAll, pureCharFree, pureTwoInvariant}
      }
 
 document { 
