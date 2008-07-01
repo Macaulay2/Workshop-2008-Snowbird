@@ -37,6 +37,7 @@ P1=newPoset(I1,C1)
 
 -- input: A poset
 -- output: a matrix indexed by I that has non zero entries for each pair of relations
+-- usage:  RelationMatrix,compare
 FullRelationMatrix:= (P) -> (
      M:=matrix apply (#P.GroundSet, i-> apply(#P.GroundSet, j-> if member((I#i,I#j), P.CRelations) then 1 else if i==j then 1 else 0));
      n:=#I;
@@ -45,26 +46,53 @@ FullRelationMatrix:= (P) -> (
 
 --input:  A matrix or a poset
 --output:  A matrix with ones in all the non-zero entries
-
+--usage:
 RelationMatrix = method()
-
 RelationMatrix(Matrix):= (M) -> (
      N=matrix apply(numrows M, i-> apply(numcols M, j-> if (M_j)_i==0 then 0 else 1))
      )
 RelationMatrix(Poset):=(P) -> (
-     M:= FullRelationMatrix(P1);
+     M:= FullRelationMatrix(P);
      N=RelationMatrix(M)
      )
+
 
 -- input:  A poset, and two elements A and B from I
 -- output: true if A<= B, false else
 compare:= (P,A,B) -> (
      FullRelationMatrix(P);
-     Aindex:=sum apply(#P.GroundSet, i-> if P.GroundSet#i == A then i else 0);
-     Bindex:=sum apply(#P.GroundSet, i-> if P.GroundSet#i == B then i else 0);
+     Aindex:=indexElement(P,A);
+     Bindex:=indexElement(P,B);
           if N_Bindex_Aindex==0 then false else true
      )
 
+
+-- input: a poset, and an element A from I
+-- output:  the index of A in the ground set of P
+-- usage: compare, OrderIdeal 
+indexElement:= (P,A) -> (
+      sum apply(#P.GroundSet, i-> if P.GroundSet#i == A then i else 0))
+
+-- input: a poset, and an element from I
+-- output: the order ideal of a, i.e. all elements in the poset that are >= a
+-- usage:
+OrderIdeal:= (P, a) -> (
+     M:=RelationMatrix (P)
+     aindex := indexElement (P,a)
+     aRelations:= entries((transpose(M))_aindex)
+     apply(#aRelations, i-> if aRelations_i == 1 then P.GroundSet#i) 
+     
+     )	
+	   
+
+-- input: a poset, and an element from I
+-- output:  the filter of a, i.e. all elements in the poset that are <= a
+-- usage:
+Filter:=(P,a) -> (
+     M:=RelationMatrix (P)
+     aindex := indexElement (P,a)
+     
+     )
 
 beginDocumentation()
 
