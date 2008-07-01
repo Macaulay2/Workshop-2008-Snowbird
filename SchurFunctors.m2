@@ -265,7 +265,7 @@ document {
 	  Headline => "for computing Schur functors"
 	 }
 
-loadPackage "SimpleDoc"
+getPackage "SimpleDoc"
 doc get (currentFileDirectory | "SchurFunctors/schurModule.txt")
 doc get (currentFileDirectory | "SchurFunctors/schur.txt")
 doc get (currentFileDirectory | "SchurFunctors/straightenSchur.txt")
