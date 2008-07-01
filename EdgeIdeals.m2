@@ -350,3 +350,9 @@ assert(#(vertices H) == 3)
 ///
 
 
+----------------------------------------------
+
+restart
+installPackage ("EdgeIdeals", UserMode=>true)
+loadPackage "EdgeIdeals"
+viewHelp
