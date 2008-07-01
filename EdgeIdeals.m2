@@ -177,11 +177,6 @@ smallestCycleSize = method();
 
 -- Return Lists
 
- -- return vertices of graph
-vertices = method();
-
- -- return edges/facets of graph
-edges = method();
 
  -- return all odd holes
 allOddHoles = method();
@@ -219,23 +214,23 @@ incidenceMatrix = method();
 -- special graphs (i.e. define functions to create special families)
 
  -- return graph of cycle on n vertices
-cycle(N)  = method();
+cycle = method();
 
  -- return graph of complete n-graph
-complete(N) = method();
+completeGraph = method();
 
  -- return the complete multi-partite graph
-completeMultiPartite(N1,...,NK) = method();
+completeMultiPartite = method();
 
  -- return graph of anti-n-hole
-antihole(N) = method();
+antihole = method();
 
  -- return spanning tree of a graph G
-spanningTree(G) = method();
+spanningTree = method();
 
  -- return the graph with E(G) as its vertices where two
  --         vertices are adjacent when their associated edges are adjacent in G.
-lineGraph(G) = method();
+lineGraph = method();
 
 
 ---------------------------------------------------------
