@@ -36,7 +36,7 @@ mode = L -> (
 gin = method(Options => {AttemptCount => 7, Verbose => false, Modular => false, MonomialOrder => null})
 gin(Ideal) := opts -> (I) -> (
      -- LOCAL VARIABLES:
-     -- S is the variable in which we asve the original ring;
+     -- S is the variable in which we save the original ring;
      -- c is the coefficient field; it is the coefficient field of the ring of I if Modular is not used
      -- and it is ZZ mod a random large prime if Modular option is used
      -- l is a list of large primes
