@@ -118,11 +118,15 @@ getEdge = method();
 getEdge (HyperGraph, ZZ) := (H,N) -> H#"edges"#N;
 
 isEdge = method();
-isEdge (HyperGraph, List) := (H,E) -> any(H#"edges", G->G==E);
+isEdge (HyperGraph, List) := (H,E) -> (
+		if all(E, e -> class class e === PolynomialRing) then E = apply(E, support);
+		any(H#"edges", G->set G === set E)
+	)
 
 getEdgeIndex = method();
-getEdgeIndex (HyperGraph, List) := (H,E) -> 
-( N :=  select(0..#(H#"edges")-1, N -> H#"edges"#N == E);
+getEdgeIndex (HyperGraph, List) := (H,E) -> ( 
+	if all(E, e -> class class e === PolynomialRing) then E = apply(E, support);
+	N :=  select(0..#(H#"edges")-1, N -> H#"edges"#N == E);
   if #N == 0 then return -1; 
   return first N;
 )
@@ -340,6 +344,62 @@ doc ///
 	Outputs 
 		E:List
 			of the edges of {\tt H}.
+///
+
+doc ///
+	Key
+		getEdge
+		(getEdge, HyperGraph, ZZ)
+	Headline 
+		gets the n-th edge in a HyperGraph.
+	Usage
+		E = edges(H,N)
+	Inputs
+		H:HyperGraph
+		N:ZZ
+			an index of an edge in {\tt H}
+	Outputs 
+		E:List
+			which is the {\tt N}-th edge of {\tt H}.
+///
+
+doc ///
+	Key
+		isEdge
+		(isEdge, HyperGraph, List)
+	Headline 
+		determines if an edge is in a HyperGraph
+	Usage
+		B = isEdge(H,E)
+	Inputs
+		H:HyperGraph
+		E:List
+			of vertices (or monomials).
+	Outputs 
+		B:Boolean
+			which is true iff {\tt E} is an edge of {\tt H}.
+	SeeAlso
+		getEdgeIndex
+///
+
+doc ///
+	Key
+		getEdgeIndex
+		(getEdgeIndex, HyperGraph, List)
+	Headline 
+		finds the index of an edge in a HyperGraph
+	Usage
+		N = getEdgeIndex(H,E)
+	Inputs
+		H:HyperGraph
+		E:List
+			of vertices (or monomials).
+	Outputs 
+		N:ZZ
+			which is the index of {\tt E} as an edge of {\tt H}. If {\tt E} is not in {\tt H}
+			then -1 is returned.
+	SeeAlso
+		isEdge
 ///
 
 -----------------------------
