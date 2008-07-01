@@ -256,6 +256,16 @@ cliqueNumber = method();
 
  -- return chromatic number
 chromaticNumber = method();
+chromaticNumber HyperGraph := H -> (
+     Chi := 2; 
+     m := product H#"vertices";
+     j := coverIdeal H;
+     while ((m^(Chi-1) % j^Chi) != 0) do (
+	  Chi = Chi + 1;
+	  );
+     return (Chi); 
+     )
+
 
  -- return vertex cover number
 vertexCoverNumber = method();
@@ -498,6 +508,26 @@ doc ///
 		 of the edge ideal of the hypergraph {\tt H}.
 ///		      
 
+
+doc ///
+        Key
+	        chromaticNumber
+		(chromaticNumber, HyperGraph)
+	Headline
+	        computes the chromatic number of a hypergraph
+	Usage
+	        c = chromaticNumber H
+	Inputs
+	        H:HyperGraph
+	Outputs
+	        i:ZZ
+		       the chromatic number of {\tt H}.
+        Description
+	        Text
+		 Returns the chromatic number.
+///		      
+
+
 -----------------------------
 -- Constructor Tests --------
 -----------------------------
@@ -594,6 +624,8 @@ assert((coverIdeal h) == j)
 
 ----------------------------------------------
 end
+
+
 restart
 installPackage ("EdgeIdeals", UserMode=>true)
 loadPackage "EdgeIdeals"
