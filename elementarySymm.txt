@@ -1,10 +1,10 @@
   Key
-    elementarySymm
-    (elementarySymm, RingElement)
+    elementalSymm
+    (elementalSymm, RingElement)
   Headline
     Expresses a symmetric polynomial as a sum of elementary symmetric functions
   Usage
-    elementarySymm(f)
+    elementalSymm(f)
   Inputs
     f:RingElement
       A symmetric polynomial in n variables  
@@ -18,5 +18,5 @@
     Example
       R=QQ[x_0,x_1,x_2]
       q=x_0^2*x_1^2*x_2^2+x_0^2*x_1^2*x_2*x_3+x_0^2*x_1*x_2^2*x_3+x_0*x_1^2*x_2^2*x_3+x_0^2*x_1^2*x_3^2+x_0^2*x_1*x_2*x_3^2+x_0*x_1^2*x_2*x_3^2+x_0^2*x_2^2*x_3^2+x_0*x_1*x_2^2*x_3^2+x_1^2*x_2^2*x_3^2  	
-      elementarySymm(q)
+      elementalSymm(q)
 

@@ -9,7 +9,7 @@ newPackage(
      DebuggingMode => true
      )
 
-export {elementarySymm}
+export {elementalSymm}
 
 mons = (X,i)-> (
     n := #X;
@@ -30,8 +30,8 @@ symring= R->(
  
 elementarySymmetricPolynomialRing =(cacheValue symbol  elementarySymmetricRing)symring
  
-elementarySymm = method();
-elementarySymm (RingElement):=  f -> (
+elementalSymm = method();
+elementalSymm (RingElement):=  f -> (
      R := ring f;
      n := # flatten entries vars R; 
      if n<2 then return f;
@@ -52,13 +52,16 @@ elementarySymm (RingElement):=  f -> (
      answer := F(f)%I;
      use ring f;
 ---------New line: it creates a new ring whose variables are the elementary symmetric polynomials
+     F=QQ[s_1..s_n];
+     answer=substitute(answer,F);
      E=QQ[e_1..e_n];
-     answer=substitute(answer,E);
+     MAP=map(E,F,vars E);
+     answer=MAP(answer);
      return answer;
      )
      
 
-elementarySymm (PolynomialRing):=  R->(
+elementalSymm (PolynomialRing):=  R->(
      return map(R,elementarySymmetricPolynomialRing R)
      )
 
