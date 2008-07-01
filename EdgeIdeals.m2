@@ -119,16 +119,23 @@ getEdge (HyperGraph, ZZ) := (H,N) -> H#"edges"#N;
 
 isEdge = method();
 isEdge (HyperGraph, List) := (H,E) -> (
-		if all(E, e -> class class e === PolynomialRing) then E = apply(E, support);
+		if class class E === PolynomialRing then E = support E;
 		any(H#"edges", G->set G === set E)
+	)
+isEdge (HyperGraph, RingElement) := (H,E) -> (
+		isEdge(H, support E)
 	)
 
 getEdgeIndex = method();
 getEdgeIndex (HyperGraph, List) := (H,E) -> ( 
-	if all(E, e -> class class e === PolynomialRing) then E = apply(E, support);
-	N :=  select(0..#(H#"edges")-1, N -> H#"edges"#N == E);
-  if #N == 0 then return -1; 
+	if class class E === PolynomialRing then E = support E;
+	N :=  select(0..#(H#"edges")-1, N -> set H#"edges"#N === set E);
+  if #N === 0 then return -1; 
   return first N;
+)
+
+getEdgeIndex (HyperGraph, RingElement) := (H,E) -> ( 
+	getEdgeIndex(H, support E)
 )
 
 -- Graph Constructions
@@ -367,17 +374,20 @@ doc ///
 	Key
 		isEdge
 		(isEdge, HyperGraph, List)
+		(isEdge, HyperGraph, RingElement)
 	Headline 
 		determines if an edge is in a HyperGraph
 	Usage
-		B = isEdge(H,E)
+		B = isEdge(H,E) \n B = isEdge(H,M)
 	Inputs
 		H:HyperGraph
 		E:List
-			of vertices (or monomials).
+			of vertices.
+		M:RingElement
+			a monomial representing an edge.
 	Outputs 
 		B:Boolean
-			which is true iff {\tt E} is an edge of {\tt H}.
+			which is true iff {\tt E} (or {\tt support M}) is an edge of {\tt H}.
 	SeeAlso
 		getEdgeIndex
 ///
@@ -444,10 +454,37 @@ assert(#(vertices H) == 3)
 TEST///
 R = QQ[a,b,c]
 H = hyperGraph(monomialIdeal {a*b,b*c})
-assert(#(edges H) == 2)
-assert(#(vertices H) == 3)
+assert(#(edges H) === 2)
+assert(#(vertices H) === 3)
 ///
-end
+
+----------------------------------
+-- isEdge Test -------------------
+----------------------------------
+TEST///
+R = QQ[a,b,c]
+H = hyperGraph(monomialIdeal {a*b,b*c})
+assert( isEdge(H,{a,b}) )
+assert( isEdge(H,a*b) )
+assert( isEdge(H,{c,b}) )
+assert( isEdge(H,b*c) )
+assert( not isEdge(H,{a,c}) )
+assert( not isEdge(H,a*c) )
+///
+
+----------------------------------
+-- getEdgeIndex Test -------------
+----------------------------------
+TEST///
+R = QQ[a,b,c]
+H = hyperGraph(monomialIdeal {a*b,b*c})
+assert( getEdgeIndex(H,{a,b}) == 0)
+assert( getEdgeIndex(H,a*b) == 0)
+assert( getEdgeIndex(H,{c,b}) == 1)
+assert( getEdgeIndex(H,c*b) == 1)
+assert( getEdgeIndex(H,{a,c}) == -1)
+assert( getEdgeIndex(H,a*c) == -1)
+///
 
 ----------------------------------------------
 end
