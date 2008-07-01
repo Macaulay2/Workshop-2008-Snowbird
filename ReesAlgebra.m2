@@ -55,11 +55,13 @@ time reesIdeal(i,i_0); --.3 sec
 --Example 2: determinantal ideals
 restart
 loadPackage "ReesAlgebra"
+load"newrg.m2"
 kk=ZZ/101
 S=kk[a,b,c]
 m=matrix"a,0;b,a;0,b"
 i=minors(2,m)
-time reesIdeal (i
+time reesIdeal i
+res i
 
 m=random(S^3,S^{4:-1})
 i=minors(3,m);
