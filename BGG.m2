@@ -1,25 +1,27 @@
 newPackage(
-	"BGG0",
-    	Version => "0.1", 
-    	Date => "June 23, 2008",
+	"BGG",
+    	Version => "0.2", 
+    	Date => "June 30, 2008",
     	Authors => {
-	     {Name => "David Eisenbud", Email => "de@msri.org", HomePage => "http://www.msri.org/~de/"},
-	     {Name => "Wolfram Decker", Email => "", HomePage => ""},	     
-	     {Name => "Frank Schreyer", Email => "", HomePage => ""},
-	     {Name => "Mike Stillman", Email => "", HomePage => ""}
+	     {Name => "Hirotachi Abo", Email => "abo@uidaho.edu", HomePage => "http://www.webpages.uidaho.edu/~abo/"},
+	     {Name => "Wolfram Decker", Email => "decker@math.uni-sb.de", HomePage => "http://www.math.uni-sb.de/ag/decker/"},
+	     {Name => "David Eisenbud", Email => "de@msri.org", HomePage => "http://www.msri.org/~de/"},	     
+	     {Name => "Frank Schreyer", Email => "schreyer@math.uni-sb.de", HomePage => "http://www.math.uni-sb.de/ag/schreyer/"},
+	     {Name => "Gregory G. Smith", Email => "ggsmith@mast.queensu.ca", HomePage => "http://www.mast.queensu.ca/~ggsmith/"},
+	     {Name => "Mike Stillman", Email => "mike@math.cornell.edu", HomePage => "http://www.math.cornell.edu/~mike/"}
 	     },
     	Headline => "Bernstein-Gelfand-Gelfand correspondence",
     	DebuggingMode => true
     	)
 
-needsPackage "BoijSoderberg"
+needsPackage "BoijSoederberg"
 
 export {
-     symExt, bgg, tateResolution, sheafCohomology, beilinson, UU,
-     cohomologyTable, cohomologyTable1
+     symExt, bgg, tateResolution, beilinson, UU, cohomologyTable
      }
 
-symExt = (m,E) ->(
+symExt = method()
+symExt(Matrix, PolynomialRing) := Matrix => (m,E) ->(
      ev := map(E,ring m,vars E);
      mt := transpose jacobian m;
      jn := gens kernel mt;
@@ -29,7 +31,8 @@ symExt = (m,E) ->(
      map(E^{(rank target ans):1}, E^{(rank source ans):0}, 
          ans));
 
-bgg = (i,M,E) ->(
+bgg = method()
+bgg(ZZ,Module,PolynomialRing) := Matrix => (i,M,E) ->(
      S :=ring(M);
      numvarsE := rank source vars E;
      ev:=map(E,S,vars E);
@@ -37,11 +40,11 @@ bgg = (i,M,E) ->(
      f1:=basis(i+1,M);
      g :=((vars S)**f0)//f1;
      b:=(ev g)*((transpose vars E)**(ev source f0));
-     --correct the degrees (which are otherwise
-     --wrong in the transpose)
+     --correct the degrees (which are otherwise wrong in the transpose)
      map(E^{(rank target b):i+1},E^{(rank source b):i}, b));
 
-tateResolution = (m,E,loDeg,hiDeg)->(
+tateResolution = method(TypicalValue => ChainComplex)
+tateResolution(Matrix, PolynomialRing, ZZ, ZZ) := ChainComplex => (m,E,loDeg,hiDeg)->(
      M := coker m;
      reg := regularity M;
      bnd := max(reg+1,hiDeg-1);
@@ -53,13 +56,14 @@ tateResolution = (m,E,loDeg,hiDeg)->(
                 o);
      res(coker ofixed, LengthLimit=>max(1,bnd-loDeg+1)));
 
-sheafCohomology = (m,E,loDeg,hiDeg)->(
-     T := tateResolution(m,E,loDeg,hiDeg);
-     k := length T;
-     d := k-hiDeg+loDeg;
-     if d > 0 then 
-        chainComplex apply(d+1 .. k, i->T.dd_(i))
-     else T);
+--sheafCohomology = method()
+--sheafCohomology = (m,E,loDeg,hiDeg)->(
+--     T := tateResolution(m,E,loDeg,hiDeg);
+--     k := length T;
+--     d := k-hiDeg+loDeg;
+--     if d > 0 then 
+--        chainComplex apply(d+1 .. k, i->T.dd_(i))
+--     else T);
 
 sortedBasis = (i,E) -> (
      m := basis(i,E);
@@ -100,19 +104,6 @@ beilinson = (o,S) -> (
      if #mats === 0 then matrix(S,{{}})
      else matrix(mats));
 
-cohomologyTable = method()
-cohomologyTable1 = method()
-
-cohomologyTable1(CoherentSheaf, ZZ, ZZ) := (F,lo,hi) -> (
-     -- this is the stoopid version
-     n := numgens ring F - 1;
-     L := flatten (
-       for i from 0 to n list
-         for d from lo-i to hi-i list
-	      ((i,d),rank HH^i(F(d)))
-	 );
-     new CohomologyTally from select(L, (k,v) -> v != 0)
-     )
 
 tateToCohomTable = (T) -> (
      C := betti T;
@@ -122,17 +113,142 @@ tateToCohomTable = (T) -> (
 	       ))
      )
 
-cohomologyTable(CoherentSheaf, ZZ, ZZ) := (F,lo,hi) -> (
+cohomologyTable = method(TypicalValue => CohomologyTally)
+cohomologyTable(CoherentSheaf, ZZ, ZZ) := CohomologyTally => (F,lo,hi) -> (
      M := module F;
      S := ring M;
      E := (coefficientRing S)[Variables=>numgens S, SkewCommutative=>true];
      T := tateResolution(presentation M, E, lo, hi);
      tateToCohomTable T
      )
+cohomologyTable(Matrix, PolynomialRing, ZZ, ZZ) := CohomologyTally => (m,E,lo,hi) -> (
+     T := tateResolution(m, E, lo, hi);
+     tateToCohomTable T
+     )
+
 
 beginDocumentation()
 
+document { 
+     Key => {symExt,(symExt,Matrix,PolynomialRing)}, 
+     Headline => "the first differential of the complex R(M)",
+     Usage => "symExt(m,E)",
+     Inputs => {
+	  "m" => Matrix => "a presentation matrix for a positively graded module M over a polynomial ring",
+	  "E" => PolynomialRing => "exterior algebra"
+	  },
+     Outputs => {
+	  Matrix => {"a matrix representing the map ",  TT "M_1 ** omega_E <-- M_0 ** omega_E"}  
+	  },
+     "This function takes as input a matrix ", TT "m", " with linear entries, which we think of as 
+     a presentation matrix for a positively graded ", TT "S", "-module ", TT "M", " matrix representing 
+     the map " , TT "M_1 ** omega_E <-- M_0 ** omega_E", " which is the first differential of 
+     the complex ", TT "R(M)",    ".", 
+     EXAMPLE lines ///
+	  S = ZZ/32003[x_0..x_2]; 
+	  E = ZZ/32003[e_0..e_2, SkewCommutative=>true];
+	  M = coker matrix {{x_0^2, x_1^2}};
+	  m = presentation truncate(regularity M,M);
+	  symExt(m,E)
+     	  ///,
+     Caveat => "This function is a quick-and-dirty tool which requires little computation. However 
+     if it is called on two successive truncations of a module, then the maps it produces may NOT 
+     compose to zero because the choice of bases is not consistent.",   
+     SeeAlso => {bgg}
+     }
+
+document { 
+     Key => {bgg,(bgg,ZZ,Module,PolynomialRing)}, 
+     Headline => "the ith differential of the complex R(M)",
+     Usage => "bgg(i,M,E)",
+     Inputs => {
+	  "i" => ZZ => "the cohomological index",
+	  "M" => Module => {"graded ", TT "S", "-module"},  
+	  "E" => PolynomialRing => "exterior algebra"
+	  },
+     Outputs => {
+	  Matrix => {"a matrix representing the ith differential"}  
+	  },
+     "This function takes as input an integer ", TT "i", " and a finitely generated graded ", TT "S", 
+     "-module ", TT "M", ", and returns the ith map in ", TT "R(M)", ", which is an adjoint 
+     of the multiplication map between ", TT "M_i", " and ", TT "M_{i+1}", ".",    
+     EXAMPLE lines ///
+	  S = ZZ/32003[x_0..x_2]; 
+	  E = ZZ/32003[e_0..e_2, SkewCommutative=>true];
+	  M = coker matrix {{x_0^2, x_1^2, x_2^2}};
+	  bgg(1,M,E)
+	  bgg(2,M,E)
+     	  ///,
+     SeeAlso => {symExt}
+     }
+
+document { 
+     Key => {tateResolution,(tateResolution, Matrix,PolynomialRing,ZZ,ZZ)}, 
+     Headline => "finite piece of the Tate resolution",
+     Usage => "tateResolution(m,E,l,h)",
+     Inputs => {
+	  "m" => Matrix => "a presentation matrix for a module",
+	  "E" => PolynomialRing => "exterior algebra",
+	  "l" => ZZ => "lower cohomological degree", 
+	  "h" => ZZ => "upper bound on the cohomological degree"
+	  },
+     Outputs => {
+	  ChainComplex => {"a finite piece of the Tate resolution"}  
+	  },
+     "This function takes as input a presentation matrix ", TT "m", " of a finitely generated graded "
+     , TT "S", "-module ", TT "M", " an exterior algebra ", TT "E", " and two integers ", TT "l", 
+     " and ", TT "h", ". If ", TT "r", " is the regularity of ", TT "M", ", then this function 
+     computes the piece of the Tate resolution from cohomological degree ", TT "l", 
+     " to cohomological degree ", TT "max(r+2,h)", ". For instance, for the homogeneous 
+     coordinate ring of a point in the projective plane:",  
+     EXAMPLE lines ///
+	  S = ZZ/32003[x_0..x_2]; 
+	  E = ZZ/32003[e_0..e_2, SkewCommutative=>true];
+	  m = matrix{{x_0,x_1}};
+	  regularity coker m
+	  T = tateResolution(m,E,-2,4)
+	  betti T
+	  T.dd_1
+     	  ///,
+     SeeAlso => {symExt}
+     }
+
 end
+document { 
+     Key => {cohomologyTable,(cohomologyTable,Matrix,PolynomialRing,ZZ,ZZ),(cohomologyTable,CoherentSheaf,ZZ,ZZ)}, 
+     Headline => "dimensions of cohomology groups",
+     Usage => "cohomologyTable(m,E,l,h) or cohomologyTable(F,l,h)",
+     Inputs => {
+	  "m" => Matrix => "a presentation matrix for a module",
+	  "E" => PolynomialRing => "exterior algebra",
+	  "l" => ZZ => "lower cohomological degree", 
+	  "h" => ZZ => "upper bound on the cohomological degree",
+	  "F" => CoherentSheaf => "a coherent sheaf on a projective scheme"
+	  },
+     Outputs => {
+	  CohomologyTable => {"dimensions of cohomogy groups"}  
+	  },
+     "This function takes as input a presentation matrix ", TT "m", " of a finitely generated graded "
+     , TT "S", "-module ", TT "M", " an exterior algebra ", TT "E", " and two integers ", TT "l", 
+     " and ", TT "h", ". If ", TT "r", " is the regularity of ", TT "M", ", then this function 
+     computes the piece of the Tate resolution from cohomological degree ", TT "l", 
+     " to cohomological degree ", TT "max(r+2,h)", ". For instance, for the homogeneous 
+     coordinate ring of a point in the projective plane:",  
+     EXAMPLE lines ///
+	  S = ZZ/32003[x_0..x_2]; 
+	  E = ZZ/32003[e_0..e_2, SkewCommutative=>true];
+	  PP2 = Proj S; 
+	  F = OO_PP2
+          cohomologyTable(F,10,5)
+     	  ///,
+     SeeAlso => {symExt}
+     }
+
+end
+uninstallPackage "BGG"
+restart
+path = append(path, homeDirectory | "Snowbird/")
+installPackage("BGG", UserMode => true) 
 
 restart
 loadPackage "BGG0"
