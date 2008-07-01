@@ -14,10 +14,9 @@ newRing Ring := Ring => opts -> (R) -> (
      then
          error "cannot change the number of variables using 'newRing'";
 
-     error "debug me";
      if opts.DegreeRank =!= nothing and opts.Degrees === nothing then opts = first override(opts, Degrees => null);
+     --if opts.DegreeRank =!= nothing or opts.Degrees =!= nothing then opts = first override(opts, Heft => null);
      if opts.DegreeRank === nothing and opts.Degrees =!= nothing then opts = first override(opts, DegreeRank => null);
-     if opts.DegreeRank =!= nothing or opts.Degrees =!= nothing then opts = first override(opts, Heft => null);
      opts = mergeOptions((monoid R).Options,opts);
      opts = select(opts, v -> v =!= nothing); -- this applies especially to the MonomialSize option, no longer present in (monoid R).Options
      f := presentation R;
@@ -43,3 +42,19 @@ S=newRing(R, Heft=>{1,0})
 monoid S
 S=newRing(R, Degrees=> {{0,0,1}, {0,0,1}}, Heft=>{0,0,1})	 
 monoid S
+
+-- This is allowed:
+S = newRing(R, DegreeRank=>3)
+degree y
+describe S
+
+S = newRing(R, Degrees=>{1,2})
+degree y
+describe S
+
+-- this should (and does) give an error:
+S = newRing(R, DegreeRank=>3, Degrees=>{1,2})
+
+
+S = QQ[a..d, DegreeRank=>3, Degrees=>null]
+describe S
