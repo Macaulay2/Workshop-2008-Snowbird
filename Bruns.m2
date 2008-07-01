@@ -330,12 +330,42 @@ Description
     This function is called within @TO evansGriffith @.  
     ///
 
+
+TEST/// --isSyzygy
+  loadPackage "Bruns"
+  kk=ZZ/32003
+  S=kk[a..d]
+  F=res (ideal vars S)^2
+  assert(isSyzygy(coker F.dd_3,3)==false)
+  assert(isSyzygy(coker F.dd_4,3)==true)
+///
+TEST /// --evansGriffith
+   loadPackage "Bruns"
+   kk=ZZ/32003
+   S=kk[a..d]
+   i=ideal(a^2,b^3,c^4, d^5)
+   F=res i
+   f=F.dd_3
+   EG = evansGriffith(f,2)  
+   assert(isSyzygy(coker EG,2)==true)
+///
+TEST/// --elementary
+    loadPackage "Bruns"
+    kk=ZZ/32003
+    S=kk[a..d]
+    M=matrix{{a,0,0,0},{0,b,0,0},{0,0,c,0},{0,0,0,d}}
+    E=elementary(M,0,1)
+    assert(rank M -1 == rank E+10)
+///
+
+
 end 
 
 restart
 installPackage ("Bruns", UserMode=>true)
 loadPackage "Bruns"
-viewHelp Bruns
+viewHelp
+
 
 
 
