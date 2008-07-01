@@ -26,27 +26,32 @@ newPoset := (I,C) ->
 	 symbol cache => CacheTable
 	 }
 
+-- some toy examples
 I={b,c,d,e,a,f,g,h}
 C={(a,b),(a,c),(a,d),(b,e),(b,f),(c,e),(c,g),(d,f),(d,g),(e,h),(f,h),(g,h)}
 P=newPoset(I,C)
 
-I={a,c,d,b,e}
-C={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e)}
-P=newPoset(I,C)
+I1={a,c,d,b,e}
+C1={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e)}
+P1=newPoset(I,C)
 
+-- input: A poset
+-- output: a matrix indexed by I that has non zero entries for each pair of relations
 FullRelationMatrix:= (P) -> (
      M:=matrix apply (#P.GroundSet, i-> apply(#P.GroundSet, j-> if member((I#i,I#j), P.CRelations) then 1 else if i==j then 1 else 0));
      n:=#I;
      N:=M^n)
 
-FullRelationMatrix(P)     
 
+-- input:  A poset, and two elements A and B from I
+-- output: true if A<= B, false else
 compare:= (P,A,B) -> (
      FullRelationMatrix(P);
      Aindex:=sum apply(#P.GroundSet, i-> if P.GroundSet#i == A then i else 0);
      Bindex:=sum apply(#P.GroundSet, i-> if P.GroundSet#i == B then i else 0);
           if N_Bindex_Aindex==0 then false else true
      )
+
 
 beginDocumentation()
 
