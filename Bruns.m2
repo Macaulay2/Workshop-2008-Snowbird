@@ -118,6 +118,9 @@ ff:=presentation M;
 ft:= syz transpose ff;
 bruns transpose ft)
 
+--- Contributions to Documentation by Sonja Petrovic and Adam Van Tuyl 
+--- Snowbird, M2 Workshop, June-July 2008 
+
 beginDocumentation()
 doc ///
 Key 
@@ -331,7 +334,7 @@ Description
     ///
 
 
-TEST/// --isSyzygy
+TEST/// 
   loadPackage "Bruns"
   kk=ZZ/32003
   S=kk[a..d]
@@ -339,7 +342,7 @@ TEST/// --isSyzygy
   assert(isSyzygy(coker F.dd_3,3)==false)
   assert(isSyzygy(coker F.dd_4,3)==true)
 ///
-TEST /// --evansGriffith
+TEST /// 
    loadPackage "Bruns"
    kk=ZZ/32003
    S=kk[a..d]
@@ -349,23 +352,38 @@ TEST /// --evansGriffith
    EG = evansGriffith(f,2)  
    assert(isSyzygy(coker EG,2)==true)
 ///
-TEST/// --elementary
+TEST/// 
     loadPackage "Bruns"
     kk=ZZ/32003
     S=kk[a..d]
     M=matrix{{a,0,0,0},{0,b,0,0},{0,0,c,0},{0,0,0,d}}
     E=elementary(M,0,1)
-    assert(rank M -1 == rank E+10)
+    assert(rank M -1 == rank E)
+///
+TEST///
+    loadPackage "Bruns"
+    kk=ZZ/32003
+    S=kk[a..d]
+    i=ideal(a^2,b^2,c^2, d^2)
+    betti (F=res i)
+    M = image F.dd_3
+    f=F.dd_3
+    g=bruns f   
+    assert((#flatten entries gens g) == 3)
 ///
 
-
 end 
+
 
 restart
 installPackage ("Bruns", UserMode=>true)
 loadPackage "Bruns"
 viewHelp
 
+restart
+installPackage ("Bruns")
+loadPackage "Bruns"
+check Bruns
 
 
 
