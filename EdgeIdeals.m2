@@ -87,7 +87,161 @@ getEdgeIndex (HyperGraph, List) := (H,E) ->
   return first N;
 )
 
+-- Graph Constructions
 
+-- find the complement of G
+complementGraph = method();
+
+-- given a set of vertices, return induced graph on those vertices
+inducedGraph = method();
+
+-- remove edges from G
+deleteEdges = method();
+
+-- change type
+
+ -- turn G from graph type to simplicial complex type
+simplicialComplex = method();
+
+-- return ideals
+
+ -- edge ideal of G
+edgeIdeal = method();
+
+ -- clique complex of G
+SRComplex = method();
+
+ -- Alexander dual of edge ideal
+coverDual = method();
+
+
+
+-- Boolean Functions
+
+ -- Boolean function
+isBipartite = method();
+
+ -- Boolean function (True of False if graph is CM)
+isCM = method();
+
+ -- Boolean function (True of False if graph is SCM)
+isSCM = method();
+
+ -- Boolean function (True or False if graph is perfect)
+isPefect = method();
+
+ -- Boolean  function (True of False if graph is chordal)
+isChordal = method();
+
+ -- (True or False if edge of hyperGraph/Graph is leaf)
+isLeaf = method();
+
+ -- (True or False if exists odd hole (not triangle) )
+isOddHole = method();
+
+ -- (True or False if graph is a tree)
+isTree = method();
+
+ -- (True or False if graph is connected)
+isConnected = method();
+
+
+
+-- Numerical Values
+
+ -- return clique number
+cliqueNumber = method();
+
+ -- return chromatic number
+chromaticNumber = method();
+
+ -- return vertex cover number
+vertexCoverNumber = method();
+
+ -- return independence number
+independenceNumber = method();
+
+ -- return number of triangles
+numberTriangles = method();
+
+ -- return degree of vertex
+degreeVertex = method();
+
+ -- number of connected components
+numberConnectedComponents = method();
+
+ -- length of smallest induced cycle
+smallestCycleSize = method();
+
+
+
+-- Return Lists
+
+ -- return vertices of graph
+vertices = method();
+
+ -- return edges/facets of graph
+edges = method();
+
+ -- return all odd holes
+allOddHoles = method();
+
+ -- return all even holes (this would be SLOWWW!)
+allEvenHoles = method();
+
+ -- return the connected components
+connectedComponents = method();
+
+ -- return all minimal vertex covers
+vertexCovers  = method();
+
+ -- return neighbors of a vertex of a set
+neighborSet = method();
+
+ -- return all cliques of the graph
+getCliques = method();
+
+ -- return all cliques of maximal size
+getMaxCliques = method();
+
+
+
+-- Return Matrices
+
+ -- return the adjacency matrix
+adjacencyMatrix = method();
+
+ -- return the incidence matrix
+incidenceMatrix = method();
+
+
+
+-- special graphs (i.e. define functions to create special families)
+
+ -- return graph of cycle on n vertices
+cycle(N)  = method();
+
+ -- return graph of complete n-graph
+complete(N) = method();
+
+ -- return the complete multi-partite graph
+completeMultiPartite(N1,...,NK) = method();
+
+ -- return graph of anti-n-hole
+antihole(N) = method();
+
+ -- return spanning tree of a graph G
+spanningTree(G) = method();
+
+ -- return the graph with E(G) as its vertices where two
+ --         vertices are adjacent when their associated edges are adjacent in G.
+lineGraph(G) = method();
+
+
+---------------------------------------------------------
+---------------------------------------------------------
+---------------------------------------------------------
+---------------------------------------------------------
 doc ///
 	Key
 		HyperGraph
