@@ -27,11 +27,11 @@ newPoset := (I,C) ->
 	 }
 
 -- some toy examples
-I={b,c,d,e,a,f,g,h}
+I={a,b,c,d,e,f,g,h}
 C={(a,b),(a,c),(a,d),(b,e),(b,f),(c,e),(c,g),(d,f),(d,g),(e,h),(f,h),(g,h)}
 P=newPoset(I,C)
 
-I1={a,c,d,b,e}
+I1={a,b,c,d,e}
 C1={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e)}
 P1=newPoset(I1,C1)
 
@@ -73,15 +73,22 @@ compare:= (P,A,B) -> (
 indexElement:= (P,A) -> (
       sum apply(#P.GroundSet, i-> if P.GroundSet#i == A then i else 0))
 
+-- input:  a list, potentially with nulls
+-- output:  a list w/out nulls
+-- usage:  OrderIdeal, Filter
+nonnull:=(L) -> (
+     select(L, i-> i =!= null))
+
+
+
 -- input: a poset, and an element from I
 -- output: the order ideal of a, i.e. all elements in the poset that are >= a
 -- usage:
 OrderIdeal:= (P, a) -> (
-     M:=RelationMatrix (P)
-     aindex := indexElement (P,a)
-     aRelations:= entries((transpose(M))_aindex)
-     apply(#aRelations, i-> if aRelations_i == 1 then P.GroundSet#i) 
-     
+     M:=RelationMatrix (P);
+     aindex := indexElement (P,a);
+     GreaterThana:= entries((transpose(M))_aindex);
+     nonnull(apply(#GreaterThana, i-> if GreaterThana_i == 1 then P.GroundSet#i)) 
      )	
 	   
 
@@ -89,10 +96,13 @@ OrderIdeal:= (P, a) -> (
 -- output:  the filter of a, i.e. all elements in the poset that are <= a
 -- usage:
 Filter:=(P,a) -> (
-     M:=RelationMatrix (P)
-     aindex := indexElement (P,a)
-     
+     M:=RelationMatrix (P);
+     aindex := indexElement (P,a);
+     LessThana:= entries M_aindex;
+     nonnull(apply(#LessThana, i-> if LessThana_i == 1 then P.GroundSet#i))
      )
+
+
 
 beginDocumentation()
 
