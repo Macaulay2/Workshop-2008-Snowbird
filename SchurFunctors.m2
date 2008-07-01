@@ -257,7 +257,9 @@ document {
 loadPackage "SimpleDoc"
 doc get (currentFileDirectory | "SchurFunctors/schurModule.txt")
 doc get (currentFileDirectory | "SchurFunctors/schur.txt")
---doc get (currentFileDirectory | "SchurFunctors/schurModulesMap.txt")
+doc get (currentFileDirectory | "SchurFunctors/straightenSchur.txt")
+doc get (currentFileDirectory | "SchurFunctors/schurModulesMap.txt")
+
 TEST ///
       M = schurModule({2,2,2}, QQ^4)
       assert(rank M == 10)

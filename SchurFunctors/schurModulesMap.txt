@@ -6,13 +6,15 @@
   Usage
     schurModulesMap(N,M,F)
   Inputs
-    N,M: Module
+    N,M:Module
 	Two Schur modules M and N.
-    F: Function 
-        The function should specify, for every SST in the basis of M, a linear comination of tableaus of the shape specified by N.
-        the output of F should be a sequence of pairs (c,T) where c is a coefficient in ring(N) and T a tableau (not necessarily semistandard). 
+    F:Function 
+        The function should specify, for every SST in the basis of M, 
+	a linear comination of tableaus of the shape specified by N.
+        The output of F should be a sequence of pairs (c,T) where c is a coefficient 
+	in ring(N) and T a tableau (not necessarily semistandard). 
   Outputs
-    G: A map between M and N.
+    G:A map between M and N.
   Description
     Text
       Constructs the map between M and N specified by the function F.
@@ -25,7 +27,7 @@
       R = QQ[x_1..x_n];
       M=schurModule(mu1,R^n);
       N=schurModule(mu2,R^n);
-      F = T -> apply(numgens R, j -> (R_j, addColumn(T,0,j)))
+      F = T -> apply(numgens R, j -> (R_j, augmentFilling(T,0,j)))
       schurModulesMap(N,M,F)
   Caveat
     The function F should output lists of pairs where the second component is a filling of the partition corresponding to N.
