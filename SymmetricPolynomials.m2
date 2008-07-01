@@ -52,7 +52,7 @@ elementarySymm (RingElement):=  f -> (
      answer := F(f)%I;
      use ring f;
 ---------New line: it creates a new ring whose variables are the elementary symmetric polynomials
-     E=QQ[s_1..s_n];
+     E=QQ[e_1..e_n];
      answer=substitute(answer,E);
      return answer;
      )

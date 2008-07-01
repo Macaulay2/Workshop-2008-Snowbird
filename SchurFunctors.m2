@@ -11,7 +11,7 @@ newPackage(
      	  )
      
 export{ schur, schurModule, Schur, Filling, 
-     straighten, printSchurModuleElement, schurModulesMap, augmentFilling}
+     straighten, printSchurModuleElement, schurModulesMap, augmentFilling, character}
 
 exteriorPower(List, Module) := opts -> (L,M) -> (
      if #L == 0 then exteriorPower(0,M)
@@ -248,6 +248,17 @@ schurModulesMap (Module, Module, Function) := (N,M,F) -> (
      matrix apply(#l, j->sum(F(l#j), a->a#0*straighten(a#1,N)))      
      )
 
+character = method()
+character (List, ZZ) := (L,d)->(
+     reverse L;
+     m=#L;
+     R=QQ[x_0..x_(d-1)];
+     M=map(R^d,R^d,matrix(apply(d,j->(apply(d,s->(if j==s then x_j else 0))))));
+     apply(m,j->M=schur(L_j,M));
+     return trace M
+     )
+
+
 beginDocumentation()
 document {
      	  Key => SchurFunctors,
@@ -259,6 +270,7 @@ doc get (currentFileDirectory | "SchurFunctors/schurModule.txt")
 doc get (currentFileDirectory | "SchurFunctors/schur.txt")
 doc get (currentFileDirectory | "SchurFunctors/straightenSchur.txt")
 doc get (currentFileDirectory | "SchurFunctors/schurModulesMap.txt")
+doc get (currentFileDirectory | "SchurFunctors/character.txt")
 
 TEST ///
       M = schurModule({2,2,2}, QQ^4)
@@ -277,4 +289,4 @@ debug SchurFunctors
 help schurModule
 help schur
 installPackage "SchurFunctors"
-viewHelp schur
+
