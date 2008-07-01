@@ -9,7 +9,7 @@ newPackage(
      DebuggingMode => true
      )
 
-export {elementarySymmetric}
+export {elementarySymm}
 
 mons = (X,i)-> (
     n := #X;
@@ -30,8 +30,8 @@ symring= R->(
  
 elementarySymmetricPolynomialRing =(cacheValue symbol  elementarySymmetricRing)symring
  
-elementarySymmetric = method();
-elementarySymmetric (RingElement):=  f -> (
+elementarySymm = method();
+elementarySymm (RingElement):=  f -> (
      R := ring f;
      n := # flatten entries vars R; 
      if n<2 then return f;
@@ -51,11 +51,14 @@ elementarySymmetric (RingElement):=  f -> (
      F := map(S,R);
      answer := F(f)%I;
      use ring f;
+---------New line: it creates a new ring whose variables are the elementary symmetric polynomials
+     E=QQ[s_1..s_n];
+     answer=substitute(answer,E);
      return answer;
      )
      
 
-elementarySymmetric (PolynomialRing):=  R->(
+elementarySymm (PolynomialRing):=  R->(
      return map(R,elementarySymmetricPolynomialRing R)
      )
 
@@ -63,11 +66,6 @@ elementarySymmetric (PolynomialRing):=  R->(
 
 beginDocumentation()
 
-document {
-	Key => {elementarySymmetric},
-	Headline => "decomposition into elementary symmetric polynomials",
-	Usage => "",
-	Inputs => { "a Ring or a Polynomial" },
-	Outputs => {{ "the polynomial in the elementary symmetric polynomials that represents the input" }},
-	}
+loadPackage "SimpleDoc"
 
+doc get (currentDirectory | "elementarySymm.txt")
