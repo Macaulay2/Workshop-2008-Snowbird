@@ -1064,8 +1064,7 @@ document { Key => BoijSoederberg,
 	  TO (decompose,BettiTally)
 	  },
      SUBSECTION "Three constructions for pure resolutions.  These routines provide the
-     zero-th betti number given a degree sequence.  These Betti numbers will
-     be positive multiples of the zero-th betti number for the corresponding pure diagram.",
+     zero-th betti number given a degree sequence.",
      UL {
 	  TO pureTwoInvariant,
 	  TO pureWeyman,
@@ -1436,7 +1435,7 @@ document {
 	  },
      Outputs => {
 	  ZZ => "The vector of zero-th betti numbers of the three corresponding pure
-	  resolution construction"
+	  resolution construction."
 	  },
      TO "pureAll", " returns all three numbers at one time.",
      EXAMPLE lines ///
