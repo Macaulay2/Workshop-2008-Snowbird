@@ -22,25 +22,31 @@ Poset = new Type of HashTable
 newPoset := (I,C) ->
      new Poset from {
 	 symbol GroundSet => I,
-	 symbol CoveringRelations => C,
+	 symbol CRelations => C,
 	 symbol cache => CacheTable
 	 }
 
-I={a,b,c,d,e,f,g,h}
+I={b,c,d,e,a,f,g,h}
 C={(a,b),(a,c),(a,d),(b,e),(b,f),(c,e),(c,g),(d,f),(d,g),(e,h),(f,h),(g,h)}
 P=newPoset(I,C)
 
+I={a,c,d,b,e}
+C={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e)}
+P=newPoset(I,C)
+
+FullRelationMatrix:= (P) -> (
+     M:=matrix apply (#P.GroundSet, i-> apply(#P.GroundSet, j-> if member((I#i,I#j), P.CRelations) then 1 else if i==j then 1 else 0));
+     n:=#I;
+     N:=M^n)
+
+FullRelationMatrix(P)     
 
 compare:= (P,A,B) -> (
-     M:=matrix apply (#P.GroundSet, i-> apply(#P.GroundSet, j-> if member((I#i,I#j), P.CoveringRelations) then 1 else if i==j then 1 else 0));
-     n:=#I;
-     N:=M^n;
+     FullRelationMatrix(P);
      Aindex:=sum apply(#P.GroundSet, i-> if P.GroundSet#i == A then i else 0);
      Bindex:=sum apply(#P.GroundSet, i-> if P.GroundSet#i == B then i else 0);
-     if N_Bindex_Aindex==0 then false else true
+          if N_Bindex_Aindex==0 then false else true
      )
-compare(P,d,e)
-
 
 beginDocumentation()
 
