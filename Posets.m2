@@ -33,15 +33,28 @@ P=newPoset(I,C)
 
 I1={a,c,d,b,e}
 C1={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e)}
-P1=newPoset(I,C)
+P1=newPoset(I1,C1)
 
 -- input: A poset
 -- output: a matrix indexed by I that has non zero entries for each pair of relations
 FullRelationMatrix:= (P) -> (
      M:=matrix apply (#P.GroundSet, i-> apply(#P.GroundSet, j-> if member((I#i,I#j), P.CRelations) then 1 else if i==j then 1 else 0));
      n:=#I;
-     N:=M^n)
+     N:=M^n 
+     )
 
+--input:  A matrix or a poset
+--output:  A matrix with ones in all the non-zero entries
+
+RelationMatrix = method()
+
+RelationMatrix(Matrix):= (M) -> (
+     N=matrix apply(numrows M, i-> apply(numcols M, j-> if (M_j)_i==0 then 0 else 1))
+     )
+RelationMatrix(Poset):=(P) -> (
+     M:= FullRelationMatrix(P1);
+     N=RelationMatrix(M)
+     )
 
 -- input:  A poset, and two elements A and B from I
 -- output: true if A<= B, false else
