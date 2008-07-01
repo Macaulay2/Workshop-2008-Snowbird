@@ -141,20 +141,23 @@ deleteEdges = method();
 
 -- change type
 
- -- turn G from graph type to simplicial complex type
-simplicialComplex = method();
+ -- turn G from a graph to simplicial complex
+stanleyReisnerComplex = method();
+
+-- find independenceComplex
+independenceComplex =method();
+
+ -- clique complex of G
+cliqueComplex =method();
+
 
 -- return ideals
 
  -- edge ideal of G
 edgeIdeal = method();
 
- -- clique complex of G
-SRComplex = method();
-
  -- Alexander dual of edge ideal
-coverDual = method();
-
+coverIdeal = method();
 
 
 -- Boolean Functions
@@ -163,10 +166,10 @@ coverDual = method();
 isBipartite = method();
 
  -- Boolean function (True of False if graph is CM)
-isCM = method();
+isCMhyperGraph = method();
 
  -- Boolean function (True of False if graph is SCM)
-isSCM = method();
+isSCMhyperGraph = method();
 
  -- Boolean function (True or False if graph is perfect)
 isPefect = method();
@@ -203,13 +206,13 @@ vertexCoverNumber = method();
 independenceNumber = method();
 
  -- return number of triangles
-numberTriangles = method();
+numTriangles = method();
 
  -- return degree of vertex
 degreeVertex = method();
 
  -- number of connected components
-numberConnectedComponents = method();
+numConnectedComponents = method();
 
  -- length of smallest induced cycle
 smallestCycleSize = method();
@@ -264,7 +267,7 @@ completeGraph = method();
 completeMultiPartite = method();
 
  -- return graph of anti-n-hole
-antihole = method();
+antiHole = method();
 
  -- return spanning tree of a graph G
 spanningTree = method();
@@ -295,7 +298,7 @@ doc ///
 	Headline 
 		constructor for HyperGraph.
 	Usage
-		H = hyperGraph(R,E) or H = hyperGraph(I) or H = hyperGraph(E)
+		H = hyperGraph(R,E) \n H = hyperGraph(I) \n H = hyperGraph(E)
 	Inputs
 		R:Ring
 			whose variables correspond to vertices of the hypergraph.
@@ -303,7 +306,7 @@ doc ///
 			contain a list of edges, which themselves are lists of vertices.
 		I:MonomialIdeal
 			which must be square-free and whose generators become the edges of the hypergraph.
-		I:Ideal
+		J:Ideal
 			which must be square-free monomial and whose generators become the edges of the hypergraph.
 	Outputs 
 		H:HyperGraph
@@ -319,6 +322,7 @@ doc ///
 		V = vertices(H)
 	Inputs
 		H:HyperGraph
+		        the input
 	Outputs 
 		V:List
 			of the vertices of {\tt H}.
@@ -384,7 +388,7 @@ H = hyperGraph(monomialIdeal {a*b,b*c})
 assert(#(edges H) == 2)
 assert(#(vertices H) == 3)
 ///
-
+end
 
 ----------------------------------------------
 end
