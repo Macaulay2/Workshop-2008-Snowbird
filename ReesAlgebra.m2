@@ -33,9 +33,28 @@ newPackage(
     	DebuggingMode => true
     	)
 
+
+
 export{symmetricKernel, universalEmbedding,reesIdeal,reesAlgebra,
 isLinearType, normalCone, associatedGradedRing, multiplicity,
 specialFiberIdeal,analyticSpread, distinguished,distinguishedAndMult}
+
+
+///
+--Examples for the ReesAlgebra package.                                                                                                                                                                                       
+restart
+
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+
+--Example 1: a monomial ideal in 4-space.
+S=kk[x_0..x_4]                                                                                                                                                                                     
+i=monomialCurveIdeal(S,{2,3,5,6})
+time reesIdeal i; -- 3.4 sec
+time reesIdeal(i,S_0); --.06 sec
+
+
+///
 
 
 -- Comment : The definition of Rees algebra used in this package is 
@@ -497,6 +516,7 @@ distinguishedAndMult(Ideal,RingElement) := List => o -> (i,a) -> (
 	       --computed as (degree Pcomponent)/(degree P)
        	  {(degree Pcomponent)/(degree P), kernel(map(S/P, R))})))
 
+end    
  
 beginDocumentation()
 

@@ -37,8 +37,14 @@ export{ symmetricKernel, universalEmbedding, reesAlgebra, reesIdeal, distinguish
      distinguishedAndMult, specialFiber, analyticSpread, isLinearType, 
      idealIntegralClosure, multiplicity}
 
-
-
+///
+--Examples for the ReesAlgebra package.
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+S=kk[x_0..x_3] -- Projective 3-space
+monomialCurveIdeal(1,2,3)
+///
 
 -- Comment : The definition of Rees algebra used in this package is 
 -- R(M) = Sym(M)/(intersection over g of L_g) where the intersection 
