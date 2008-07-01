@@ -21,7 +21,7 @@ newPackage(
    
 export{isNormal, integralClosure, conductor, ICfractions, ICmap,
 idealizerReal, nonNormalLocus, Index, icFracP, conductorElement,
-reportSteps, intClI, minPressy} 
+reportSteps, intClI, minPressy, reductorVariable} 
 
 needsPackage "Elimination"
 
@@ -307,6 +307,91 @@ intClI (RingElement, RingElement, ZZ) := Ideal => (a, D, N) -> (
      J
      )
 
+subMonoid = method(Options => {Degrees => null})
+subMonoid (Monoid, List) := o -> (M, l) -> (
+     -- 2 arguments: a monoid and a list that is a list of the
+     -- variables, or positions of the variables to be used in 
+     -- the new monoid.
+     -- return: A new monoid corresponding to the subset of the
+     -- variables in l.
+     --if not isPolynomialRing then error "input must be a polynomial ring.";
+     if #l == 0 then M else (
+     	  newM := new MutableHashTable from M.Options;
+     	  numVars := #newM#Variables;
+     	  count := 0;
+     	  if class l_0 === ZZ then newM#Variables = apply(l, i -> newM#Variables#i)
+     	  else (newM#Variables = l;
+	       l = l/index);
+     	  newM#MonomialOrder = subMonomialOrder(newM#MonomialOrder, l);
+     	  skewC := newM#SkewCommutative;
+     	  skewN := #newM#SkewCommutative;
+     	  if  skewN =!= 0 then (
+	       if skewN =!= numVars then (
+	       	    if class skewC#0 === IndexedVariable then skewC = skewC/index;
+	       	    L := (set l) * (set skewC);
+	       	    newM#SkewCommutative = toList L;
+	       	    );
+	       );
+	  if o.Degrees === null then newM#Degrees = apply(l, i -> newM#Degrees#i) 
+	  else (newM#DegreeRank = null;
+	       newM#Degrees = apply(l, i -> o.Degrees#i);
+	       );
+     	  OP := new OptionTable from newM;
+     	  monoid([OP])
+	  )
+     )
+	  
+subMonomialOrder = method()
+subMonomialOrder (List,List) := (Ord, l) -> (
+     -- 2 arguments: a monomial order, given as a list, and a list of
+     -- the positions of the variables to be used in the new ring.
+     -- return:  a new monomial order corresponding to the subset of 
+     --          of variables in l.
+     localListCheck = l_(#l-1);
+     subMonOrderHelper(Ord,l, 0, {})
+     )
+
+subMonOrderHelper = (Ord, l, count, newOrd) -> (
+     -- 4 arguments: a monomial order, given as a list, a list of the
+     -- positions of the variables to be used in the new ring, 
+     if #Ord == 0 then (
+	  if  localListCheck > count-1 then error("expected variable indices in range 0.." | count-1)
+	  else (
+	       newOrd = select(newOrd, i -> (i#1 =!= {} and i#1 =!= 0));
+	       return newOrd))
+     else(
+     	  if Ord#0#0 === Weights then (
+	       w := #Ord#0#1;  -- the old list of weights
+	       lw := select(l, i -> i <= w+count-1); 
+	       ww := apply(lw, i -> Ord#0#1#(i-count));
+	       return subMonOrderHelper(drop(Ord,1),l, count, append(newOrd, Ord#0#0 => ww)) 	   	     
+	       );
+     	  if Ord#0#0 === GRevLex then (
+	       w = #Ord#0#1;
+	       lw = select(l, i -> i <= #Ord#0#1+count-1);
+	       return subMonOrderHelper(drop(Ord,1), 
+		    drop(l, #lw), 
+		    count + #Ord#0#1, 
+		    append(newOrd, Ord#0#0 => apply(lw, i -> Ord#0#1#(i-1-count)))); 
+	       );    
+     	  if (Ord#0#0 === Lex or Ord#0#0 === RevLex or 
+	       Ord#0#0 === GroupLex or 
+	       Ord#0#0 ===  GroupRevLex) 
+     	  then ( 
+	       u = #(select(l, i -> i <= count + Ord#0#1 - 1));
+	       return subMonOrderHelper(drop(Ord, 1), 
+		    drop(l, u), 
+		    count + Ord#0#1, 
+		    append(newOrd, Ord#0#0 => u));
+	       );
+     	  if (Ord#0#0 === Position or Ord#0#0 === MonomialSize) then (
+	       return subMonOrderHelper(drop(Ord, 1), l, count, 
+		    append(newOrd, Ord#0#0 => Ord#0#1));
+	       );
+	  )
+     )
+
+
 --- needs work for operation over ZZ	    	    
 isReductor = (f) -> (
      inf := leadTerm part(1,f);
@@ -316,6 +401,7 @@ isReductor = (f) -> (
 findReductor = (L) -> (  
      L1 := sort apply(L, f -> (size f,f));
      L2 := select(1, L1, p -> isReductor(p#1));
+     error("debug me");
      if #L2 > 0 then (
 	  p := part(1,L2#0#1);
 	  coef := (terms p)/leadCoefficient;
@@ -330,6 +416,37 @@ findReductor = (L) -> (
 	       (lct*t, lct*t - lct*L2#0#1))
      	  )
      )
+
+reductorVariable = (f) -> (
+     -- assumes all variables in ring have degree 1.
+     -- input: polynomial
+     -- return: 
+     inf := part(1,f);
+     restf := set support(f-inf);
+     supInf := set support(inf);
+     varList := toList (supInf-restf);
+     if varList === {} then varList
+     else (
+     	  termf := terms f;
+     	  s := select(termf, i -> member(leadMonomial i , varList));
+     	  coef := s/leadCoefficient;
+     	  pos := position(coef, i -> (i == 1) or (i == -1));
+     	  if pos =!= null then (coef_pos, leadMonomial s_pos)
+     	  else {coef_0, leadMonomial s_0}
+     	  )
+     )
+     
+findReductor = (L) -> (
+     L1 := sort apply(L, f -> (size f,f));
+     redVar := {};
+     L2 := select(1, L1, p -> (
+	       redVar = reductorVariable(p#1);
+	       redVar =!= {})
+	  );
+     if redVar =!= {} then (redVar#1, redVar#1 - (1/(redVar#0))*L2#0#1)
+     )
+	       
+
 
 reduceLinears = method(Options => {Limit=>infinity})
 reduceLinears Ideal := o -> (I) -> (
@@ -380,7 +497,8 @@ minPressy Ideal := (I) -> (
      R := ring I;
      flatList := flattenRing R;
      flatR := flatList_0;
-     if any((monoid flatR).Options.Degrees, i -> i =!= {1}) then (
+     RDegs := (monoid flatR).Options.Degrees;
+     if any(RDegs, i -> i =!= {1}) then (
 	  S := (coefficientRing flatR)(monoid[gens flatR,
 		    MonomialOrder => (monoid flatR).Options.MonomialOrder,
 		    Global => (monoid flatR).Options.Global]);
@@ -397,7 +515,8 @@ minPressy Ideal := (I) -> (
      (J,G) := reduceLinears(IS);
      xs := set apply(G, first);
      varskeep := rsort (toList(set gens S - xs));
-     newS := (coefficientRing S)(subMonoid(monoid S,varskeep));
+     newS := (coefficientRing S)(
+	  subMonoid(monoid S,varskeep, Degrees => RDegs));
      if not isSubset(set support J, set varskeep) -- this should not happen
      then error "internal error in minPressy: not all vars were reduced in ideal";
      I.cache.minimalPresentationMapInv = map(R,S)*map(S, newS, varskeep);
@@ -413,28 +532,35 @@ minPressy Ring := R -> (
      I := minPressy ideal R;
      (ring I)/I)
 
---minimalPresentation Ideal := opts -> (I) -> (
+minimalPresentation Ideal := opts -> (I) -> (
 --     << "entering minPressy"<< endl;
 --     error "debug me";
---     result := minPressy(I);
---     result)
+     result := minPressy(I);
+     result)
 
---minimalPresentation Ring := opts -> (R) -> (
+minimalPresentation Ring := opts -> (R) -> (
 --     << "entering minPressy"<< endl;
 --     error "debug me";
---     result := minPressy(ideal presentation R);
---     (ring result)/result)
+     result := minPressy(ideal presentation R);
+     (ring result)/result)
 
 ///
 restart
 loadPackage "IntegralClosure"
+
+R = ZZ/101[x,y,z]
+f = x^2+x+2*y+z
+g = x^2+y^2+x
+h = x^2+3*x -2*y + 4*z
+reductorVariable h
+
 C=ZZ/101[x,y,z,Degrees => {2,3,1}]/ideal(x-x^2-y,z+x*y)
 V= time minPressy(C)
 gens V == {x}
 degrees V == {{2}}
 
 C=ZZ/101[x,y,z,Degrees => {{1,2},{1,3},{1,1}}]/ideal(x-x^2-y,z+x*y)
-V = time minPressy(C,Variable => a)
+V = time minPressy(C)
 gens V == {a_0}
 degrees V == {{1,2}}
 
@@ -903,9 +1029,6 @@ TEST ///
 R = ZZ/101[symbol x..symbol z,Degrees=>{2,5,6}]/(z*y^2-x^5*z-x^8)
 time J = integralClosure (R,Variable => symbol b) 
 use ring ideal J
--- the engine has changed
-oldIdeal = ideal(b_1*x^2-y*z, x^6-b_1*y+x^3*z, -b_1^2+x^4*z+x*z^2)
--- assert(ideal J == oldIdeal)
 newIdeal = substitute(oldIdeal, b_1 => b_1/42 )
 assert(ideal J == newIdeal)
 -- assert(ICfractions R == substitute(matrix {{y*z/x^2, x, y, z}},frac R))
@@ -919,7 +1042,7 @@ time J = integralClosure (R,Variable=>symbol a)
 use ring ideal J
 assert(ideal J == ideal(x^6+a_4*y+x^3*z-11*x*y^2,a_4*x^2-11*x^3*y+y*z,a_4^2-22*a_4*x*y-x^4*z+20*x^2*y^2-x*z^2))
 ///
-a
+
 -- Reduced not a domain test
 TEST ///
 S=ZZ/101[symbol a,symbol b,symbol c, symbol d]
