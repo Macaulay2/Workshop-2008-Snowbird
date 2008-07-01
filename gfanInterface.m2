@@ -13,7 +13,7 @@ newPackage(
     	)
 
 export {
-     gfan, weightVector, initialIdeal, groebnerCone, groebnerFan, universalGroebnerBasis, Symmetries
+     gfan, weightVector, initialIdeal, groebnerCone, groebnerFan, universalGroebnerBasis, renderStaircase, Symmetries
      }
 
 gfan'path = gfanInterface#Options#Configuration#"path"
@@ -48,6 +48,31 @@ weightVector(List,List) := (inL,L) -> (
      	  w)
      -- other cases should return null
      )
+
+renderStaircase = method()
+renderStaircase(String,ZZ,Ideal) := (F,d,I) -> (
+		renderStaircase(F,d,1,{I});	
+	)
+renderStaircase(String,ZZ,ZZ,List) := (F,d,w,L) -> (
+		if class L#0 === List then L = apply(L, ideal);
+	  R := ring L#0;
+    p := char R;
+    if p === 0 and coefficientRing(R) =!= QQ then 
+        error "expected prime field or QQ";
+		if any(L, J-> ring J =!= R) then
+				error "all ideals should have the same ring";
+
+    ex := "";
+    f := temporaryFileName();
+    << "using temporary file " << f << endl;
+
+     ex = gfan'path| "gfan " | ex | "  <" | f ;
+		 ex = ex | " | gfan_renderstaircase -m -d "| d | " -w " | w ;
+		 ex = ex | " >" | F;
+		
+     writeGfanIdealList(f, L);
+     run ex;
+    )
 
 groebnerCone = method()
 groebnerCone(List,List) := (inL,L) -> (
@@ -84,6 +109,28 @@ writeGfanIdeal(String,Ideal,List) := (filename,I,symms) -> (
      -- If any symmetries, write them here
      if #symms > 0 then (
 	  F << toString symms << endl;
+	  );
+     F << close;
+     )
+
+writeGfanIdealList = method()
+writeGfanIdealList(String,List) := (filename,L) -> (
+     F := openOut filename;
+     R := ring L#0;
+     p := char R;
+     F << if p === 0 then "Q" else "Z/"|p|"Z";
+     F << toExternalString(new Array from gens R) << endl;
+     scan(L, I ->(
+       -- Now make the list of the gens of I
+			 I = initialIdeal I;
+       F << "{";
+       n := numgens I - 1;
+       for i from 0 to n do (
+     	  F << toExternalString(I_i);
+	  		if i < n then F << "," else F << "}";
+	  	 	F << endl;
+			 )
+			 )
 	  );
      F << close;
      )
@@ -276,6 +323,28 @@ document {
 	SeeAlso => {"gfan", "initialIdeal", "groebnerCone"}
 	}
 
+
+doc ///
+	Key 
+		renderStaircase
+		(renderStaircase, String, ZZ, ZZ, List)
+	Headline
+		draws staircases of an initial ideal.
+	Usage 
+		renderStaircase(F,d,n,I)
+	Inputs 
+		F:String 
+			filename of the xfig file that is produced 
+		I:Ideal 
+			of which to draw the staircase.
+		d:ZZ 
+			number of boxes to be drawn along each axis
+		n:ZZ 
+			number of diagrams per line
+	Description
+		Text
+			Blah.
+///
 
 doc ///
 	Key 
