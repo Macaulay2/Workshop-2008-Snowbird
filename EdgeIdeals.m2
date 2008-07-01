@@ -25,7 +25,48 @@ export {HyperGraph,
         edges,   
         getEdge,
 				isEdge,
-				getEdgeIndex
+				getEdgeIndex,
+				complementGraph,
+				inducedGraph,
+				deleteEdges,
+				stanleyReisnerComplex,
+				independenceComplex,
+				cliqueComplex,
+				edgeIdeal,
+				coverIdeal,
+			  isBipartite,
+				isCMHyperGraph,
+			  isSCMHyperGraph,
+				isPerfect,
+				isChordal,
+				isLeaf,
+				isOddHole,
+				isTree,
+				isConnected,
+				cliqueNumber,
+				chromaticNumber,
+				vertexCoverNumber,
+				independenceNumber,
+				numTriangles,
+				degreeVertex,
+				numConnectedComponents,
+				smallestCycleSize,
+				allOddHoles,
+				allEvenHoles,
+				connectedComponents,
+				vertexCovers,
+				neighborSet,
+				neighborSet,
+				getCliques,
+				getMaxCliques,
+				adjacencyMatrix,
+				incidenceMatrix,
+				cycle,
+				completeGraph,
+				completeMultiPartite,
+				antiHole,
+				spanningTree,
+				lineGraph
         };
 
 needsPackage "SimpleDoc"
@@ -346,7 +387,7 @@ assert(#(vertices H) == 3)
 
 
 ----------------------------------------------
-
+end
 restart
 installPackage ("EdgeIdeals", UserMode=>true)
 loadPackage "EdgeIdeals"
