@@ -1,3 +1,15 @@
+---------------------------------------------------------------------------
+-- PURPOSE : to compute the Brunsification of a module; that is,
+-- produce an ideal with three generators whose 2nd syzygy module is 
+-- isomorphic to a given module
+-- PROGRAMMERs : Brunsification code written by David Eisenbud   
+--     	    	 Documentation edited by Sonja Petrovic and Adam Van Tuyl.
+-- UPDATE HISTORY : bruns2.0 created 28 June 2008
+-- 	     	    updated 1 July 2008
+--
+-- 
+---------------------------------------------------------------------------
+
 newPackage(
      "Bruns",
      Version => "2.0",
