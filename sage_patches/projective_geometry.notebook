@@ -1,0 +1,339 @@
+Projective Geometry and Homological Algebra
+system:sage
+
+{{{id=2|
+%hide
+%html
+<h1>The Twisted Cubic</h1>
+///
+
+<html><font color='black'><h1>The Twisted Cubic</h1></font></html>
+}}}
+
+{{{id=1|
+ringP3 = macaulay2.ring('ZZ/32749', "[x_0..x_3]"); ringP3
+///
+
+  ZZ
+-----[x , x , x , x , MonomialOrder => Lex, MonomialSize => 16]
+32749  0   1   2   3
+}}}
+
+{{{id=3|
+ringP1 = macaulay2.ring('ZZ/32749', "[s,t]"); ringP1
+///
+
+  ZZ
+-----[s, t, MonomialOrder => Lex, MonomialSize => 16]
+32749
+}}}
+
+{{{id=6|
+s,t = ringP1.gens()
+///
+}}}
+
+{{{id=4|
+cubicMap = macaulay2.map(ringP1, ringP3, [s^3, s^2*t, s*t^2, t^3])
+///
+}}}
+
+{{{id=7|
+idealCubic = cubicMap.kernel()
+///
+}}}
+
+{{{id=8|
+idealCubic2 = ringP3.monomialCurveIdeal([1,2,3]); idealCubic2
+///
+
+                 2                           2
+ideal (- x x  + x , - x x  + x x , - x x  + x )
+          1 3    2     0 3    1 2     0 2    1
+}}}
+
+{{{id=9|
+M = macaulay2("matrix{{x_0,x_1,x_2},{x_1,x_2,x_3}}"); M
+///
+
+| x_0 x_1 x_2 |
+| x_1 x_2 x_3 |
+}}}
+
+{{{id=10|
+idealCubic3 = macaulay2.minors(2, M); idealCubic3
+///
+
+               2                       2
+ideal (x x  - x , x x  - x x , x x  - x )
+        0 2    1   0 3    1 2   1 3    2
+}}}
+
+{{{id=11|
+idealCubic.codim()
+///
+
+2
+}}}
+
+{{{id=12|
+idealCubic.dim()
+///
+
+2
+}}}
+
+{{{id=13|
+idealCubic.gens()
+///
+
+| -x_1x_3+x_2^2 -x_0x_3+x_1x_2 -x_0x_2+x_1^2 |
+}}}
+
+{{{id=14|
+idealCubic.gens() % idealCubic3.gens()
+///
+
+0
+}}}
+
+{{{id=15|
+idealCubic == idealCubic3
+///
+
+True
+}}}
+
+{{{id=16|
+%hide
+%html
+<h1>The Cotangent Bundle of $\mathbb{P}^3$</h1>
+///
+
+<html><font color='black'><h1>The Cotangent Bundle of <span class="math">\mathbb{P}^3</span></h1></font></html>
+}}}
+
+{{{id=17|
+f = ringP3.vars(); f
+///
+
+| x_0 x_1 x_2 x_3 |
+}}}
+
+{{{id=18|
+OmegaP3 = f.kernel(); OmegaP3
+///
+
+image {1} | -x_1 0    -x_2 0    0    -x_3 |
+      {1} | x_0  -x_2 0    0    -x_3 0    |
+      {1} | 0    x_1  x_0  -x_3 0    0    |
+      {1} | 0    0    0    x_2  x_1  x_0  |
+}}}
+
+{{{id=19|
+g = OmegaP3.generators()
+///
+}}}
+
+{{{id=20|
+g.image()
+///
+
+image {1} | -x_1 0    -x_2 0    0    -x_3 |
+      {1} | x_0  -x_2 0    0    -x_3 0    |
+      {1} | 0    x_1  x_0  -x_3 0    0    |
+      {1} | 0    0    0    x_2  x_1  x_0  |
+}}}
+
+{{{id=21|
+OmegaP3.presentation()
+///
+
+{2} | x_2  0    0    x_3  |
+{2} | x_0  x_3  0    0    |
+{2} | -x_1 0    x_3  0    |
+{2} | 0    x_1  x_0  0    |
+{2} | 0    -x_2 0    x_0  |
+{2} | 0    0    -x_2 -x_1 |
+}}}
+
+{{{id=22|
+G = f.coker().res(); G
+///
+
+     1          4          6          4          1
+sage0  <-- sage0  <-- sage0  <-- sage0  <-- sage0  <-- 0
+                                                        
+0          1          2          3          4          5
+}}}
+
+{{{id=23|
+Gdd = G.sharp("dd")
+///
+}}}
+
+{{{id=24|
+Gdd[2]
+///
+
+{1} | -x_1 -x_2 -x_3 0    0    0    |
+{1} | x_0  0    0    -x_2 -x_3 0    |
+{1} | 0    x_0  0    x_1  0    -x_3 |
+{1} | 0    0    x_0  0    x_1  x_2  |
+}}}
+
+{{{id=26|
+Gdd[2].source().degrees()
+///
+
+{{2}, {2}, {2}, {2}, {2}, {2}}
+}}}
+
+{{{id=27|
+Gdd[2].target().degrees()
+///
+
+{{1}, {1}, {1}, {1}}
+}}}
+
+{{{id=28|
+G.betti()
+///
+
+       0 1 2 3 4
+total: 1 4 6 4 1
+    0: 1 4 6 4 1
+}}}
+
+{{{id=29|
+m = macaulay2("matrix{{x_0^3, x_1^2, x_2, x_3},{x_1^3,x_2^2,x_3,0}}"); m
+///
+
+| x_0^3 x_1^2 x_2 x_3 |
+| x_1^3 x_2^2 x_3 0   |
+}}}
+
+{{{id=30|
+I = macaulay2.minors(2,m)
+///
+}}}
+
+{{{id=31|
+F = (ringP3^1/I).res(); F
+///
+
+     1          6          8          3
+sage0  <-- sage0  <-- sage0  <-- sage0  <-- 0
+                                             
+0          1          2          3          4
+}}}
+
+{{{id=32|
+F.betti()
+///
+
+       0 1 2 3
+total: 1 6 8 3
+    0: 1 . . .
+    1: . 1 . .
+    2: . 2 2 .
+    3: . 2 2 .
+    4: . 1 4 3
+}}}
+
+{{{id=33|
+G.betti()
+///
+
+       0 1 2 3 4
+total: 1 4 6 4 1
+    0: 1 4 6 4 1
+}}}
+
+{{{id=34|
+OmegaP3res = f.starstar(ringP3^1/idealCubic).kernel()
+///
+}}}
+
+{{{id=35|
+OmegaP3res
+///
+
+subquotient ({1} | -x_3 -x_2 -x_1 0    -x_3 -x_2 0    0    -x_3 |, {1} | -x_1x_3+x_2^2 -x_0x_3+x_1x_2 -x_0x_2+x_1^2 0             0              0             0             0              0             0             0              0             |)
+             {1} | x_2  x_1  x_0  -x_3 0    0    0    -x_3 0    |  {1} | 0             0              0             -x_1x_3+x_2^2 -x_0x_3+x_1x_2 -x_0x_2+x_1^2 0             0              0             0             0              0             |
+             {1} | 0    0    0    x_2  x_1  x_0  -x_3 0    0    |  {1} | 0             0              0             0             0              0             -x_1x_3+x_2^2 -x_0x_3+x_1x_2 -x_0x_2+x_1^2 0             0              0             |
+             {1} | 0    0    0    0    0    0    x_2  x_1  x_0  |  {1} | 0             0              0             0             0              0             0             0              0             -x_1x_3+x_2^2 -x_0x_3+x_1x_2 -x_0x_2+x_1^2 |
+}}}
+
+{{{id=36|
+delta1 = idealCubic.jacobian(); delta1
+///
+
+{1} | 0    -x_3 -x_2 |
+{1} | -x_3 x_2  2x_1 |
+{1} | 2x_2 x_1  -x_0 |
+{1} | -x_1 -x_0 0    |
+}}}
+
+{{{id=37|
+delta2 = delta1 // OmegaP3res.gens()
+///
+}}}
+
+{{{id=38|
+delta2
+///
+
+{2} | 0  1  0  |
+{2} | 0  0  2  |
+{2} | 0  0  0  |
+{2} | 2  0  0  |
+{2} | 0  1  0  |
+{2} | 0  0  -1 |
+{2} | 0  0  0  |
+{2} | -1 0  0  |
+{2} | 0  -1 0  |
+}}}
+
+{{{id=39|
+delta = macaulay2.map(OmegaP3res, idealCubic.module(), delta2)
+///
+}}}
+
+{{{id=40|
+delta
+///
+
+{2} | 0  1  0  |
+{2} | 0  0  2  |
+{2} | 0  0  0  |
+{2} | 2  0  0  |
+{2} | 0  1  0  |
+{2} | 0  0  -1 |
+{2} | 0  0  0  |
+{2} | -1 0  0  |
+{2} | 0  -1 0  |
+}}}
+
+{{{id=41|
+OmegaCubic = delta.coker().prune(); OmegaCubic
+///
+
+cokernel {2} | -2x_3 -2x_2 0    -2x_3 -2x_2 -2x_1 0        0        0        0    0    -2x_3 0        0        -3x_3 -3x_2 |
+         {2} | x_1   x_0   x_2  0     0     0     16374x_3 0        0        -x_3 0    0     16373x_3 0        0     0     |
+         {2} | 0     0     -x_3 x_2   x_1   x_0   0        16374x_3 0        0    -x_3 0     0        16373x_3 0     0     |
+         {2} | 0     0     0    0     0     0     x_1      x_0      x_2      0    0    0     0        0        0     0     |
+         {2} | 0     0     0    0     0     0     0        0        16374x_3 x_2  x_1  x_0   0        0        0     0     |
+         {2} | 0     0     0    0     0     0     0        0        0        0    0    0     x_3      x_2      x_1   x_0   |
+}}}
+
+{{{id=44|
+macaulay2("HH^0((sheaf %s)(>=0))"%OmegaCubic)
+///
+}}}
+
+{{{id=45|
+
+///
+}}}
+
