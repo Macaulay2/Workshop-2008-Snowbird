@@ -49,8 +49,8 @@ kk=ZZ/101
 --Example 1: a monomial ideal in 4-space.
 S=kk[x_0..x_4]
 i=monomialCurveIdeal(S,{2,3,5,6})
-time reesIdeal i; -- 3.4 sec
-time reesIdeal(i,S_0); --.06 sec
+time reesIdeal i; -- 2.25 sec
+time reesIdeal(i,i_0); --.3 sec
 
 --Example 2: determinantal ideals
 restart
@@ -58,11 +58,38 @@ loadPackage "ReesAlgebra"
 kk=ZZ/101
 S=kk[a,b,c]
 m=matrix"a,0;b,a;0,b"
-reesIdeal i
-
-m=random(S^2,S^{3:-1})
 i=minors(2,m)
-time I=reesIdeal i
+time reesIdeal (i
+
+m=random(S^3,S^{4:-1})
+i=minors(3,m);
+time I=reesIdeal (i,i_0); -- .05 sec
+transpose gens I
+i=minors(2,m);
+time I=reesIdeal (i,i_0); -- 22 sec
+
+T. Roemer,  "Homological Properties of Bigraded Modules"
+Römer, Tim(D-ESSN)
+Homological properties of bigraded algebras. (English summary) 
+Illinois J. Math. 45 (2001), no. 4, 1361--1376. 
+ Thm 5.3
+shows that if i is and ideal in the polynomial ring,
+generated in degree d (and maybe i is 
+primary to the maximal ideal) then
+  reg(I^j) = jd + b for m>-=j0
+where j0 is the max degree in the "new variables" of
+a bigeneric initial ideal of reesIdeal(i)
+(bigeneric means we allow general changes of coords in
+the new vars alone and in the old vars alone.)
+
+Eisenbud and Ulrich have shown that there is a similar bound
+in terms of the regularity with respect to the variables y
+(graded with the degrees of the generators of i). This is proven
+only in the case of ideals generated in a single degree and
+primary to the maximal ideal. 
+
+Research Problem: what's the situation in general?
+
 
 ///
 
