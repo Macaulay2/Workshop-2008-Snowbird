@@ -43,16 +43,26 @@ specialFiberIdeal,analyticSpread, distinguished,distinguishedAndMult}
 ///
 --Examples for the ReesAlgebra package.                                                                                                                                                                                       
 restart
-
 loadPackage "ReesAlgebra"
 kk=ZZ/101
 
 --Example 1: a monomial ideal in 4-space.
-S=kk[x_0..x_4]                                                                                                                                                                                     
+S=kk[x_0..x_4]
 i=monomialCurveIdeal(S,{2,3,5,6})
 time reesIdeal i; -- 3.4 sec
 time reesIdeal(i,S_0); --.06 sec
 
+--Example 2: determinantal ideals
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+S=kk[a,b,c]
+m=matrix"a,0;b,a;0,b"
+reesIdeal i
+
+m=random(S^2,S^{3:-1})
+i=minors(2,m)
+time I=reesIdeal i
 
 ///
 
