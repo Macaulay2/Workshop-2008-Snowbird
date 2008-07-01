@@ -17,7 +17,7 @@ newPackage(
 needsPackage "BoijSoederberg"
 
 export {
-     symExt, bgg, tateResolution, beilinson, UU, cohomologyTable
+     symExt, bgg, tateResolution, beilinson, cohomologyTable
      }
 
 symExt = method()
@@ -56,15 +56,6 @@ tateResolution(Matrix, PolynomialRing, ZZ, ZZ) := ChainComplex => (m,E,loDeg,hiD
                 o);
      res(coker ofixed, LengthLimit=>max(1,bnd-loDeg+1)));
 
---sheafCohomology = method()
---sheafCohomology = (m,E,loDeg,hiDeg)->(
---     T := tateResolution(m,E,loDeg,hiDeg);
---     k := length T;
---     d := k-hiDeg+loDeg;
---     if d > 0 then 
---        chainComplex apply(d+1 .. k, i->T.dd_(i))
---     else T);
-
 sortedBasis = (i,E) -> (
      m := basis(i,E);
      p := sortColumns(m,MonomialOrder=>Descending);
@@ -91,7 +82,8 @@ UU = (i,S) -> (
      else if i === 0 then S^1
      else cokernel koszul(i+2,vars S) ** S^{i});
 
-beilinson = (o,S) -> (
+beilinson = method()
+beilinson(Matrix,PolynomialRing) := Matrix => (o,S) -> (
      coldegs := degrees source o;
      rowdegs := degrees target o;
      mats = table(numgens target o, numgens source o,
@@ -113,7 +105,7 @@ tateToCohomTable = (T) -> (
 	       ))
      )
 
-cohomologyTable = method(TypicalValue => CohomologyTally)
+cohomologyTable = method()
 cohomologyTable(CoherentSheaf, ZZ, ZZ) := CohomologyTally => (F,lo,hi) -> (
      M := module F;
      S := ring M;
@@ -129,6 +121,18 @@ cohomologyTable(Matrix, PolynomialRing, ZZ, ZZ) := CohomologyTally => (m,E,lo,hi
 
 beginDocumentation()
 
+document {
+     Key => BGG, 
+     Headline => "Bernstein-Gel'fand-Gel'fand correspondence", 
+     "The Bernstein-Gel'fand-Gel'fand correspondence is an isomorphism between the derived category of 
+     bounded complexes of finitely generated modules over a polynomial ring and the derived category of 
+     bounded complexes of finitely generated module over an exterior algebra (or of certain Tate resolutions). 
+     This package implements routines for investigating the BGG correspondence.", 
+     PARA {}, 
+     "More details can be found in ",  
+     HREF("http://www.math.uiuc.edu/Macaulay2/Book/", "Sheaf Algorithms Using Exterior Algebra"), ".", 
+     } 
+     
 document { 
      Key => {symExt,(symExt,Matrix,PolynomialRing)}, 
      Headline => "the first differential of the complex R(M)",
@@ -213,37 +217,108 @@ document {
      SeeAlso => {symExt}
      }
 
-end
 document { 
-     Key => {cohomologyTable,(cohomologyTable,Matrix,PolynomialRing,ZZ,ZZ),(cohomologyTable,CoherentSheaf,ZZ,ZZ)}, 
+     Key => {cohomologyTable,(cohomologyTable,CoherentSheaf,ZZ,ZZ), (cohomologyTable,Matrix,PolynomialRing,ZZ,ZZ)}, 
      Headline => "dimensions of cohomology groups",
-     Usage => "cohomologyTable(m,E,l,h) or cohomologyTable(F,l,h)",
+     Usage => "cohomologyTable(F,l,h) or cohomologyTable(m,E,l,h)",
      Inputs => {
-	  "m" => Matrix => "a presentation matrix for a module",
-	  "E" => PolynomialRing => "exterior algebra",
-	  "l" => ZZ => "lower cohomological degree", 
+	  "F" => CoherentSheaf => "a coherent sheaf on a projective scheme", 
+  	  "l" => ZZ => "lower cohomological degree", 
 	  "h" => ZZ => "upper bound on the cohomological degree",
-	  "F" => CoherentSheaf => "a coherent sheaf on a projective scheme"
-	  },
+	  "m" => Matrix => "a presentation matrix for a module",
+	  "E" => PolynomialRing => "exterior algebra"
+	   },
      Outputs => {
-	  CohomologyTable => {"dimensions of cohomogy groups"}  
+	  {"dimensions of cohomogy groups"}  
 	  },
-     "This function takes as input a presentation matrix ", TT "m", " of a finitely generated graded "
-     , TT "S", "-module ", TT "M", " an exterior algebra ", TT "E", " and two integers ", TT "l", 
-     " and ", TT "h", ". If ", TT "r", " is the regularity of ", TT "M", ", then this function 
-     computes the piece of the Tate resolution from cohomological degree ", TT "l", 
-     " to cohomological degree ", TT "max(r+2,h)", ". For instance, for the homogeneous 
-     coordinate ring of a point in the projective plane:",  
+     "
+     This function takes as input a coherent sheaf ", TT "F", ", two integers ", TT "l", 
+     " and ", TT "h", ", and prints the dimension ", 
+     TT "dim HH^j F(i-j)", " for ", TT "h>=i>=l", ". As a simple example, we comput the dimensions of cohomology groups 
+     of the projective plane.",   
+     EXAMPLE lines ///
+	  S = ZZ/32003[x_0..x_2]; 
+	  PP2 = Proj S; 
+	  F =sheaf S^1
+          cohomologyTable(F,-10,5)
+     	  ///,
+     "There is also a built-in sheaf cohomology function ", TO2((cohomology, ZZ, CoherentSheaf), "HH"), " in Macaulay2. 
+     However, these algorithms are much slower than ", TT "cohomologyTable", ".",   
+     PARA {}, 
+     "Alternatively, this function takes as input      
+     a presentation matrix ", TT "m", " of a finitely generated graded "
+     , TT "S", "-module ", TT "M", "and an exterior algebra ", TT "E", "with the same number of variables. 
+     In this form, the function is equivalent to the fucntion ", TT "sheafCohomology", 
+     " in ", HREF("http://www.math.uiuc.edu/Macaulay2/Book/", "Sheaf Algorithms Using Exterior Algebra"),  ".",
      EXAMPLE lines ///
 	  S = ZZ/32003[x_0..x_2]; 
 	  E = ZZ/32003[e_0..e_2, SkewCommutative=>true];
-	  PP2 = Proj S; 
-	  F = OO_PP2
-          cohomologyTable(F,10,5)
+	  m  = koszul (3, vars S); 
+	  regularity coker m 
+	  betti tateResolution(m,E,-6,2)
+          cohomologyTable(m,E,-6,2)
+     	  ///,
+     PARA {}, 
+     "As the third example, we compute the dimensions of cohomology groups of the structure sheaf of an 
+     irregular elliptic surface.", 
+     EXAMPLE lines /// 
+          S = ZZ/32003[x_0..x_4]; 
+	  X = Proj S; 
+          ff = res coker map(S^{1:0},S^{3:-1,2:-2},{{x_0..x_2,x_3^2,x_4^2}}); 
+	  alpha = map(S^{1:-2},target ff.dd_3,{{1,4:0,x_0,2:0,x_1,0}})*ff.dd_3; 
+	  beta = ff.dd_4//syz alpha; 
+	  K = syz syz alpha|beta;
+	  fK = res prune coker K;
+	  s = random(target fK.dd_1,S^{1:-4,3:-5});
+	  ftphi = res prune coker transpose (fK.dd_1|s);
+	  I = ideal ftphi.dd_2;
+	  F = sheaf S^1/I; 
+	  cohomologyTable(F,-2,6)
+     ///, 	  
+     SeeAlso => {symExt, tateResolution}
+     }
+
+document { 
+     Key => {beilinson,(beilinson, Matrix,PolynomialRing)}, 
+     Headline => "Vector bundle map associated to the Beilinson monad",
+     Usage => "beilinson(m,S)",
+     Inputs => {
+	  "m" => Matrix => {"a presentation matrix for a module over an exterior algebra ", TT "E"},
+	  "S" => PolynomialRing => {"polynomial ring with the same number of variables as ", TT "E"},
+	  },
+     Outputs => {
+	  Matrix => {"vector bundle map"}  
+	  },
+     "The BGG correspondence is an equivalence between complexes of modules over exterior algebras and complexes 
+     of coherent sheaves over projective spaces. This function takes as input a map between two free ", TT "E", "-modules, 
+     and returns the associate map between direct sums of exterior powers of cotangent bundles. In particular, it is useful 
+     to construct the Belinson monad for a coherent sheaf.",  
+     EXAMPLE lines ///
+	  S = ZZ/32003[x_0..x_2]; 
+	  E = ZZ/32003[e_0..e_2, SkewCommutative=>true];
+	  alphad = map(E^1,E^{2:-1},{{e_1,e_2}});
+	  alpha = map(E^{2:-1},E^{1:-2},{{e_1},{e_2}});
+	  alphad' = beilinson(alphad,S)
+	  alpha' = beilinson(alpha,S)
+	  F = prune homology(alphad',alpha')
+	  betti F
+	  cohomologyTable(presentation F,E,-2,3)
+     	  ///,
+     "As the next example, we construct the monad of the Horrock-Mumford bundle:", 
+      	  EXAMPLE lines ///
+	  S = ZZ/32003[x_0..x_4]; 
+	  E = ZZ/32003[e_0..e_4, SkewCommutative=>true];
+	  alphad = map(E^5,E^{2:-2},{{e_4*e_1,e_2*e_3},{e_0*e_2,e_3*e_4},{e_1*e_3,e_4*e_0},{e_2*e_4,e_0*e_1},{e_3*e_0,e_1*e_2}})
+	  alpha = syz alphad
+	  alphad' = beilinson(alphad,S)
+	  alpha' = beilinson(alpha,S)
+	  F = prune homology(alphad',alpha');
+	  betti res F
+	  regularity F
+	  cohomologyTable(presentation F,E,-6,6)
      	  ///,
      SeeAlso => {symExt}
      }
-
 end
 uninstallPackage "BGG"
 restart
