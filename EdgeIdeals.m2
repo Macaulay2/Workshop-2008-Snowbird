@@ -21,6 +21,9 @@ newPackage("EdgeIdeals",
 
 export {HyperGraph, 
         hyperGraph, 
+				Graph,
+				graph,
+				isGraph,
         vertices, 
         edges,   
         getEdge,
@@ -107,6 +110,48 @@ hyperGraph (List) := HyperGraph => (E) ->
 	if #E =!= numgens M then error "Edges satisfy an inclusion relation."; 
 	hyperGraph M
 )
+
+isGraph = method();
+isGraph HyperGraph := Boolean => (H) -> (
+		all(H#"edges", e-> #e === 2 )
+	)
+
+Graph = new Type of HyperGraph;
+
+graph = method(TypicalValue => Graph);
+graph (Ring, List) := Graph => (R, E) -> (
+		H := hyperGraph(R, E);
+		if not isGraph(H) then error "Edges must be of size two.";
+		new Graph from H
+	)	
+
+graph (MonomialIdeal) := Graph => (I) -> (
+		H := hyperGraph(I);
+		if not isGraph(H) then error "Ideal must have quadratic generators.";
+		new Graph from H
+	)	
+
+graph (Ideal) := Graph => (I) -> (
+		H := hyperGraph(I);
+		if not isGraph(H) then error "Ideal must have quadratic generators.";
+		new Graph from H
+	)	
+
+graph (List) := Graph => (E) -> (
+		H := hyperGraph(E);
+		if not isGraph(H) then error "Edges must be of size two.";
+		new Graph from H
+	)	
+
+graph (HyperGraph) := Graph => (H) -> (
+		if not isGraph(H) then error "Edges must be of size two.";
+		new Graph from H
+	)	
+
+hyperGraph (Graph) := HyperGraph => (G) -> (
+		new HyperGraph from G
+	)	
+
 
 vertices = method();
 vertices HyperGraph := H -> H#"vertices";
