@@ -10,7 +10,7 @@
       a list of numbers representing a partition; e.g. {3,1} stands for 2 rows of length 3 and 1. 
     E:Module
       a free module
-   Outputs 
+  Outputs 
     M:Module
       The result of application of the Schur functor associated to lambda to E. 
   Description
@@ -20,11 +20,11 @@
 
       The resulting M comes with cached data M.cache.Schur = {f, finv, AT, ST} where 
 
-      @UL{"f is a map from exterior_mu E to M;", 
+      {"f is a map from exterior_mu E to M;", 
 	  "finv is a map from M to exterior_mu E;",
 	  "AT is a hash table of all tableaux, whose entries increase in every column;",
 	  "ST is a hash table of all standard tableaux (tableaux in AT, whose entries nondecrease in every row)."
-	  }@
+	  }
 
       Tableaux are represented with objects of class Filling, 
       which is a doble list whose entries are lists giving the fillings of the corresponding columns.          
