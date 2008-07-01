@@ -13,7 +13,7 @@ newPackage(
     	)
 
 export {
-     gfan, weightVector, inw, groebnerCone, polyhedralFan, Symmetries, Tracing
+     gfan, weightVector, initialIdeal, groebnerCone, groebnerFan, universalGroebnerBasis, Symmetries
      }
 
 gfan'path = gfanInterface#Options#Configuration#"path"
@@ -21,6 +21,7 @@ gfan'path = gfanInterface#Options#Configuration#"path"
 --needs "FourierMotzkin.m2"
 needsPackage "FourierMotzkin"
 needsPackage "Polymake"
+needsPackage "SimpleDoc"
 
 wtvec = (inL,L) -> (
   W := flatten apply(#inL, i -> (
@@ -54,8 +55,9 @@ groebnerCone(List,List) := (inL,L) -> (
      (W',H)
      )
 
-inw = method(TypicalValue=>Ideal)
-inw(List,Ideal) := (w,I) -> (
+initialIdeal = method(TypicalValue=>Ideal)
+initialIdeal Ideal  := (I) -> ideal leadTerm I
+initialIdeal(List,Ideal) := (w,I) -> (
      R := ring I;
      R1 := (coefficientRing R)[gens R, 
 	      Degrees=>(monoid R).Options.Degrees, 
@@ -105,10 +107,10 @@ readGfanIdeals String := (f) -> (
 		)
 			
 
-readPolyhedralfan= method()
-readPolyhedralfan String := (f) -> (
+readGroebnerfan= method()
+readGroebnerfan String := (f) -> (
 		 s := lines get f;
-		 return hashTable{
+		 return new PolymakeObject from {
 				"AMBIENT_DIM" => value first removeComments getProperty(f,"AMBIENT_DIM"),
 				"DIM" => value first removeComments getProperty(f,"DIM"),
 				"LINEALITY_DIM" => value first removeComments getProperty(f,"LINEALITY_DIM"),
@@ -124,7 +126,7 @@ readPolyhedralfan String := (f) -> (
 			
 
 
-gfan = method(Options=>{Symmetries=>{}, Tracing => 0})
+gfan = method(Options=>{Symmetries=>{}})
 gfan Ideal := opts -> (I) -> (
      R := ring I;
      p := char R;
@@ -150,8 +152,15 @@ gfan Ideal := opts -> (I) -> (
      (M,L)
      )
 
-polyhedralFan = method(Options=>{Symmetries=>{}, Tracing => 0})
-polyhedralFan Ideal := opts -> (I) -> (
+universalGroebnerBasis = method(Options=>{Symmetries=>{}})
+universalGroebnerBasis Ideal := opts -> (I) -> (
+	 toList sum(apply(last gfan(I,opts) , l -> set apply(l,p-> p/leadCoefficient(p))))
+	 --- gfan returns lists of monomials, and lists of reduced groebner bases.
+	 --- To compute the universal groebner basis we take the union of the reduced gbs.
+	)
+
+groebnerFan = method(Options=>{Symmetries=>{}})
+groebnerFan Ideal := opts -> (I) -> (
      R := ring I;
      p := char R;
      if p === 0 and coefficientRing(R) =!= QQ then 
@@ -169,7 +178,7 @@ polyhedralFan Ideal := opts -> (I) -> (
      ex = gfan'path| "gfan " | ex | "  <" | f | "| gfan_topolyhedralfan" | ex | " >" | f | ".out";
      writeGfanIdeal(f, I, opts.Symmetries);
      run ex;
-     readPolyhedralfan(f | ".out")
+     readGroebnerfan(f | ".out")
      )
 
 beginDocumentation()
@@ -180,52 +189,57 @@ document {
 	EM "gfanInterface", " is an interface to Anders Jenssen's gfan package, which is a C++
 	program to compute the Groebner fan (i.e. all the initial ideals) of an ideal.",
 	PARA{
-	"The main function in this package is ", TO gfan, ", which computes all of the Groebner bases and initial ideals
-	of a given ideal.  A useful
-	feature of this function is that it can handle symmetries in the ideal."},
+	"The main function in this package is ", TO gfan, ", which computes all of the Groebner bases and initial ideals of a given ideal.  A useful feature of this function is that it can handle symmetries in the ideal. If you want the geometric information of this list of Groebner basis, see ", TO groebnerFan, "."},
 	PARA{"There are other functions in the gfan package.  If you wish to use
 	one whose interface is not included here, you have two options: either write the interface yourself, and then send it
 	to the package author, so it can be included for others, or ask the package author to write it."},
 	}
-document {
-	Key => {gfan, (gfan, Ideal)},
-	Headline => "all initial monomial ideals of an ideal",
-	Usage => "(M,L) = gfan I",
-	Inputs => { "I" => Ideal,
-	     Symmetries => List => "of permutations of the variables leaving the ideal invariant",
-	     Tracing => Boolean => "0 means as quiet as possible, larger numbers give more display"
-	     },
-	Outputs => {
-	     "M" => List => "of lists of monomials",
-	     "L" => List => "of all of the initial ideals of I"
-	     },
-	EXAMPLE lines ///
-	  R = ZZ/32003[symbol a..symbol d];
-	  I = monomialCurveIdeal(R,{1,3,4})
-	  time (M,L) = gfan I
-	  M/toString/print;
-	  L/toString/print;
-     	///,
-	PARA{},
-	"If the ideal is invariant under some permutation of the variables, then gfan can compute
-	all initial ideals up to this equivalence, which can change an intractible problem to a doable one.",
-	PARA{},
-	"The cyclic group of order 4 a --> b --> c --> d --> a leaves the following ideal fixed.",
-	EXAMPLE lines ///
-	   S = ZZ/32003[a..e];
-	   I = ideal"a+b+c+d,ab+bc+cd+da,abc+bcd+cda+dab,abcd-e4"
-	   (inL,L) = gfan I;
-	   #inL
-	   ///,
-	PARA{},
-	"There are 96 initial ideals of this ideal.  Let's use the symmetry:",
-	EXAMPLE lines ///
-	   (inL1, L1) = gfan(I, Symmetries=>{(b,c,d,a,e)});
-	   #inL1
-	   ///,
-	Caveat => {""},
-	SeeAlso => {"weightVector", "inw", "groebnerCone"}
-	}
+
+doc ///
+	Key 
+		gfan
+		(gfan, Ideal)
+		[gfan, Symmetries]
+	Headline
+		all initial monomial ideals of an ideal
+	Usage 
+		(M,L) = gfan I
+	Inputs
+		I:Ideal
+		Symmetries:List
+			of permutations of the variables leaving the ideal invariant
+	Outputs
+		M:List
+			of lists of monomials
+		L:List
+			of all of the initial ideals of I
+	Description
+		Example
+			R = ZZ/32003[symbol a..symbol d];
+			I = monomialCurveIdeal(R,{1,3,4})
+			time (M,L) = gfan I
+	 		M/toString/print;
+			L/toString/print;
+		Text
+			If the ideal is invariant under some permutation of the variables, then gfan can compute
+			all initial ideals up to this equivalence, which can change an intractible problem to a doable one.
+			The cyclic group of order 4 a --> b --> c --> d --> a leaves the following ideal fixed.
+		Example
+			S = ZZ/32003[a..e];
+			I = ideal"a+b+c+d,ab+bc+cd+da,abc+bcd+cda+dab,abcd-e4"
+			(inL,L) = gfan I;
+			#inL
+		Text
+			There are 96 initial ideals of this ideal.  Let's use the symmetry:
+		Example
+			(inL1, L1) = gfan(I, Symmetries=>{(b,c,d,a,e)});
+			#inL1
+	SeeAlso
+		weightVector
+		initialIdeal
+		groebnerCone
+		Symmetries
+///
 
 document {
 	Key => {weightVector, (weightVector, List,List)},
@@ -253,15 +267,110 @@ document {
 	  time (inLs,Ls) = gfan I
      	  wtvecs = apply(#inLs, i -> weightVector(inLs#i, Ls#i));
 	  wtvecs/print;
-     	  inL1 = wtvecs/(w -> inw(w,I));
+     	  inL1 = wtvecs/(w -> initialIdeal(w,I));
 	  inL1/toString/print;
 	  assert(inL1 == inLs/ideal)
      	///,
 	Caveat => {"In the current implementation, it might be possible that a positive vector exists, but the algorithm fails to find it.  In this 
 	     case, use groebnerCone and find one by hand.  You might want to email the package author to complain too!"},
-	SeeAlso => {"gfan", "inw", "groebnerCone"}
+	SeeAlso => {"gfan", "initialIdeal", "groebnerCone"}
 	}
 
+
+doc ///
+	Key 
+		groebnerFan
+		(groebnerFan, Ideal)
+		[groebnerFan, Symmetries] 
+	Headline
+		the fan of all groebner bases of an ideal
+	Usage 
+		P = groebnerFan(I)
+	Inputs 
+		I:Ideal 
+			of which to compute the fan
+		Symmetries:List 
+			of permutations of the variables leaving the ideal invariant
+	Outputs
+		P:PolymakeObject
+			containing all the data of the polyhedral fan of {\tt I}.
+	Caveat
+		Requires loading of the Polymake package to make the PolymakeObject type available.
+	Description
+		Example	
+			loadPackage "Polymake"
+	 		R = QQ[symbol a..symbol d];
+			I = ideal(c^4-a*d^3, -c^3+b*d^2, b*c-a*d, -a*c^2+b^2*d, b^3-a^2*c);
+			P = groebnerFan(I)
+			peek P
+	SeeAlso 
+		gfan
+		initialIdeal
+		groebnerCone
+		Symmetries
+///
+
+doc ///
+	Key 
+		Symmetries	
+	Headline
+		permutations leaving an ideal invariant to speed up gfan computations.
+	Usage 
+		Symmetries => L
+	Inputs 
+		L:List
+			of permutations of the variables leaving an ideal invariant.
+	Description
+		Text
+			Many gfan functions can be sped up and give smaller output when symmetries of
+			the ideal are given. Permuations are specified as sequences of variables.	
+			Not all permuations need to be listed; only permutations that generate
+			all of the symmetries.
+			
+			A possible caveat is that the permuatations must be appled to the output to get the entire result.
+
+		Example	
+	 		R = QQ[a,b,c];
+			I = ideal(a+b,b+c);
+			gfan(I)
+		  gfan(I, Symmetries => {(c,b,a)})
+		
+		Text
+			Note that the use of symmetries above reduces the amount of output.
+			The permutations must be appled to the output to get the complete result.
+
+		Example
+	 		R = QQ[a,b,c,d,e];
+			I = ideal"a+b+c+d,ab+bc+cd+da,abc+bcd+cda+dab,abcd-e4"
+			#universalGroebnerBasis(I)
+			#universalGroebnerBasis(I, Symmetries => {(b,c,d,a,e)})
+///
+
+doc ///
+	Key 
+		universalGroebnerBasis
+		(universalGroebnerBasis, Ideal)
+		[universalGroebnerBasis, Symmetries] 
+	Headline
+		the union of all reduced Groebner bases of an ideal.
+	Usage 
+		B = universalGroebnerBasis(I)
+	Inputs 
+		I:Ideal 
+			of which to compute the universal Groebner basis
+		Symmetries:List 
+			of permutations of the variables leaving the ideal invariant. See @TO gfan@.
+	Outputs
+		B:List
+			containing the polynomials that form the universal Groebner basis of {\tt I}.
+	Description
+		Example 
+	 		R = QQ[symbol x, symbol y, symbol z]
+			I = ideal(x+y, y+z)
+			universalGroebnerBasis(I)
+	SeeAlso 
+		gfan
+///
 
 document {
 	Key => {groebnerCone, (groebnerCone, List,List)},
@@ -288,13 +397,13 @@ document {
      	///,
 	Caveat => {"In the current implementation, it might be possible that a positive vector exists, but the algorithm fails to find it.  In this 
 	     case, use groebnerCone and find one by hand.  You might want to email the package author to complain too!"},
-	SeeAlso => {"gfan", "inw", "groebnerCone"}
+	SeeAlso => {"gfan", "initialIdeal", "groebnerCone"}
 	}
 
 document {
-	Key => {inw, (inw, List,Ideal)},
+	Key => {initialIdeal, (initialIdeal, List,Ideal), (initialIdeal, Ideal)},
 	Headline => "initial ideal with respect to a weight vector",
-	Usage => "inw(w,I)",
+	Usage => "initialIdeal(w,I) or initialIdeal(I)",
 	Inputs => { "w" => List => {"a positive weight vector"},
 	     "I" => Ideal => "in a polynomial ring (not a quotient ring)"
 	     },
@@ -302,18 +411,45 @@ document {
 	     {"the ideal of lead polynomials under this weight vector"}
 	     },
         "The weight vector should be totally positive, even in the homogeneous case.  
-	The result may or may not be a monomial ideal.",
+	The result may or may not be a monomial ideal. When a weight vector is not specified, this
+	simply uses the current term order.",
 	EXAMPLE lines ///
 	  R = ZZ/32003[symbol a..symbol d]
 	  inL = {c^4, b*d^2, b*c, b^2*d, b^3}
 	  L = {c^4-a*d^3, -c^3+b*d^2, b*c-a*d, -a*c^2+b^2*d, b^3-a^2*c}
 	  weightVector(inL,L)
 	  groebnerCone(inL,L)
-	  inw({8,8,3,1},ideal L)
-	  inw({5,5,2,1},ideal L)
+	  initialIdeal({8,8,3,1},ideal L)
+	  initialIdeal({5,5,2,1},ideal L)
 	  ///,
 	SeeAlso => {"gfan", "weightVector", "groebnerCone"}
 	}
+
+TEST ///
+
+---Basic explicit test of gfan
+QQ[x,y];
+(M,L) = gfan(ideal(x+y));
+assert(#M === 2);
+assert(set M === set{{x},{y}});
+assert(#L === 2);
+assert(L === {{ x+y} ,{x+y}});
+
+----Check that using symmetries gives the
+----same output as without.
+QQ[x,y,z]
+(M,L) = gfan(ideal(x+y,y+z));
+(N,T) = gfan(ideal(x+y,y+z), Symmetries=>{(z,y,x)});
+assert(#M === 3);
+assert(#N === 2);
+Nset = set( apply(N, set) | apply(N, L -> set apply(L, p -> sub(p, {x=>z, z=>x}))))
+Tset = set( apply(T, set) | apply(T, L -> set apply(L, p -> sub(p, {x=>z, z=>x}))))
+Mset = set apply(M, set);
+Lset = set apply(L, set);
+assert( Nset === Mset);
+assert( Tset === Lset);
+
+///
 
 end
 restart
@@ -326,7 +462,7 @@ time apply(#M, i -> (
   weightVector(L_i, M_i)))
 
 wtvecs = apply(oo, x -> x#0)
-Mset1 = apply(wtvecs, w -> set flatten entries inw(w,I))
+Mset1 = apply(wtvecs, w -> set flatten entries initialIdeal(w,I))
 Mset = M/set
 Mset === Mset1
 
