@@ -250,34 +250,6 @@ assert(highestDegrees B == {0,-infinity,4})
 -------------------------------------
 -- Pure Betti diagrams --------------
 -------------------------------------
-pureBetti = method()
-pureBetti List := (Degs)-> (
---Input: Degs must be a strictly increasing list of positive integers
---Output: List of ranks of the minimal integral betti sequence that satisfy the
---"Peskine-Szpiro" equations
-     if not isStrictlyIncreasing Degs then error "--pureBetti was given degrees that were not strictly increasing";
-     c:= # Degs;
-     p:=1;
-     for i from 1 to c-1 do (for j from 0 to i-1 do p=p*(Degs_i-Degs_j));
-     D:=for i from 0 to c-1 list(
-         (-1)^i* product(i, j->Degs_j-Degs_i)*product(i+1..c-1, j->Degs_j-Degs_i));
-     Bettis=for i from 0 to c-1 list (p/D_i);
-     Bettis= apply(Bettis/(gcd Bettis), i->lift(i,ZZ)))
-
---Now some routines for displaying the answer:
---Input: Degs must be a strictly increasing list of positive integers
---Output: Hash table with the same content as the BettiTally that would display
---the Betti numbers given by pureBetti
-
-pureBettiDiagram = method()
-pureBettiDiagram List := (Degs) -> (
---The betti diagram of a pure degree sequence (generator of the ray, according
---to Boij-Soederberg; need not be an actual resolution.)
-     Bettis:=pureBetti Degs;
-     BB:=new MutableHashTable;
-     scan(#Degs, i->BB#(i,{Degs_i},Degs_i)=Bettis_i);
-     new BettiTally from BB)
-
 --Input: Degs must be a strictly increasing list of positive integers
 --Output: List of ranks of the minimal integral betti sequence that satisfy the
 --"Peskine-Szpiro" equations
@@ -321,7 +293,7 @@ assert(D2 == mat2betti m)
 ///
 
 ---------------------------------------------
--- Decoomposing a Betti diagram into pures --
+-- Decomposing a Betti diagram into pures --
 ---------------------------------------------
 
 --input: list of rational numbers
