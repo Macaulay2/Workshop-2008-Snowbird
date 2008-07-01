@@ -1,0 +1,92 @@
+Here are some ideas/wishes concerning torus-equivariant classes.  The
+first is reasonably easy to implement, not sure about no 2 and 3 (who
+are quite similar, actually).
+
+
+1. Equivariant Chern class computations
+   ====================================
+
+I suggest expanding Schubert2 to deal with equivariant classes, at
+least for torus actions.  Most of the functionality will work with
+very small modifications.  
+
+"base" could be given an optional argument for including data for a
+torus, like the rank and possibly names for the elements of a basis
+for the (additive) group of characters on the torus.  These basis
+elements t_i have degree 1 (or possibly a multidegree) and act as 1st
+chern class of the corresponding 1-dimensional representations
+(=equivariant line bundles on a point).
+
+A vector bundle or sheaf can have equivariant Chern classes, and the
+equivariant Chow ring is an algebra over the ring of formal power
+series on t_1,...,t_r .  
+
+To construct i.e. a projective 4-space with a torus action with
+weights a, b, c, d (linear combinations of the t_i-s), do
+something like 
+
+     projectiveBundle( o(a)+o(b)+o(c)+o(d), pt ....)  
+
+where the base pt has the data of the torus as above.  This will
+"automatically" give the correct equivariant Chow ring.  
+
+Similarly for Grassmann bundles an so on.
+
+
+2. Alternative way to compute integrals on varieties with
+   a torus action with a finite number of fixpoints
+   =====================================================
+
+This is Bott's residue formula.  Data required are the
+following:
+a) a list of the fix points
+b) for each fix point, the set of tangent weights
+c) the (equivariant) class to be integrated should also
+   be represented via data local to the fixpoints
+
+This is quite different from the "schubert" way of integrating
+classes, but it is vastly more efficient in some cases.
+
+(There are variations of this if we relax the condition on
+finiteness of the fixpoints.  It can be made to work if we
+know the Chow ring of each fixpoint component, together with
+the equivariant normal bundle of each such component.)
+
+
+3. Alternative way to describe the Chow ring for varieties
+   with a torus action with a finite number of zero-dimensional
+   and one-dimensional orbits.
+   ===========================
+
+This is the theorem of Goresky-Kottwitz-MacPherson.  The equivariant
+Chow ring of such an X consists of those sets of classes over the
+fixpoints that are compatible along the one-dimensional orbits.  Input
+data in this case is the graph of fixponts and one-dimensional orbits
+joining them (they are projective lines), and the tangent weights of X
+and of the fixed lines at the fixpoints.
+
+To compute in such a ring, classes would be represented by functions
+from the fixpoint set to the polynomial (formal power series) ring
+which is the eqivariant Chow ring of a point.  Ring operations are
+pointwise.  Integral comes from Bott's formula.  
+
+One can also have morphisms of such data structures, together with
+pullback and pushforward.  Blowups are easy to define, and so on.  
+
+This approach to intersection rings is particularly useful when
+dealing with certain moduli spaces, where a complete description of
+the space is unavailable, but the data of the fixpoints are easier to
+get at (corresponding to objects fixed by the T-actions).  The
+computation of the number of twisted cubic curves on a general quintic
+threefold is way faster this way than others.
+
+
+
+There might be a way to pass from the G-K-M description of the Chow
+ring to describing it in terms of generators and relations; this would
+amount to solving a number of equations (congruences actually).  This
+is actually an interesting problem, I think.
+
+
+
+
