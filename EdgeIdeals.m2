@@ -101,7 +101,7 @@ hyperGraph (Ideal) := HyperGraph => (I) ->
 ( hyperGraph monomialIdeal I
 )
 
-hyperGraph (List) := HyperGraph => (E) -> 
+hyperGraph List := HyperGraph => E -> 
 ( 
 	M := null; 
 	if all(E, e-> class e === List) then M = monomialIdeal apply(E, product);
@@ -137,7 +137,7 @@ graph (Ideal) := Graph => (I) -> (
 		new Graph from H
 	)	
 
-graph (List) := Graph => (E) -> (
+graph List := Graph => E -> (
 		H := hyperGraph(E);
 		if not isGraph(H) then error "Edges must be of size two.";
 		new Graph from H
@@ -215,16 +215,15 @@ edgeIdeal HyperGraph := H -> (monomialIdeal apply(H#"edges",product))
 
  -- Alexander dual of edge ideal
 coverIdeal = method();
-coverIdeal HyperGraph := H -> (dual edgeIdeal H)
+coverIdeal HyperGraph := H -> dual edgeIdeal H
 
 
 -- Boolean Functions
 
- -- Boolean function
 isBipartite = method();
 isBipartite Graph := G -> (
-     m = product G#"vertices";
-     return (m % (coverIdeal G)^2 == 0);
+     m := product G#"vertices";
+     return m % (coverIdeal G)^2 == 0;
      );
 
 
@@ -242,6 +241,43 @@ isChordal = method();
 
  -- (True or False if edge of hyperGraph/Graph is leaf)
 isLeaf = method();
+isLeaf (HyperGraph, ZZ) := (H,N) ->
+( intersectEdges := (A,B) -> set H#"edges"#A * set H#"edges"#B;
+	overlaps := apply(select(0..(#(H#"edges")-1), M -> M =!= N), M -> intersectEdges(M,N));
+	overlapUnion := sum toList overlaps;
+  any(overlaps, branch -> isSubset(overlapUnion,branch))
+);
+isLeaf (Graph, ZZ) := (G,N) ->
+( any(G#"edges"#N, V -> degreeVertex(G,V) === 1)
+  ---Note N refers to an edge index
+);
+isLeaf (Graph, RingElement) := (G,V) ->
+( isLeaf(G,index V)
+	---Note V refers to a vertex
+);
+isGoodLeaf = method();
+isGoodLeaf (HyperGraph, ZZ) := (H,N) ->
+( intersectEdges := (A,B) -> set H#"edges"#A * set H#"edges"#B;
+	overlaps := apply(select(0..#(H#"edges")-1, M -> M =!= N), M -> intersectEdges(M,N));
+	overlaps = sort(overlaps);
+	--Check if the overlaps are totally ordered
+	all(1..(#overlaps -1), I -> overlaps#(I-1) <= overlaps#I)
+);
+hasGoodLeaf = method();
+hasGoodLeaf HyperGraph := H -> any(0..#(H#"edges")-1, N -> isGoodLeaf(H,N));
+
+getGoodLeafIndex = method();
+getGoodLeafIndex HyperGraph := H ->
+(  GL := select(0..#(H#"edges")-1, N -> isGoodLeaf(H,N));
+   if #GL == 0 then return -1;
+   return first GL;
+);
+
+getGoodLeaf = method();
+getGoodLeaf HyperGraph := H ->
+( return H#"edges"#(getGoodLeafIndex H);
+);
+
 
  -- (True or False if exists odd hole (not triangle) )
 isOddHole = method();
@@ -652,7 +688,7 @@ doc ///
 
 -----------------------------
 -- Constructor Tests --------
------------------------------
+------------------------- 0 to 6
 
 TEST///
 R = QQ[a,b,c]
@@ -705,7 +741,7 @@ assert(#(vertices H) === 3)
 
 ----------------------------------
 -- isEdge Test -------------------
-----------------------------------
+-------------------------------- 7
 TEST///
 R = QQ[a,b,c]
 H = hyperGraph(monomialIdeal {a*b,b*c})
@@ -719,7 +755,7 @@ assert( not isEdge(H,a*c) )
 
 ----------------------------------
 -- getEdgeIndex Test -------------
-----------------------------------
+-------------------------------- 8
 TEST///
 R = QQ[a,b,c]
 H = hyperGraph(monomialIdeal {a*b,b*c})
@@ -733,7 +769,7 @@ assert( getEdgeIndex(H,a*c) == -1)
 
 ----------------------------------
 -- degreeVertex Test -------------
-----------------------------------
+-------------------------------- 9
 TEST///
 R = QQ[a,b,c,d]
 H = hyperGraph(monomialIdeal {a*b,b*c,c*d,c*a})
@@ -749,7 +785,7 @@ assert( degreeVertex(H,3) == 1)
 
 --------------------------------------
 -- Test edgeIdeal and coverIdeal 
----------------------------------------
+---------------------------------- 10 to 11
 
 
 TEST///
@@ -772,6 +808,7 @@ assert((coverIdeal h) == j)
 ----------------------------------------
 
 -- Chromatic Number
+---------------------- 12
 
 TEST///
 R = QQ[a..e]
@@ -783,7 +820,7 @@ assert(chromaticNumber c5 == 3)
 
 -----------------------------------------
 -- Test isBipartite
-----------------------------------------
+------------------------------------- 13
 
 TEST///
 R = QQ[a..e]
@@ -796,7 +833,7 @@ assert(isBipartite c5 == false)
 
 -----------------------------------------
 -- Test independenceNumber
-----------------------------------------
+-------------------------------------- 14
 
 TEST///
 R = QQ[a..e]
@@ -804,6 +841,24 @@ c4 = graph {a*b,b*c,c*d,d*a} -- 4-cycle plus an isolated vertex!!!!
 c5 = graph {a*b,b*c,c*d,d*e,e*a} -- 5-cycle
 assert(independenceNumber c4 == 3)
 assert(independenceNumber c5 == 2)
+///
+
+-----------------------------------------
+-- Test isLeaf
+-------------------------------------- 15
+
+TEST///
+R = QQ[a..e]
+G = graph {a*b,b*c,c*d,d*a,a*e} 
+H = hyperGraph {a*b*c,b*d,c*e} 
+I = hyperGraph {a*b*c,b*c*d,c*e} 
+assert(isLeaf(G,4))
+assert(not isLeaf(G,1))
+assert(not isLeaf(G,0))
+assert(not isLeaf(G,a))
+assert(isLeaf(G,e))
+assert(not isLeaf(H,0))
+assert(isLeaf(I,0))
 ///
 
 ----------------------------------------------
