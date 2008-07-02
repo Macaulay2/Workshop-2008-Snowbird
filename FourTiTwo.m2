@@ -208,6 +208,10 @@ rays Matrix := Matrix => (A ->(
      getMatrix(filename|".ray")
      ))
 
+-- SP: the output command interface
+--output = method()
+
+
 
 beginDocumentation()
 needsPackage "SimpleDoc";
@@ -219,22 +223,27 @@ doc ///
      	  Interface for 4ti2
      Description
           Text
-	       Interfaces most of the functionality of the software {\tt 4ti2} available at  {\tt http://www.4ti2.de/}
-	       
+	       Interfaces most of the functionality of the software {\tt 4ti2} available at  {\tt http://www.4ti2.de/}.
+	        
 	       A {\tt d\times n} integral matrix {\tt A} (with nonnegative entries) specifies a map from a polynomial 
 	       ring in d variables to a polynomial ring with n variables by specifying exponents of the variables indexing
 	       its columns. For example, if 
 	  Example
-	       A=matrix{{0,1,2},{2,1,0}}
+	       A=matrix{{2,1,0},{0,1,2}}
 	  Text	       
 	       the map is given by 
 	       
 	       {\tt (s,t)-> (s^2,st,t^2)}.
 	       
 	       The toric ideal I_A is the kernel of this map.
+	       Given the matrix {\tt A}, one can compute its lattice basis ideal specified by the integral basis
+	       of the lattice {\tt A}, the toric ideal I_A, its Groebner bases, etc. In practice, however, 
+	       these are nontrivial computational tasks. 
+	       The software 4ti2 is very efficient in computing these objects. 	      
 	       
-	       For more details (and more generality), see the standard reference: B. Sturmfels, {\bf Gr\"obner bases and
-		    convex polytopes}, AMS Lecture Notes Series, ... 
+	       For more theoretical details (and more generality), see the standard reference: 
+	       B. Sturmfels, {\bf Gr\"obner bases and convex polytopes.} 
+	       American Mathematical Society, University Lectures Series, No 8, Providence, Rhode Island, 1996.  
      SeeAlso
      	  setPath
 ///;
