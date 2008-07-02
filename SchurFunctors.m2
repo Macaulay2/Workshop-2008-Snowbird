@@ -276,7 +276,7 @@ character (List, ZZ) := (L,d)->(
 -----------Decomposition of representations into irreducibles
 
 Specialization=(M,F)->(
-     EV:=map(QQ,ring F,matrix{flatten entries M}),
+     EV:=map(ring M, ring F, matrix{flatten entries M}),
      return EV(F))
 
 
@@ -284,9 +284,9 @@ Identity=(d)->(
 matrix(apply(d,i->apply(d,j->if i==j then 1_QQ else 0_QQ))))
 
 Transvection=(param1,param2,d)->(
-M1:=matrix(apply(d,i->apply(d,j->if i==j then 1_QQ else 0_QQ))),
-M2:=matrix(apply(d,i->apply(d,j->if i==param1 and j==param2 then 1_QQ else 0_QQ))),
-return M1+M2;
+     M1:=matrix(apply(d,i->apply(d,j->if i==j then 1_QQ else 0_QQ)));
+     M2:=matrix(apply(d,i->apply(d,j->if i==param1 and j==param2 then 1_QQ else 0_QQ)));
+     M1+M2
      )
 
 Transvections=(d)->(
@@ -299,26 +299,42 @@ diagonal=(L)->(
      matrix(apply(d,j->(apply(d,i->if i==j then L_i else 0))))
      )
 
-find=(T,d,F)->(
-     Trans:=Transvections(d),
-     TransEval:=apply(Trans,M->Specialization(M,F)),
-     TE:=matrix apply(TransEval,k->{k-Specialization(Identity(d),F)}),
-     D:=apply(d,j->(j+1)_QQ),
-     M:=Specialization(diagonal(D),F)-weight(T,D)*Specialization(Identity(d),F),
+findSubRep = method()
+findSubRep (List,Matrix) := (p,F)->(
+     d := round sqrt numgens ring F;
+     T := maxFilling(p,d);
+     Trans:=Transvections(d);
+     TransEval:=apply(Trans,M->Specialization(M,F));
+     TE:=matrix apply(TransEval,k->{k-Specialization(Identity(d),F)});
+     D:=apply(d,j->(j+1)_QQ);
+     M:=Specialization(diagonal(D),F)-weight(T,D)*Specialization(Identity(d),F);
      return syz(TE||M)
      )
 
+characterRep = method()
+characterRep Matrix := F->(
+     d := round sqrt numgens ring F;
+     x := symbol x;
+     R := QQ[x_0..x_(d-1)];
+     D := diagonalMatrix gens R;
+     trace Specialization(D, F)
+     ) 
+decomposeRep = method()
+decomposeRep Matrix := F -> (
+     -- extremely readable code to follow...
+     ir := flatten@@exponents \flatten entries first coefficients splitCharacter characterRep F;
+     new HashTable from apply(ir, p->p=>findSubRep(p,F))
+     ); 
 ///
-ce=character({{1}},3)
-splitCharacter(ce)^3
+restart
+loadPackage "SchurFunctors"
+debug SchurFunctors
 
 R=QQ[w_1..w_9]
 F=genericMatrix(R,3,3)
-G=(F**F)**F
-
-
-T=maxFilling({1,1,1},3)
-find(T,3,G)
+G=schur({4},schur({2},F));
+splitCharacter characterRep G
+decomposeRep G
 ///
 
 weight = method()
