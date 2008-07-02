@@ -250,7 +250,7 @@ schurModulesMap (Module, Module, Function) := (N,M,F) -> (
 
 character = method()
 character (List, ZZ) := (L,d)->(
-     reverse L;
+     L = reverse L;
      m=#L;
      R=QQ[x_0..x_(d-1)];
      M=map(R^d,R^d,matrix(apply(d,j->(apply(d,s->(if j==s then x_j else 0))))));
@@ -265,7 +265,7 @@ document {
 	  Headline => "for computing Schur functors"
 	 }
 
-getPackage "SimpleDoc"
+needsPackage "SimpleDoc"
 doc get (currentFileDirectory | "SchurFunctors/schurModule.txt")
 doc get (currentFileDirectory | "SchurFunctors/schur.txt")
 doc get (currentFileDirectory | "SchurFunctors/straightenSchur.txt")

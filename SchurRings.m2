@@ -42,6 +42,8 @@ coefficientRing SchurRing := Ring => R -> last R.baseRings
 
 ck := i -> if i < 0 then error "expected decreasing row lengths" else i
 
+
+
 schur2monom = (a,Mgens) -> (
      if # a === 0 then 1_M
      else product(# a, i -> (Mgens#i) ^ (

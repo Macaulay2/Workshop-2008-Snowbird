@@ -18,6 +18,7 @@ mons = (X,i)-> (
     )
 
 
+s := local s;
 
 
 symring= R->(
@@ -37,10 +38,12 @@ elementalSymm (RingElement):=  f -> (
      if n<2 then return f;
      S := elementarySymmetricPolynomialRing R;
      X= select(n,gens S,i->true);
+     use S;--
      I :=ideal for i from 1 to n list ( s_i-sum apply(subsets(n,i),l->product(apply(l,u->S_(u)))));
      l := for i from 1 to n list (
 	mons(X,i)
 	  );
+
      l1 := for i from 1 to n-1 list (
 	  flatten (for j from 1 to i list ((-1)^j*s_j*l_(i-j))|l_i|{(-1)^(i+1)*s_(i+1)})
 	  );
