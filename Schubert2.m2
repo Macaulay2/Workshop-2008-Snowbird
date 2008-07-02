@@ -618,6 +618,280 @@ beginDocumentation()
 
 document {
      Key => Schubert2,
-     "This package is a preliminary (undocumented) package intended to provide the same functionality
-     as the package ", EM "Schubert", " written for an old version of Maple."
+       "This package is a preliminary (undocumented) package intended to provide the same functionality
+       as the package ", EM "Schubert", " written for an old version of Maple."
      }
+
+
+needsPackage "SimpleDoc"
+
+doc ///
+  Key
+    Schubert2
+  Headline
+    A package for computations in Intersection Theory
+  Description
+    Text
+      The primary purpose of this package is to help compute with intersection theory
+      on smooth varieties.  An @TO AbstractVariety@ is not given by equations.
+      Instead, one gives its intersection ring (usually mod numerical equivalence),
+      its dimension, and the chern class of its tangent bundle.  An @TO
+      AbstractSheaf@ is represented by its total chern class (or by its chern
+      character).  An @TO AbstractVarietyMap@ is a 'morphism' of abstract
+      varieties, and the information encoded is the pull-back to the corresponding intersection rings.
+  SeeAlso
+    AbstractSheaf
+    chern
+    chi
+    TangentBundle
+    todd
+///
+  
+
+doc ///
+  Key
+    AbstractVariety
+  Headline
+    The Schubert2 data type of an abstract variety
+  Description
+   Text
+     An Abstract Variety in Schubert 2 
+     is defined by its dimension and a QQ-algebra, interpreted as the rational Chow ring.
+     For example, the following code defines the abstract variety corresponding to P2,
+     with its Chow ring A. Once the variety X is created, we can access its structure
+     sheaf OO_X, represented by its Chern class
+
+   Example
+     A=QQ[t]/ideal(t^3)
+     X=abstractVariety(2,A)
+     OO_X
+     chern OO_X
+   Text
+     A variable of type AbstractVariety is actually of type MutableHashTable, and can
+     contain other information, such as its @TO TangentBundle@. Once this is defined,
+     we can compute the Todd class.
+   Example
+        X.TangentBundle  = abstractSheaf(X,Rank=>2, ChernClass=>(1+t)^3)
+	todd X
+   Text
+     If we want things like the Euler characteristic of a sheaf, we must also
+     specify a method to take the @TO integral@ for the Chow ring A; in the case
+     where A is Gorenstein, as is the Chow ring of a complete nonsingular variety,
+     this is a functional that takes the highest degree component. 
+     In the following example, The sheaf OO_X is
+     the structure sheaf of X, and OO_X(2t) is the line bundle with first Chern class 2t.
+     The computation of the Euler Characteristic is made using the Todd class and the 
+     Riemann-Roch formula.
+   Example
+     integral A := f -> coefficient(t^2,f)    
+     chi(OO_X(2*t))
+   Text
+      There are several other methods for constructing abstract varieties: the following functions
+      construct basic useful varieties (often returning the corresponding structure map).
+      @TO projectiveSpace@,
+      @TO projectiveBundle@,
+      @TO flagBundle@,
+      @TO base@,
+  SeeAlso
+    AbstractSheaf
+    chern
+    chi
+    TangentBundle
+    todd
+///
+--To Add:
+--      ///|{*
+--      @TO blowup@,
+--      *}///
+--      @TO bundleSection@,
+--      @TO directProduct@ (**),
+--      @TO schubertVariety@.
+
+
+doc ///
+  Key
+    AbstractSheaf 
+  Headline
+    the class of sheaves given by their Chern classes
+  Description
+   Text
+     This is the class of a sheaf as defined in the package
+     @TO Schubert2@.
+     An abstract sheaf is really the data of its base variety
+     (see @TO AbstractVariety@), @TO Rank@, @TO ChernClass@...
+   Text     
+     For example, the Horrocks-Mumford bundle on projective 4-space
+     can be represented by the following text. We first compute a ``base variety''
+     that is a point {\tt pt}, and a variable integer named {\tt n}, in 
+     terms of which we can compute the Hilbert polynomial.
+
+   Example
+    pt = base(n)
+    X = projectiveSpace(4,pt,VariableName => h)
+    F = abstractSheaf(X, Rank => 2, ChernClass => 1 + 5*h + 10*h^2)
+    chi(F**OO_X(n*h))
+
+   Text
+     Here in the description of X the number 4 is the rank of the trivial bundle, pt 
+     is the base variety of the projective space (in general, we allow
+     projective spaces over an arbitrary base AbstractVariety), and the 
+     variable name specifies the variable to use to represent the first
+     Chern Class of the tautological quotient line bundle on the projective space.
+  SeeAlso
+    AbstractVariety
+///
+
+doc ///
+  Key
+    projectiveSpace
+  Headline
+    Makes an AbstractVariety representing projective space
+  Usage
+    P=projectiveSpace(n) or P=projectiveSpace(n, baseVariety) or P=projectiveSpace(n, baseVariety, VariableName => h)
+  Inputs
+    n: ZZ
+    baseVariety: AbstractVariety
+    h: Symbol
+  Outputs
+    P:AbstractVariety
+  Description
+   Text
+     Constructs the projective space {\tt P} of 1-quotients of the trivial bundle on
+     the base variety  {\tt baseVariety}. The Chow ring is set to be the polynomial ring 
+     over the Chow ring of {\tt baseVariety}, with variable {\tt h}. The tangent bundle
+     of X is available as an @TO AbstractSheaf@, accessed by {\tt X.TangentBundle}.
+     Here baseVariety and VariableName are optional.
+   Example
+     P=projectiveSpace(3)
+     todd P
+     chi(OO_P(3))
+   Text
+     If we want a projective space where we can compute the Hilbert Polynomial of a sheaf,
+     we need a variable to represent an integer. We define a base variety that is a point {\tt pt}
+     containing this variable.
+   Example
+     pt = base(n)
+     Q=projectiveSpace(4,pt, VariableName => h)
+     chi(OO_Q(n))
+   Text
+     If be build a projective space over another variety, the dimensions add:
+   Example
+     baseVariety = projectiveSpace(4, VariableName => h)
+     P = projectiveSpace (3,baseVariety, VariableName => H)
+     dim P
+     todd P
+  SeeAlso
+
+///
+
+doc ///
+  Key
+    base
+  Headline
+    an abstract variety, defined with some parameters and some bundles
+  Usage
+    X=base() or X=base(p) or base(n,p) or base(n,p,q,..,Bundle=>(A,r,a),..)
+  Inputs
+    n:ZZ
+    p:Symbol
+    q:Symbol
+    A:Symbol
+    r:ZZ
+    a:ZZ
+  Outputs
+    X:AbstractVariety
+  Consequences
+    X has dimension n (if n is present; else 0) and has symbols p,q... defined in its Chow ring (if they are present.
+    A is a  bundle defined on X with rank r and chern classes a_1..a_r (if this option is present).
+  Description
+   Text
+     The symbols p,q... can be used as integer variables in Chow ring computations
+   Example
+     X=base(1,p,q,Bundle=>(A,1,a), Bundle=>(B,1,b))
+     Y=projectiveSpace(3,X,VariableName=>H)
+     f=Y.StructureMap
+     x=chern f_*((f^*(OO_X(p*a_1)))*OO_Y(q*H))
+     y=chern f_*OO_Y((f^*(p*a_1))+q*H)
+     x==y
+  Caveat
+     Be sure that A... are symbols; if they have already been defined there will be trouble.
+  SeeAlso
+    projectiveSpace
+///
+
+end
+
+restart
+installPackage ("Schubert2", UserMode => true)
+viewHelp Schubert2
+viewHelp AbstractVariety
+viewHelp AbstractSheaf
+viewHelp projectiveSpace
+viewHelp base
+options base
+
+X=base(1, Bundle => (A,2,c))
+Y=abstractVariety(1, Bundle => (A,2,c))
+
+base(3,n,m,Bundle => (B,3,c))
+
+installPackage SimpleDoc
+viewHelp SimpleDoc
+print docTemplate
+doc ///
+  Key
+  Headline
+
+  Usage
+
+  Inputs
+
+  Outputs
+
+  Consequences
+
+  Description
+   Text
+   Text
+   Example
+   Text
+   Example
+  Caveat
+  SeeAlso
+///
+print docExample
+
+doc ///
+  Key
+    (frob,ZZ,Matrix)
+  Headline
+    A sample documentation node
+  Usage
+    x = from(n,M)
+  Inputs
+    n:ZZ
+      positive
+    M:Matrix
+      which is square
+  Outputs
+    x:Matrix
+      A block diagonal matrix with {\tt n}
+      copies of {\tt M} along the diagonal
+  Consequences
+    This section is used if there are side effects
+    that this function performs
+  Description
+   Text
+     Each paragraph of text begins with "Text".  The following 
+     line starts a sequence of Macaulay2 example input lines.
+     However, see @TO (matrix,List)@.
+   Example
+     M = matrix"1,2;3,4";
+     frob(3,M)
+  Caveat
+    This is not a particularly useful function
+  SeeAlso
+    "Introduction"
+    matrix
+    (directSum,List)
+///
