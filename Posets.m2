@@ -108,7 +108,7 @@ RelationMatrix(Poset):=(P) -> (
 fullPosetRelation= (P) -> (
      M:=RelationMatrix(P);
      L = toList sum apply(numrows(M), i-> set(nonnull(apply(numrows(M), 
-	       j-> if (M_j)_i=!=0 and i=!=j then (I#i,I#j)))))
+	       j-> if (M_j)_i=!=0 and i=!=j then (P.GroundSet#i,P.GroundSet#j)))))
      )
 
 --input: A poset P with any type of relation C (minimal, maximal, etc.)
