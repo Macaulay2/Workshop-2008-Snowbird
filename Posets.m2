@@ -12,10 +12,18 @@ newPackage(
     	)
  
 export {
-     newPoset     
+     Poset,
+     newPoset,
+     FullRelationMatrix,
+     RelationMatrix,
+     compare,
+     indexElement,
+     nonnull,
+     OrderIdeal,
+     Filter
      }
 
-restart
+
 
 Poset = new Type of HashTable
 
@@ -25,6 +33,8 @@ newPoset := (I,C) ->
 	 symbol CRelations => C,
 	 symbol cache => CacheTable
 	 }
+    
+
 
 -- some toy examples
 I={a,b,c,d,e,f,g,h}
@@ -60,7 +70,7 @@ RelationMatrix(Poset):=(P) -> (
 -- input:  A poset, and two elements A and B from I
 -- output: true if A<= B, false else
 compare:= (P,A,B) -> (
-     FullRelationMatrix(P);
+     N:=FullRelationMatrix(P);
      Aindex:=indexElement(P,A);
      Bindex:=indexElement(P,B);
           if N_Bindex_Aindex==0 then false else true
@@ -114,6 +124,7 @@ document { Key => Poset,
      the Multiplicity conjecture\", by Mats Boij, Jonas Soederberg."
                     }
 
+end
 
 document { 
      Key => {},
@@ -129,4 +140,4 @@ document {
      SeeAlso => {}
      }
 
-installPackage "Posets" 
+
