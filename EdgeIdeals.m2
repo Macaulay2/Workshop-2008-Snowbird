@@ -215,6 +215,13 @@ inducedGraph (HyperGraph,List) := (H,S) -> (
 
 -- remove edges from G
 deleteEdges = method();
+deleteEdges (HyperGraph,List) := (H,E) -> (
+     if (isSubset(set E,set H#"edges") =!= true) then error "Second argument must be a subset of the edges";
+     newedges:=set(H#"edges")-set(E);
+     return (hyperGraph toList newedges)
+     )
+
+deleteEdges (Graph,List) := (H,E) -> (graph deleteEdges (hyperGraph(H),E))
 
 -- change type
 
@@ -223,10 +230,12 @@ stanleyReisnerComplex = method();
 
 -- find independenceComplex
 independenceComplex =method();
+--independenceComplex HyperGraph := H -> (simplicialComplex edgeIdeal H)
+--independenceComplex Graph := G -> independenceComplex (hyperGraph(G))
 
  -- clique complex of G
 cliqueComplex =method();
-
+--cliqueComplex Graph := G -> independenceComplex complementGraph G
 
 -- return ideals
 
@@ -804,6 +813,33 @@ doc ///
 			cycle(R,3)
 			cycle {e,c,d,b}
 ///	
+
+ 
+ 
+doc ///
+        Key
+	        deleteEdges 
+		(deleteEdges, Graph, List)
+		(deleteEdges, HyperGraph, List)
+	Headline
+	        returns the graph or hypergraph with specified edges removed
+	Usage
+	        h = deleteEdges (H,S) \n g = deleteEdges (E,S)
+	Inputs
+		H:HyperGraph
+		G:Graph
+		S:List
+		     which is a subset of the edges of the graph or hypergraph
+	Outputs
+		h:HyperGraph
+		       the hypergraph with edges in S removed
+		g:Graph
+		       the graph with edges in S removed
+        Description
+	        Text
+		       Stuff
+///	
+ 
 
 -----------------------------
 -- Constructor Tests --------
