@@ -41,9 +41,16 @@ I={a,b,c,d,e,f,g,h}
 C={(a,b),(a,c),(a,d),(b,e),(b,f),(c,e),(c,g),(d,f),(d,g),(e,h),(f,h),(g,h)}
 P=newPoset(I,C)
 
-I1={a,b,c,d,e}
-C1={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e)}
+I1={a,b,c,d,e,f}
+C1={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(e,f)}
 P1=newPoset(I1,C1)
+
+--Poset P1 with additional relations (a,e) and (a,f) added
+
+I2={a,b,c,d,e,f}
+C2={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(a,e),(a,f),(e,f)}
+P2=newPoset(I2,C2)
+
 
 -- input: A poset
 -- output: a matrix indexed by I that has non zero entries for each pair of relations
@@ -66,17 +73,6 @@ RelationMatrix(Poset):=(P) -> (
      N=RelationMatrix(M)
      )
 
-
--- input:  A poset, and two elements A and B from I
--- output: true if A<= B, false else
-compare:= (P,A,B) -> (
-     N:=FullRelationMatrix(P);
-     Aindex:=indexElement(P,A);
-     Bindex:=indexElement(P,B);
-          if N_Bindex_Aindex==0 then false else true
-     )
-
-
 -- input: a poset, and an element A from I
 -- output:  the index of A in the ground set of P
 -- usage: compare, OrderIdeal 
@@ -89,6 +85,59 @@ indexElement:= (P,A) -> (
 nonnull:=(L) -> (
      select(L, i-> i =!= null))
 
+
+-- input:  A poset, and two elements A and B from I
+-- output: true if A<= B, false else
+compare:= (P,A,B) -> (
+     N:=FullRelationMatrix(P);
+     Aindex:=indexElement(P,A);
+     Bindex:=indexElement(P,B);
+          if N_Bindex_Aindex==0 then false else true
+     )
+
+--input: A poset with any type of relation C (minimal, maximal, etc.)
+--output:  The transitive closure of relations in C in our poset
+
+fullPosetRelation:= (P) -> (
+     M:=RelationMatrix(P);
+     L = toList sum apply(numrows(M), i-> set(nonnull(apply(numrows(M), 
+	       j-> if (M_j)_i=!=0 and i=!=j then (I#i,I#j)))))
+     )
+
+--input: A poset P with any type of relation C (minimal, maximal, etc.)
+--output:  The poset P' on the same ground set with the transitive closure of C
+
+fullPoset:= (P) -> (
+     L = newPoset(P.GroundSet,fullPosetRelation(P)) 
+)
+
+
+testcover=(P,A,B) -> (
+     L:=newPoset(P.GroundSet,fullPosetRelation(P));
+     k:=#L.GroundSet-2;
+     
+     
+     if sum(nonnull(apply(k, i-> if compare(L,A,(toList(set(L.GroundSet)-{A,B}))_i)==true and
+	       compare(L,(toList(set(L.GroundSet)-{A,B}))_i,B)==true
+	       then 1)))=!=0 then C=C+set{(A,B)};
+     C
+)		
+
+--input: A poset with any type of relation C (minimal, maximal, etc.)
+--output: The minimal relations defining our poset
+
+coveringRelations:=(P) -> (
+     C=set{};
+     apply(#P.CRelations,i->testcover(P,P.CRelations#i#0,P.CRelations#i#1));
+     toList(set(P.CRelations)-C)
+     )
+
+--input: A poset with any type of relation C (minimal, maximal, etc.)
+--output:  A new poset P with the minimal relations
+
+coveringRelationsPoset:=(P) -> (
+     L=newPoset(P.GroundSet,coveringRelations(P))
+     )
 
 
 -- input: a poset, and an element from I
