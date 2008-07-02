@@ -308,9 +308,18 @@ find=(T,d,F)->(
      return syz(TE||M)
      )
 
+///
+ce=character({{1}},3)
+splitCharacter(ce)^3
 
-d=3
-F=G
+R=QQ[w_1..w_9]
+F=genericMatrix(R,3,3)
+G=(F**F)**F
+
+
+T=maxFilling({1,1,1},3)
+find(T,3,G)
+///
 
 weight = method()
 weight (Filling, List) := (T,D) -> product(flatten toList T, i->D#i);
