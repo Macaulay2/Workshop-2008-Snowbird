@@ -7,7 +7,7 @@ newPackage(
 	     HomePage => "http://faculty1.coloradocollege.edu/~ataylor/",
    	     Email => "amelia.taylor@coloradocollege.edu"}},
     	Headline => "Integral Closure",
-    	DebuggingMode => false
+    	DebuggingMode => true
     	)
  --
  -- Needs updating in the comments and the documentation.  Needs Irena
@@ -60,10 +60,12 @@ integralClosure = method(Options=>{
 	  Strategy => null})
 integralClosure Ring := Ring => o -> (R) -> (
      -- 1 argument: Quotient ring. 
-     -- 2 options: 
-     -- return: The quotient ring that is the integral closure of R or
+     -- 3 options: the variable name for new variables, a limit on the
+     -- number of times to run the recurions and the choice to run
+     -- Singh and Swansons characteristic p algorithm. 
+     -- Return: The quotient ring that is the integral closure of R or
      -- a set of rings whose direct sum is the integral closure of R. 
-     if Strategy === null then (
+     if o.Strategy === null then (
      	  M := flattenRing R;
      	  ICout := integralClosureHelper(nonNormalLocus M_0, gens M_0 ,M_1,o.Limit, o.Variable, 0);
      	  if #ICout == 2 then (
@@ -81,6 +83,14 @@ integralClosure Ring := Ring => o -> (R) -> (
      	  )
      else icFracP(R)
      )
+///
+restart
+loadPackage"IntegralClosure"
+S=ZZ/101[symbol a,symbol b,symbol c, symbol d]
+I=ideal(a*(b-c),c*(b-d),b*(c-d))
+R=S/I                              
+time V = integralClosure R
+///
 
 integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
      -- recursive helper function designed to build the integral
@@ -90,22 +100,26 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
      -- list of the fractions needed, numNewVars is a counter to keep
      -- track of the number of new variables being added, counter
      -- keeps track of the depth of recursion.
-     -- return:  
+     -- return:  a list consisting of maps and fractions.
      S := target phi;
      I := ideal presentation target phi;
-     J1 := ideal(0_S):J_0; 
+     R := ring I;
+     J1 := trim ideal(0_S):J_0; 
      -- need to check if J_0 is really the element we-- want - low degree. 
      if J1 != ideal(0_S) then(
-	  -- If Jc_0 is a ZD then we split the ring.
-	  S1 := minimalPresentation flattenRing(S/J1);
-	  S2 := minimalPresentation flattenRing(S/(ideal(0_S):J1));
-	  L := join(integralClosureHelper(nonNormalLocus(minimalPresentation S1_0), 
+	  -- If J_0 is a ZD then we split the ring.
+	  -- need to try and clean up ideals as much as possible as we proceed.
+	  (S1, S1Map) := flattenRing(R/trim(substitute(J1, R) + I));
+	  (S2, S2Map) := flattenRing(R/trim(substitute(ideal(0_S):J1, R) + I));
+	  --(Sold, SoldMap) := flattenRing(S/trim(ideal(0_S):J1));
+	  error("debug me");
+	  L := join(integralClosureHelper(nonNormalLocus (minimalPresentation S1), 
 	       	    fractions,
-		    ((S1_0).minimalPresentationMap)*(S1_1)*map(source S1_1, S)*phi, 
+		    (S1.cache.minimalPresentationMap)*(S1Map)*map(source S1Map, S)*phi, 
 		    counter-1, newVar, indexVar),
-	       integralClosureHelper(nonNormalLocus (minimalPresentation S2_0), 
+	       integralClosureHelper(nonNormalLocus (minimalPresentation S2), 
 			 fractions, 
-			 ((S2_0).minimalPresentationMap)*(S2_1)*map(source S2_1, S)*phi, 
+			 (S2.cache.minimalPresentationMap)*(S2Map)*map(source S2Map, S)*phi, 
 			 counter-1, newVar, indexVar));
 	  return L
 	  )	
@@ -134,7 +148,7 @@ idealizerReal = method(Options=>{Variable => global w, Index => 0})
 idealizerReal (Ideal, Thing) := o -> (J, f) -> (
      -- 3 arguments: An ideal J in the non normal locus of a ring R/I,
      -- f a non-zero divisor in R/I, and w is the new variable in use. 
-     -- return: a sequence consisting of a ring map from the ring of J to
+     -- Return: a sequence consisting of a ring map from the ring of J to
      -- B/I, where B/I is isomorphic to Hom(J,J) = 1/f(f*J:J), and
      -- list of the fractions that are added to the ring of J to form B/I.   
      R := ring J;
@@ -181,7 +195,10 @@ idealizerReal (Ideal, Thing) := o -> (J, f) -> (
 nonNormalLocus = method()
 nonNormalLocus Ring := (R) -> (
      -- This handles the first node: finding an ideal that contains the NNL 
-     -- locus.  
+     -- locus.
+     -- 1 argument: a ring. it must be flattened. normally it will be
+     -- a quotient ring. 
+     -- Return: an ideal containing the non-normal locus of R.   
      local J;
      I := ideal presentation R;
      Jac := jacobian R;
@@ -218,11 +235,13 @@ nonNormalLocus Ring := (R) -> (
 -- checks R1.  
 isNormal = method()     
 isNormal(Ring) := Boolean => (R) -> (
-     --Input:  Takes a quotient ring. 
-     --Method:  Check if the Jacobian ideal of R has
-     --codim >= 2, if true then check the codimension 
-     --of Ext^i(S/I,S) where R = S/I and i>codim I. If 
-     --the codimensions are >= i+2 then return true.
+     -- 1 argument:  A ring - usually a quotient ring. 
+     -- Return: A boolean value, true if the ring is normal and false
+     -- otherwise. 
+     -- Method:  Check if the Jacobian ideal of R has
+     -- codim >= 2, if true then check the codimension 
+     -- of Ext^i(S/I,S) where R = S/I and i>codim I. If 
+     -- the codimensions are >= i+2 then return true.
      I := ideal (R);
      M := cokernel generators I;
      n := codim I;         
@@ -466,8 +485,7 @@ reduceLinears Ideal := o -> (I) -> (
        L = apply(L, i -> F(i));
        g
        );
-       error("what is m");
-     -- Now loop through and improve M
+       -- Now loop through and improve M
      M = backSubstitute M;  
      (ideal L, M)
      )
@@ -629,6 +647,10 @@ ideal V == ideal(a_5*a_9-a_6*a_10,a_4*a_8-a_0*a_9,a_1*a_4-a_6*a_10,a_0*a_4-a_1*a
 ///
 
 --------------------------------------------------------------------
+--- integralClosure, idealizerReal, nonNormalLocus, Index,
+--- isNormal, conductor, ICfractions, ICmap, icFracP, conductorElement,
+--- reportSteps, intClI, minPressy
+
 beginDocumentation()
 
 document {
@@ -1057,7 +1079,10 @@ document {
 }
 
 
-
+///
+restart
+loadPackage"IntegralClosure"
+///
 -- integrally closed test
 TEST ///
 R = QQ[u,v]/ideal(u+2)
@@ -1071,6 +1096,7 @@ TEST ///
 R = ZZ/101[symbol x..symbol z,Degrees=>{2,5,6}]/(z*y^2-x^5*z-x^8)
 time J = integralClosure (R,Variable => symbol b) 
 use ring ideal J
+oldIdeal = ideal(b_1*x^2-y*z, x^6-b_1*y+x^3*z, -b_1^2+x^4*z+x*z^2)
 newIdeal = substitute(oldIdeal, b_1 => b_1/42 )
 assert(ideal J == newIdeal)
 -- assert(ICfractions R == substitute(matrix {{y*z/x^2, x, y, z}},frac R))
