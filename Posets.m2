@@ -45,7 +45,31 @@ poset(List,List) := (I,C) ->
 	 symbol cache => CacheTable
 	 }
     
+----------------------------    
+-- some toy examples
+-----------------------------
+I={a,b,c,d,e,f,g,h}
+C={(a,b),(a,c),(a,d),(b,e),(b,f),(c,e),(c,g),(d,f),(d,g),(e,h),(f,h),(g,h)}
+P=poset(I,C)
+G=directedGraph(I,C)
+A=adjacencyMatrix(I,C)
+allPairsShortestPath(A)
+adjacencyMatrix(G)
+adjacencyMatrix(P)
+transitiveClosure(I,C)
+
+I1={a,b,c,d,e,f}
+C1={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(e,f)}
+P1=poset(I1,C1)
+
+--Poset P1 with additional relations (a,e) and (a,f) added
+
+I2={a,b,c,d,e,f}
+C2={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(a,e),(a,f),(e,f)}
+P2=poset(I2,C2)
+    
 -------------
+
     
 DirectedGraph = new Type of HashTable
  
@@ -93,28 +117,6 @@ allPairsShortestPath(DirectedGraph) := Matrix => (G)-> allPairsShortestPath(adja
 
 
 
--- some toy examples
-I={a,b,c,d,e,f,g,h}
-C={(a,b),(a,c),(a,d),(b,e),(b,f),(c,e),(c,g),(d,f),(d,g),(e,h),(f,h),(g,h)}
-P=poset(I,C)
-G=directedGraph(I,C)
-A=adjacencyMatrix(I,C)
-allPairsShortestPath(A)
-adjacencyMatrix(G)
-adjacencyMatrix(P)
-transitiveClosure(I,C)
-
-I1={a,b,c,d,e,f}
-C1={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(e,f)}
-P1=poset(I1,C1)
-
---Poset P1 with additional relations (a,e) and (a,f) added
-
-I2={a,b,c,d,e,f}
-C2={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(a,e),(a,f),(e,f)}
-P2=poset(I2,C2)
-
-
 -- input: a poset, and an element A from I
 -- output:  the index of A in the ground set of P
 -- usage: compare, OrderIdeal 
@@ -158,7 +160,7 @@ transitiveClosure(List,List) := List => (I,C)-> (
 --output:  The transitive closure of relations in C in our poset
 
 fullPosetRelation:= (P) -> (
-     M:=RelationMatrix(P);
+     M:=P.RelationMatrix;
      L = toList sum apply(numrows(M), i-> set(nonnull(apply(numrows(M), 
 	       j-> if (M_j)_i=!=0 and i=!=j then (P.GroundSet#i,I#j)))))
      )
@@ -213,7 +215,7 @@ coveringRelationsPoset:=(P) -> (
 --------------------------------------------------
 
 minimalElementIndex:=(P)-> (
-     M:=RelationMatrix(P);
+     M:=P.RelationMatrix;
      nonnull(apply(numcols(M), k-> if (apply(numcols(M), j-> (sum((apply(numrows(M),i-> (transpose(M))_i))))_j))#k==1 then k))
      )
 
@@ -243,7 +245,7 @@ PosetMinusMins:=(P)-> (
 -- output: the order ideal of a, i.e. all elements in the poset that are >= a
 -- usage:
 OrderIdeal:= (P, a) -> (
-     M:=RelationMatrix (P);
+     M:=P.RelationMatrix;
      aindex := indexElement (P,a);
      GreaterThana:= entries((transpose(M))_aindex);
      nonnull(apply(#GreaterThana, i-> if GreaterThana_i == 1 then P.GroundSet#i)) 
@@ -254,7 +256,7 @@ OrderIdeal:= (P, a) -> (
 -- output:  the filter of a, i.e. all elements in the poset that are <= a
 -- usage:
 Filter:=(P,a) -> (
-     M:=RelationMatrix (P);
+     M:=P.RelationMatrix;
      aindex := indexElement (P,a);
      LessThana:= entries M_aindex;
      nonnull(apply(#LessThana, i-> if LessThana_i == 1 then P.GroundSet#i))
@@ -271,7 +273,7 @@ PosetJoin = (P,a,b) -> (
      OIa := OrderIdeal(P,a);     
      OIb := OrderIdeal(P,b);
      upperBounds := toList (set(OIa)*set(OIb));
-     if upperBounds == {} then (print "there is no Join here") else (M := RelationMatrix(P);
+     if upperBounds == {} then (print "there is no Join here") else (M := P.RelationMatrix;
      	  L := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
      	  upperBounds_{position (L, l -> l == min L)})
      )
@@ -284,7 +286,7 @@ PosetMeet = (P,a,b) ->(
      Fa:= Filter(P,a);
      Fb:= Filter(P,b);
      lowerBounds:= toList (set(Fa)*set(Fb));
-     if lowerBounds == {} then (print "there is no Meet here") else (M := RelationMatrix(P);
+     if lowerBounds == {} then (print "there is no Meet here") else (M := P.RelationMatrix;
      	  L := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
      	  lowerBounds_{position (L, l -> l == max L)})
      )
