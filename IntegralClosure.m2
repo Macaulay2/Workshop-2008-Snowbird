@@ -91,8 +91,8 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
      -- need to check if J_0 is really the element we-- want - low degree. 
      if J1 != ideal(0_S) then(
 	  -- If Jc_0 is a ZD then we split the ring.
-	  S1 := flattenRing(S/J1);
-	  S2 := flattenRing(S/(ideal(0_S):J1));
+	  S1 := minimalPresentation flattenRing(S/J1);
+	  S2 := minimalPresentation flattenRing(S/(ideal(0_S):J1));
 	  L := join(integralClosureHelper(nonNormalLocus(minimalPresentation S1_0), 
 	       	    fractions,
 		    ((S1_0).minimalPresentationMap)*(S1_1)*map(source S1_1, S)*phi, 
@@ -532,17 +532,24 @@ minPressy Ring := R -> (
      I := minPressy ideal R;
      (ring I)/I)
 
-minimalPresentation Ideal := opts -> (I) -> (
+minimalPresentation Ideal := Ideal => opts -> (I) -> (
 --     << "entering minPressy"<< endl;
 --     error "debug me";
      result := minPressy(I);
      result)
 
-minimalPresentation Ring := opts -> (R) -> (
+minimalPresentation Ring := Ring => opts -> (R) -> (
 --     << "entering minPressy"<< endl;
 --     error "debug me";
-     result := minPressy(ideal presentation R);
-     (ring result)/result)
+     I := ideal presentation R;
+     result := minPressy I;
+     finalRing := (ring result)/result;
+     f := substitute(matrix I.cache.minimalPresentationMap, finalRing);
+     fInv := substitute(matrix I.cache.minimalPresentationMapInv, R);
+     R.cache.minimalPresentationMap = map(finalRing, R, f);
+     R.cache.minimalPresentationMapInv = map (R, finalRing, fInv);
+     finalRing
+     )
 
 ///
 restart
@@ -552,7 +559,18 @@ R = ZZ/101[x,y,z]
 f = x^2+x+2*y+z
 g = x^2+y^2+x
 h = x^2+3*x -2*y + 4*z
-reductorVariable h
+
+I = ideal(x,f)
+J = ideal(z,g)
+
+S = R/I
+T= R/J
+
+minimalPresentation I
+minimalPresentation J
+
+minimalPresentation S
+minimalPresentation T
 
 C=ZZ/101[x,y,z,Degrees => {2,3,1}]/ideal(x-x^2-y,z+x*y)
 V= time minPressy(C)
