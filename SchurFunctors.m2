@@ -11,7 +11,7 @@ newPackage(
      	  )
      
 export{ schur, schurModule, Schur, Filling, 
-     straighten, printSchurModuleElement, schurModulesMap, augmentFilling, character}
+     straighten, printSchurModuleElement, schurModulesMap, augmentFilling, character, splitCharacter}
 
 exteriorPower(List, Module) := opts -> (L,M) -> (
      if #L == 0 then exteriorPower(0,M)
@@ -258,6 +258,17 @@ character (List, ZZ) := (L,d)->(
      return trace M
      )
 
+needsPackage "SymmetricPolynomials"
+needsPackage "SchurRings"
+
+splitCharacter = method()
+splitCharacter (RingElement) := (ce)->(
+     pe:=elementalSymm(ce),
+     n:=numgens source vars ring ce,
+     R2:=symmRing(n),
+     return toS(substitute(pe,R2))
+     )
+
 
 beginDocumentation()
 document {
@@ -265,12 +276,15 @@ document {
 	  Headline => "for computing Schur functors"
 	 }
 
+
 needsPackage "SimpleDoc"
+
 doc get (currentFileDirectory | "SchurFunctors/schurModule.txt")
 doc get (currentFileDirectory | "SchurFunctors/schur.txt")
 doc get (currentFileDirectory | "SchurFunctors/straightenSchur.txt")
 doc get (currentFileDirectory | "SchurFunctors/schurModulesMap.txt")
 doc get (currentFileDirectory | "SchurFunctors/character.txt")
+doc get (currentFileDirectory | "SchurFunctors/splitCharacter.txt")
 
 TEST ///
       M = schurModule({2,2,2}, QQ^4)
