@@ -11,7 +11,8 @@ newPackage(
      	  )
      
 export{ schur, schurModule, Schur, Filling, 
-     straighten, printSchurModuleElement, schurModulesMap, augmentFilling, character, splitCharacter}
+     straighten, printSchurModuleElement, schurModulesMap, augmentFilling, 
+     character, splitCharacter, characterRep, decomposeRep}
 
 exteriorPower(List, Module) := opts -> (L,M) -> (
      if #L == 0 then exteriorPower(0,M)
@@ -367,16 +368,6 @@ splitCharacter RingElement := ce -> (
      R2:=symmRing n,
      return toS substitute(pe,R2)
      )
-
-///
-restart
-loadPackage "SchurFunctors"
-debug SchurFunctors
-ce = character({{1}},3)
-(splitCharacter ce)^4
-R = QQ[a..i]
-
-///
 
 beginDocumentation()
 document {
