@@ -18,7 +18,7 @@ newPackage(
     	)
 
 export {
-     gfan, weightVector, initialIdeal, groebnerCone, groebnerFan, universalGroebnerBasis, renderStaircase, Symmetries
+     gfan, weightVector, initialIdeal, groebnerCone, groebnerFan, universalGroebnerBasis, renderStaircase, render, Symmetries
      }
 
 gfan'path = gfanInterface#Options#Configuration#"path"
@@ -55,22 +55,53 @@ weightVector(List,List) := (inL,L) -> (
      -- other cases should return null
      )
 
+render = method(Options=>{Symmetries=>{}})
+render(Ideal) := opts->(I) -> (
+    F := temporaryFileName();
+		render(F,I);		
+		ex := fig2dev'path |"fig2dev -Lpng "| F | " " | F |".png";
+		run ex;
+		show URL("file://"|F|".png");
+)
+render(String, Ideal) := opts-> (F, I) -> (
+     R := ring I;
+     p := char R;
+     if p === 0 and coefficientRing(R) =!= QQ then 
+     error "expected prime field or QQ";
+     -- Create the input file
+     f := temporaryFileName();
+     << "using temporary file " << f << endl;
+     ex := "";
+     if opts.Symmetries =!= {}
+     then (
+	  if not instance(opts.Symmetries, VisibleList)
+	  then error "Symmetries value should be a list of permutations (list of lists of integers)";
+	  ex = ex|" --symmetry";
+	  );
+     ex = gfan'path| "gfan " | ex | "  <" | f | " | gfan_render > " | F;
+     writeGfanIdeal(f, I, opts.Symmetries);
+     run ex;
+  )
+
 renderStaircase = method()
 renderStaircase(Ideal) := (I) -> (
 	 d := 2 +max( flatten entries gens I / exponents /flatten /max );
 	 renderStaircase(d, I);
 )
+renderStaircase(String, Ideal) := (F, I) -> (
+	 d := 2 +max( flatten entries gens I / exponents /flatten /max );
+	 renderStaircase(F, d, I);
+)
 
-renderStaircase(ZZ,Ideal) := (d,I) -> (
+renderStaircase(ZZ,Ideal) := (d,I) -> renderStaircase(d,1,{I})
+renderStaircase(String,ZZ,Ideal) := (F,d,I) -> renderStaircase(F,d,1,{I})
+renderStaircase(ZZ,ZZ,List) := (d,n,L) -> (
     F := temporaryFileName();
-		renderStaircase(F,d,1,{I});		
+		renderStaircase(F,d,n,L);		
 		ex := fig2dev'path |"fig2dev -Lpng "| F | " " | F |".png";
 		run ex;
 		show URL("file://"|F|".png");
-	)
-renderStaircase(String,ZZ,Ideal) := (F,d,I) -> (
-		renderStaircase(F,d,1,{I});	
-	)
+)
 renderStaircase(String,ZZ,ZZ,List) := (F,d,w,L) -> (
 		if class L#0 === List then L = apply(L, ideal);
 	  R := ring L#0;
@@ -348,23 +379,73 @@ document {
 doc ///
 	Key 
 		renderStaircase
+		(renderStaircase, Ideal)
+		(renderStaircase, ZZ, Ideal)
+		(renderStaircase, String, Ideal)
+		(renderStaircase, String, ZZ, Ideal)
+		(renderStaircase, ZZ, ZZ, List)
 		(renderStaircase, String, ZZ, ZZ, List)
 	Headline
 		draws staircases of an initial ideal.
 	Usage 
-		renderStaircase(F,d,n,I)
+		renderStaircase(I) \n renderStaircase(d,I) \n renderStaircase(F,I) \n renderStaircase(F,d,I) \n renderStaircase(d,n,L) \n renderStaircase(F,d,n,L)
 	Inputs 
 		F:String 
 			filename of the xfig file that is produced 
 		I:Ideal 
 			of which to draw the staircase.
+		L:List 
+			of ideals of which to draw their staircases.
 		d:ZZ 
 			number of boxes to be drawn along each axis
 		n:ZZ 
 			number of diagrams per line
 	Description
 		Text
-			Blah.
+			Renders the staircase of a monomial ideal (or a list of monomial ideals) in three variables.
+			The output is put into an xfig file if a filename is provided. If no filename is provided then
+			macaulay uses fig2dev to make a png which is displayed by the operating system (see @TO show@).
+		Example
+			QQ[x,y,z]
+			I = ideal "x4,y4,z4,xy2z3,x3yz2,x2y3z"
+			J = ideal "x4,y4,z4,x2y2z2"
+			null -- renderStaircase(I)
+			null -- renderStaircase("twostairs.fig", 6,2,{I,J})
+		Text
+			To run the examples above, ommit the {\tt null -- }. 
+			The first command will display the staircase of {\tt I} while the
+			second writes the image of both {\tt I} and {\tt J} to file.
+///
+
+doc ///
+	Key 
+		render
+		(render, Ideal)
+		(render, String, Ideal)
+		[render, Symmetries]
+	Headline
+		draws the Groebner fan an ideal.
+	Usage 
+		renderStaircase(I) \n renderStaircase(d,I) \n renderStaircase(F,I) \n renderStaircase(F,d,I) \n renderStaircase(d,n,L) \n renderStaircase(F,d,n,L)
+	Inputs 
+		F:String 
+			filename of the xfig file that is produced 
+		I:Ideal 
+			of which to draw the Groebner fan.
+	Description
+		Text
+			Renders the Groebner fan of an ideal.
+			The output is put into an xfig file if a filename is provided. If no filename is provided then
+			macaulay uses fig2dev to make a png which is displayed by the operating system (see @TO show@).
+		Example
+	 		R = QQ[symbol a..symbol f];
+			I = pfaffians(4, genericSkewMatrix(R,4))
+			null -- render(I)
+			null -- render("pfaffgfan.fig", I)
+		Text
+			To run the examples above, ommit the {\tt null -- }. 
+			The first command will display the Groebner fan of {\tt I} while the
+			second writes the image to file.
 ///
 
 doc ///
@@ -388,9 +469,9 @@ doc ///
 		Requires loading of the Polymake package to make the PolymakeObject type available.
 	Description
 		Example	
-			loadPackage "Polymake"
-	 		R = QQ[symbol a..symbol d];
-			I = ideal(c^4-a*d^3, -c^3+b*d^2, b*c-a*d, -a*c^2+b^2*d, b^3-a^2*c);
+			needsPackage "Polymake";
+	 		R = QQ[symbol a..symbol f];
+			I = pfaffians(4, genericSkewMatrix(R,4))
 			P = groebnerFan(I)
 			peek P
 	SeeAlso 
