@@ -201,12 +201,14 @@ complementGraph HyperGraph := H -> (
 
 -- given a set of vertices, return induced graph on those vertices
 inducedGraph = method();
+inducedGraph (Graph,List) := (G,S) -> graph inducedGraph(hyperGraph(G), S)
 inducedGraph (HyperGraph,List) := (H,S) -> (
-     if (isSubset(S,H#"vertices") =!= true) then error "Second argument must be a subset of the vertices";
+     if (isSubset(set S, set H#"vertices") =!= true) then error "Second argument must be a subset of the vertices";
      ie := select(H#"edges",e -> isSubset(set e,set S));
-     R:= (coefficientRing H#"ring")[S];
+     R := (coefficientRing H#"ring")[S];
      F := map(R,H#"ring");
      ienew := apply(ie,e -> apply(e,v->F(v)));
+		 use H#"ring";
      return(hyperGraph(R,ienew));
      )
 
@@ -400,7 +402,13 @@ incidenceMatrix = method();
 -- special graphs (i.e. define functions to create special families)
 
  -- return graph of cycle on n vertices
-cycle = method();
+cycle = method(TypicalValue=>Graph);
+cycle (Ring) := Graph =>(R) -> cycle(generators R)
+cycle (Ring, ZZ) := Graph =>(R, N) -> cycle(apply(N, i->R_i))
+cycle (List) := Graph =>(L)-> (
+  if #L < 3 then error "Cannot construct cycles of length less than three";
+	graph(ring L#0,append(apply(#L-1, i-> L#i*L#(i+1)), (last L)*(first L)))
+)
 
  -- return graph of complete n-graph
 completeGraph = method();
@@ -736,7 +744,67 @@ doc ///
 		       complementGraph c5hypergraph
 	Caveat
 	        Notice that {\tt complementGraph} works differently on graphs versus hypergraphs.
- ///	
+///	
+
+doc ///
+	Key
+		inducedGraph
+		(inducedGraph, Graph, List)
+		(inducedGraph, HyperGraph, List)
+	Headline
+		returns the induced subgraph of a graph or hypergraph.
+	Usage
+		h = inducedGraph H \n g = inducedGraph G
+	Inputs
+		H:HyperGraph
+		G:Graph
+		L:List
+			of vertices (i.e. variables in the ring of {\tt H} or {\tt G})
+	Outputs
+		h:HyperGraph
+			the induced subgraph of {\tt H} whose edges are contained in {\tt L}
+		g:Graph
+			the induced subgraph of {\tt G} whose edges are contained in {\tt L}
+	Description
+		Text
+			The ring of the induced subgraph contains only variables in {\tt L}.
+			The current ring must be changed before working with the induced subgraph.
+		Example
+			R = QQ[a,b,c,d,e]	   
+			G = graph {a*b,b*c,c*d,d*e,e*a} -- graph of the 5-cycle
+			H1 = inducedGraph(G,{b,c,d,e})
+			H2 = inducedGraph(G,{a,b,d,e})
+			use H1#"ring"
+			inducedGraph(H1,{c,d,e})
+///	
+
+doc ///
+	Key
+		cycle
+		(cycle, Ring)
+		(cycle, Ring, ZZ)
+		(cycle, List)
+	Headline
+		returns a graph cycle.
+	Usage
+		C = cycle R \n C = cycle(R,N) \n C = cycle L
+	Inputs
+		R:Ring
+		N:ZZ
+			length of cycle
+		L:List
+			of vertices to make into a cycle in the order provided
+	Outputs
+		C:Graph
+			which is a cycle on the vertices in {\tt L} or on the variables of {\tt R}.
+	Description
+		Example
+			R = QQ[a,b,c,d,e]	   
+			cycle R
+			cycle(R,3)
+			cycle {e,c,d,b}
+///	
+
 -----------------------------
 -- Constructor Tests --------
 ------------------------- 0 to 6
