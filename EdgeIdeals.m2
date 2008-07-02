@@ -187,20 +187,29 @@ getEdgeIndex (HyperGraph, RingElement) := (H,E) -> (
 -- find the complement of G
 complementGraph = method();
 complementGraph Graph := G -> (
-     v = G#"vertices";
-     alledges = set(subsets(v,2));
-     gedges = set G#"edges";
-     gcedges = alledges - gedges;  -- edges of the complement
+     v := G#"vertices";
+     alledges := set(subsets(v,2));
+     gedges := set G#"edges";
+     gcedges := alledges - gedges;  -- edges of the complement
      return(graph toList gcedges);
      )
 
 complementGraph HyperGraph := H -> (
-     hcedge = apply(H#"edges",e-> toList (set(H#"vertices") - set e));  -- create edge set of hypergraph
+     hcedge := apply(H#"edges",e-> toList (set(H#"vertices") - set e));  -- create edge set of hypergraph
      return (hyperGraph toList hcedge);
      )
 
 -- given a set of vertices, return induced graph on those vertices
 inducedGraph = method();
+inducedGraph (HyperGraph,List) := (H,S) -> (
+     if (isSubset(S,H#"vertices") =!= true) then error "Second argument must be a subset of the vertices";
+     ie := select(H#"edges",e -> isSubset(set e,set S));
+     R:= (coefficientRing H#"ring")[S];
+     F := map(R,H#"ring");
+     ienew := apply(ie,e -> apply(e,v->F(v)));
+     return(hyperGraph(R,ienew));
+     )
+
 
 -- remove edges from G
 deleteEdges = method();
