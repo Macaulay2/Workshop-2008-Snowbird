@@ -336,13 +336,22 @@ needsPackage "SymmetricPolynomials"
 needsPackage "SchurRings"
 
 splitCharacter = method()
-splitCharacter (RingElement) := (ce)->(
+splitCharacter RingElement := ce -> (
      pe:=elementalSymm(ce),
      n:=numgens source vars ring ce,
-     R2:=symmRing(n),
-     return toS(substitute(pe,R2))
+     R2:=symmRing n,
+     return toS substitute(pe,R2)
      )
 
+///
+restart
+loadPackage "SchurFunctors"
+debug SchurFunctors
+ce = character({{1}},3)
+(splitCharacter ce)^4
+R = QQ[a..i]
+
+///
 
 beginDocumentation()
 document {

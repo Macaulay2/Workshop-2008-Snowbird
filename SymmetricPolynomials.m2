@@ -55,10 +55,8 @@ elementalSymm (RingElement):=  f -> (
      answer := F(f)%I;
      use ring f;
 ---------New line: it creates a new ring whose variables are the elementary symmetric polynomials
-     s := symbol s;
      F=QQ[s_1..s_n];
      answer=substitute(answer,F);
-     e := symbol e;
      E:=QQ[e_1..e_n];
      MAP=map(E,F,vars E);
      answer=MAP(answer);
