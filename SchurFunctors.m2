@@ -251,9 +251,18 @@ schurModulesMap (Module, Module, Function) := (N,M,F) -> (
 maxFilling = method(TypicalValue=>Filling)
 maxFilling (List,ZZ) := (p,d)->(
 -- makes a maximal semistandard tableau filled with 0..d-1 for a given partition p      
-     
+     nCols := max p;
+     new Filling from apply(nCols, c->(
+	       h := #select(p,j->j>c); -- the length of the column
+	       toList ((d-h)..(d-1))
+	       ))     
      )
-
+///
+restart
+loadPackage "SchurFunctors"
+debug SchurFunctors
+maxFilling({4,3,3,2}, 6)
+///
 character = method()
 character (List, ZZ) := (L,d)->(
      L = reverse L;
