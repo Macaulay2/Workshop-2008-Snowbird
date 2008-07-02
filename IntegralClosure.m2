@@ -64,7 +64,10 @@ integralClosure Ring := Ring => o -> (R) -> (
      -- number of times to run the recurions and the choice to run
      -- Singh and Swansons characteristic p algorithm. 
      -- Return: The quotient ring that is the integral closure of R or
-     -- a set of rings whose direct sum is the integral closure of R. 
+     -- a set of rings whose direct sum is the integral closure of R.
+     -- Method:  We work primarily with maps to ensure access to key
+     -- information at the end.  This also makes it easier to keep
+     -- track of ring flattenings and the recursion. 
      if o.Strategy === null then (
      	  M := flattenRing R;
      	  ICout := integralClosureHelper(nonNormalLocus M_0, gens M_0 ,M_1,o.Limit, o.Variable, 0);
@@ -78,19 +81,12 @@ integralClosure Ring := Ring => o -> (R) -> (
 	       ICout = apply(n-1, i -> {ICout#(2*i), ICout#(2*i+1)});
 	       R.ICfractions = apply(ICout, i -> i#1);
 	       R.ICmap = apply(ICout, i -> i#0);
-	       apply(R.ICmap, i -> target i)
+	       RIdeal := apply(R.ICmap, i -> trim ideal target i);
+	       apply(RIdeal, i -> (ring i)/i)
 	       )
      	  )
      else icFracP(R)
      )
-///
-restart
-loadPackage"IntegralClosure"
-S=ZZ/101[symbol a,symbol b,symbol c, symbol d]
-I=ideal(a*(b-c),c*(b-d),b*(c-d))
-R=S/I                              
-time V = integralClosure R
-///
 
 integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
      -- recursive helper function designed to build the integral
@@ -111,8 +107,6 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
 	  -- need to try and clean up ideals as much as possible as we proceed.
 	  (S1, S1Map) := flattenRing(R/trim(substitute(J1, R) + I));
 	  (S2, S2Map) := flattenRing(R/trim(substitute(ideal(0_S):J1, R) + I));
-	  --(Sold, SoldMap) := flattenRing(S/trim(ideal(0_S):J1));
-	  error("debug me");
 	  L := join(integralClosureHelper(nonNormalLocus (minimalPresentation S1), 
 	       	    fractions,
 		    (S1.cache.minimalPresentationMap)*(S1Map)*map(source S1Map, S)*phi, 
@@ -155,7 +149,7 @@ idealizerReal (Ideal, Thing) := o -> (J, f) -> (
      I := ideal presentation R;
      idJ := mingens(f*J : J);
      if ideal(idJ) == ideal(f) then (
-	  (map(R,R), {})) -- in this case R is ismorphic to Hom(J,J).
+	  (map(R,R), {})) -- in this case R is isomorphic to Hom(J,J).
      else(
      	  H := compress (idJ % f);
      	  fractions := apply(first entries H,i->i/f);
@@ -252,13 +246,6 @@ isNormal(Ring) := Boolean => (R) -> (
 	  dim R - dim Jac >=2)
      else false
      )
-
--- Needed because we have problems with multigraded over char 0  in 
--- using the pushForward function and 
--- have to kill the multigrading in this case at the very beginning.
-isSinglyGraded := (R) -> (
-     n := numgens (ring presentation R).degreesRing;
-      n===1)     
 
 --------------------------------------------------------------------
 conductor = method()
@@ -480,7 +467,7 @@ reduceLinears Ideal := o -> (I) -> (
        count = count - 1;
        g := findReductor L;
        if g === null then break;
-       << "reducing using " << g#0 << endl << endl;
+       --<< "reducing using " << g#0 << endl << endl;
        F = map(R,R,{g#0 => g#1});
        L = apply(L, i -> F(i));
        g
@@ -1099,6 +1086,8 @@ use ring ideal J
 oldIdeal = ideal(b_1*x^2-y*z, x^6-b_1*y+x^3*z, -b_1^2+x^4*z+x*z^2)
 newIdeal = substitute(oldIdeal, b_1 => b_1/42 )
 assert(ideal J == newIdeal)
+use R
+assert(conductor(R.ICmap) == ideal(x^2,y))
 -- assert(ICfractions R == substitute(matrix {{y*z/x^2, x, y, z}},frac R))
 --assert(ICfractions R == substitute(matrix {{42 * y*z/x^2, x, y, z}},frac R))
 ///
@@ -1109,6 +1098,17 @@ R = ZZ/101[symbol x..symbol z,Degrees=>{{1,2},{1,5},{1,6}}]/(z*y^2-x^5*z-x^8)
 time J = integralClosure (R,Variable=>symbol a) 
 use ring ideal J
 assert(ideal J == ideal(x^6+a_4*y+x^3*z-11*x*y^2,a_4*x^2-11*x^3*y+y*z,a_4^2-22*a_4*x*y-x^4*z+20*x^2*y^2-x*z^2))
+///
+
+-- multigraded homogeneous test
+TEST ///
+R = ZZ/101[symbol x..symbol z,Degrees=>{{4,2},{10,5},{12,6}}]/(z*y^2-x^5*z-x^8)
+time J = integralClosure (R,Variable=>symbol a) 
+use ring ideal J
+assert(ideal J == ideal(a_1*y-42*x^6-42*x^3*z,a_1^2-47*x^4*z-47*x*z^2,-12*a_1*x^2-z*y,-12*a_1*x*y-x^7-x^4
+      *z,43*a_1^2*x^2-x^6*z-x^3*z^2,-x^8-x^5*z+z*y^2))
+use R
+assert(conductor(R.ICmap) == ideal(x^2,y))
 ///
 
 -- Reduced not a domain test
