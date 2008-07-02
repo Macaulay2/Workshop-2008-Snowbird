@@ -16,9 +16,16 @@ export {
      poset,
      FullRelationMatrix,
      RelationMatrix,
+     fullPosetRelation,
+     fullPoset,
+     coveringRelations,
+     coveringRelationsPoset,
      compare,
      indexElement,
      nonnull,
+     minimalElements,
+     PosetMinusMins,
+     rankingPosetElements,
      OrderIdeal,
      Filter
      }
@@ -174,7 +181,10 @@ PosetMinusMins:=(P)-> (
      poset(I,C)
      )
 
-
+rankingPosetElements:=(P) -> (
+     i:=0;
+     while i<#P.GroundSet list (i,minimalElements(P)) do (P:=PosetMinusMins(P);i:=i+1)
+     )
 
 --------------------------------------------------
 --Order and Filter Ideals
