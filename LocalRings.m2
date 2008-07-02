@@ -102,7 +102,9 @@ localResolution Module := options -> (M) -> (
 	  C = new ChainComplex;
 	  C.ring = R;
 	  -- f := presentation M;
-	  -- okay to replace presentation by minimalPresentation?
+	  -- we have replaced presentation in the previous line by minimalPresentation. This has fixed a reported bug where 
+	  -- localResolution returned a non-minimal presentation.
+	  -- We have included the above mentioned example in the tests section.
 	  f := relations minimalPresentation M;
 	  C#0 = target f;
 	  C#1 = source f;
