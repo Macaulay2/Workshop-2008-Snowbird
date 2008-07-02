@@ -181,10 +181,10 @@ PosetMinusMins=(P)-> (
      poset(I,C)
      )
 
-rankingPosetElements:=(P) -> (
-     i:=0;
-     while i<#P.GroundSet list (i,minimalElements(P)) do (P:=PosetMinusMins(P);i:=i+1)
-     )
+--rankingPosetElements:=(P) -> (
+--     i:=0;
+--     while i<#P.GroundSet list (i,minimalElements(P)) do (P:=PosetMinusMins(P);i:=i+1)
+--     )
 
 --------------------------------------------------
 --Order and Filter Ideals
@@ -222,9 +222,9 @@ I = {a,b,c,d,e,f}
 C = {(a,d),(b,d), (b,e), (c,e), (d,f), (e,f)}
 P = poset(I,C)
 
-Joins (P,a,b) -> (
-     OIa := OrderIdeal(P,a)     
-     )
+--Joins (P,a,b) -> (
+--     OIa := OrderIdeal(P,a)     
+--     )
 
 
 
