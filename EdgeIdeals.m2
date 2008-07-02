@@ -222,6 +222,11 @@ coverIdeal HyperGraph := H -> (dual edgeIdeal H)
 
  -- Boolean function
 isBipartite = method();
+isBipartite Graph := G -> (
+     m = product G#"vertices";
+     return (m % (coverIdeal G)^2 == 0);
+     );
+
 
  -- Boolean function (True of False if graph is CM)
 isCMhyperGraph = method();
@@ -254,6 +259,7 @@ isConnected = method();
  -- return clique number
 cliqueNumber = method();
 
+
  -- return chromatic number
 chromaticNumber = method();
 chromaticNumber HyperGraph := H -> (
@@ -272,6 +278,9 @@ vertexCoverNumber = method();
 
  -- return independence number
 independenceNumber = method();
+independenceNumber Graph:= G -> (
+     return (dim edgeIdeal G);
+     )
 
  -- return number of triangles
 numTriangles = method();
@@ -528,6 +537,41 @@ doc ///
 ///		      
 
 
+doc ///
+        Key
+	        isBipartite
+		(isBipartite, Graph)
+	Headline
+	        determines if a graph is bipartite
+	Usage
+	        B = isBipartite G
+	Inputs
+	        G:Graph
+	Outputs
+	        B:Boolean
+		       returns {\tt true} if {\tt G} is bipartite, {\tt false} otherwise.
+        Description
+	        Text
+///		      
+
+
+doc ///
+        Key
+	        independenceNumber
+		(independenceNumber, Graph)
+	Headline
+	        determines the independence number of a graph 
+	Usage
+	        d = independenceNumber G
+	Inputs
+	        G:Graph
+	Outputs
+	        d:ZZ
+		       the independence number (the number of independent vertices) in {\tt G}
+        Description
+	        Text
+///		      
+
 -----------------------------
 -- Constructor Tests --------
 -----------------------------
@@ -603,6 +647,9 @@ assert( getEdgeIndex(H,a*c) == -1)
 ///
 
 
+--------------------------------------
+-- Test edgeIdeal and coverIdeal 
+---------------------------------------
 
 TEST///
 R = QQ[a,b,c]
@@ -619,8 +666,44 @@ h = hyperGraph i
 assert((coverIdeal h) == j) 
 ///
 
+----------------------------------------
+-- Test Numerical Invariants
+----------------------------------------
+
+-- Chromatic Number
+
+TEST///
+R = QQ[a..e]
+c4 = graph {a*b,b*c,c*d,d*a} -- 4-cycle
+c5 = graph {a*b,b*c,c*d,d*e,e*a} -- 5-cycle
+assert(chromaticNumber c4 == 2)
+assert(chromaticNumber c5 == 3)
+///
+
+-----------------------------------------
+-- Test isBipartite
+----------------------------------------
+
+TEST///
+R = QQ[a..e]
+c4 = graph {a*b,b*c,c*d,d*a} -- 4-cycle
+c5 = graph {a*b,b*c,c*d,d*e,e*a} -- 5-cycle
+assert(isBipartite c4 == true)
+assert(isBipartite c5 == false)
+///
 
 
+-----------------------------------------
+-- Test independenceNumber
+----------------------------------------
+
+TEST///
+R = QQ[a..e]
+c4 = graph {a*b,b*c,c*d,d*a} -- 4-cycle plus an isolated vertex!!!!
+c5 = graph {a*b,b*c,c*d,d*e,e*a} -- 5-cycle
+assert(independenceNumber c4 == 3)
+assert(independenceNumber c5 == 2)
+///
 
 ----------------------------------------------
 end
