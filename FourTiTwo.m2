@@ -1,21 +1,24 @@
 ----------------------------------------------------
 ----------------------------------------------------
--- previous version: 0.2 30Jun08
--- author: Mike Stillman -- core
--- author: Josephine Yu -- all remaining functions; documentation
--- editor: Sonja Petrovic -- interface for windows; edited documentation; tests
--- latest update: 1Jul08
+-- previous version: 0.2 30Jun08, submitted by Josephine Yu.
+-- author: Mike Stillman -- 
+--     	    	      	   core
+-- author: Josephine Yu -- 
+--     	    	      	   all remaining functions; documentation
+-- editor: Sonja Petrovic -- 
+--     	    	      	   interface for windows; edited documentation; tests
+-- latest update: 2Jul08
 ----------------------------------------------------
 ----------------------------------------------------
 
 newPackage(
 	"FourTiTwo",
     	Version => "0.3", 
-    	Date => "July 1, 2008",
+    	Date => "July 2, 2008",
     	Authors => {
 	     {Name => "Mike Stillman", Email => "mike@math.cornell.edu", HomePage => ""},
 	     {Name => "Josephine Yu", Email => "jyu@math.mit.edu", HomePage => ""},
-	     {Name => "Sonja Petrovic", Email => "petrovic@ms.uky.edu", HomePage => ""}
+	     {Name => "editor: Sonja Petrovic", Email => "petrovic@ms.uky.edu", HomePage => ""}
 	     },
     	Headline => "Interface to the 4ti2 package",
 	Configuration => { "path" => "",
@@ -34,23 +37,35 @@ export {
      graverBasis,
      hilbertBasis,
      rays,
-     InputType
+     InputType,
+     setPath
      }
 
---  this was the option on MacOS:
---path'4ti2 = FourTiTwo#Options#Configuration#"path"
---  this is the option on my windows:
-path'4ti2 = " 4ti2_v1.3.1/win32/" --this is where I've put the 4ti2 executables!
--- ??
--- note i can see "cygdrive/c" ....and the rest of c-drive!! it is located ABOVE "home" directory of cygwin.
+
+-- this is the option working on MacOS and Linux(?):
+path'4ti2 = FourTiTwo#Options#Configuration#"path" --we will keep it here to be the default value. 
+
+-- on the other hand, windows/cygwin is different. 
+-- for eample: this is where I've put the 4ti2 executables (inside the cygwin directory):
+-- path'4ti2 = " 4ti2_v1.3.1/win32/"
+-- (sidenote i can see "cygdrive/c" ....and the rest of c-drive!! it is located ABOVE "home" directory of cygwin.)
+-- 
+-- However, if the package can't find the 4ti2 directory using the above path, 
+-- we will allow the user to set their own path by invoking the following command:
+setPath = method()
+setPath(String):=(p)->(
+     path'4ti2 = p;  --  " 4ti2_v1.3.1/win32/"
+     )
+
 
 -- the following command is necessary to be run under windows-cygwin:
 -- externalPath = value Core#"private dictionary"#"externalPath"
+-- Note: outside of cygwin (linux/mac), this string is just the null string. 
+-- But under Windows machines this is necessary (the value of the string is C:/cygwin).
 temppath = value Core#"private dictionary"#"externalPath"
 externalPath = demark("/",separate(///\///, value ///temppath/// )) --this is to ensure 
                --  that the slashes/backslashes are not the wrong way.
--- otherwise, the temporary files won't be found. 
--- note in linux this is just the null string so it doesn't make a difference.
+-- Without this command, the temporary files won't be found and there will be a ton of error messages.
 
 
 getFilename = () -> (
@@ -206,9 +221,22 @@ doc ///
           Text
 	       Interfaces most of the functionality of the software {\tt 4ti2} available at  {\tt http://www.4ti2.de/}
 	       
-	       {\bf IMPORTANT for windows/cygwin users:} Your 4ti2 must be installed inside the cygwin directory, otherwise it cannot be found under cygwin!
+	       A {\tt d\times n} integral matrix {\tt A} (with nonnegative entries) specifies a map from a polynomial 
+	       ring in d variables to a polynomial ring with n variables by specifying exponents of the variables indexing
+	       its columns. For example, if 
+	  Example
+	       A=matrix{{0,1,2},{2,1,0}}
+	  Text	       
+	       the map is given by 
 	       
-	       Add: matrix represents a binomial in the following way:... blablabla
+	       {\tt (s,t)-> (s^2,st,t^2)}.
+	       
+	       The toric ideal I_A is the kernel of this map.
+	       
+	       For more details (and more generality), see the standard reference: B. Sturmfels, {\bf Gr\"obner bases and
+		    convex polytopes}, AMS Lecture Notes Series, ... 
+     SeeAlso
+     	  setPath
 ///;
 
 doc ///
@@ -452,6 +480,62 @@ doc ///
 ///;
 
 
+doc ///
+     Key
+     	  setPath
+	  (setPath, String)
+     Headline
+     	  IF FourTiTwo can't find your 4ti2 directory, this should be called *once* after loading the pacakge.
+     Usage
+     	  setPath(p)
+     Inputs
+      	  p:String
+              specifying the location of the 4ti2 directory on your local machine
+     Description
+          Text
+     	      FourTiTwo is designed to interface with 4ti2 installed on your local machine. 
+	      For most users, the package will locate 4ti2 automatically. 
+	      
+	      Warning: if while running the package you get an error describing that 4ti2 cannot be run,
+	      then invoke the command setPath and pass it a string which specifies the location of the 4ti2 
+	      executables. For example, on a particular windows machine runnning cygwin, the first attempt at 
+	      the package produces an error:
+     	  Example 
+	      restart;
+	      needsPackage "FourTiTwo"    
+	      A = matrix "1,1,1,1; 1,2,3,4"
+	  Text
+	      If our next command is one of the functions calling 4ti2, for example:
+	  Example
+	      toricGB(A);
+	  Text 
+	      it is possible that the output looks something like this:
+	      
+	      {\tt  sh: groebner: command not found}
+	      
+	      {\tt   FourTiTwo.m2:149:24:(1):[3]: error occurred while executing external program 4ti2: groebner}
+	  Text
+	      To fix this, suppose that I have installed 4ti2 into a directory 
+	      {\tt C:/cygwin/4ti2_v1.3.1/win32/ }. Then running the command {\tt setPath} 
+	      will allow FourTiTwo to find 4ti2; thus the previous calculation will not fail:
+	  Example
+     	      restart;
+	      needsPackage "FourTiTwo";
+	      setPath( " 4ti2_v1.3.1/win32/");
+	      A = matrix "1,1,1,1; 1,2,3,4"
+       	      toricGB(A)
+	  Text
+	      Note that if you are running under cygwin, your 4ti2 directory should be in the cygwin 
+	      directory. Moreover, {\tt C:/cygwin} should not be passed to the setPath function!
+///;
+
+
+
+TEST ///     
+///
+
+TEST ///     
+///
 
 TEST ///     
 ///
@@ -462,7 +546,8 @@ end
 
 restart
 --load "4ti2.m2"
-installPackage ("FourTiTwo", RemakeAllDocumentation => true, UserMode=>true)
+--installPackage ("FourTiTwo", RemakeAllDocumentation => true, UserMode=>true)
+installPackage("FourTiTwo",UserMode=>true)
 viewHelp FourTiTwo
 
 
