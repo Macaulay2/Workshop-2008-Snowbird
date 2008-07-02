@@ -258,6 +258,58 @@ character (List, ZZ) := (L,d)->(
      return trace M
      )
 
+-----------Decomposition of representations into irreducibles
+
+Specialization=(M,F)->(
+     EV:=map(QQ,ring F,matrix{flatten entries M}),
+     return EV(F))
+
+
+Identity=(d)->(
+matrix(apply(d,i->apply(d,j->if i==j then 1_QQ else 0_QQ))))
+
+Transvection=(param1,param2,d)->(
+M1:=matrix(apply(d,i->apply(d,j->if i==j then 1_QQ else 0_QQ))),
+M2:=matrix(apply(d,i->apply(d,j->if i==param1 and j==param2 then 1_QQ else 0_QQ))),
+return M1+M2;
+     )
+
+Transvections=(d)->(
+     L=flatten apply(d,j->(apply(d,s->if j>s then Transvection(s,j,d))));
+     select(L,a->if a=!=null then true)
+     )
+     
+diagonal=(L)->(
+     d:=#L;
+     matrix(apply(d,j->(apply(d,i->if i==j then L_i else 0))))
+     )
+
+find=(T,d,F)->(
+     Trans:=Transvections(d),
+     TransEval:=apply(Trans,M->Specialization(M,F)),
+     T:=matrix apply(TransEval,k->{k-Specialization(Identity(d),F)}),
+     D:=apply(d,j->(j+1)_QQ),
+     M:=Specialization(diagonal(D),F)-weight(T,D)*Specialization(Identity(d),F),
+     return syz(T||M)
+     )
+
+
+d=3
+F=G
+weight=(T,D)->(
+     2*3--2^3, 2*3^2, 2*3
+     )
+
+
+simpleFind=(d,F)->(
+     Trans:=Transvections(d);
+     TransEval:=apply(Trans,M->Specialization(M,F));
+     T:=matrix apply(TransEval,k->{k-Specialization(Identity(d),F)});
+     return syz(T)
+     )
+
+
+
 needsPackage "SymmetricPolynomials"
 needsPackage "SchurRings"
 
