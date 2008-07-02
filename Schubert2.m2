@@ -1,16 +1,16 @@
 newPackage(
-	"Schubert2",
-	AuxiliaryFiles => true,
-    	Version => "0.2",
-    	Date => "May, 2008",
-	Authors => {
-	     {Name => "Daniel R. Grayson", Email => "dan@math.uiuc.edu", HomePage => "http://www.math.uiuc.edu/~dan/"},
-	     {Name => "Michael E. Stillman", Email => "mike@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Faculty/stillman.html"}
-	     },
-	HomePage => "http://www.math.uiuc.edu/Macaulay2/",
-    	Headline => "computations of characteristic classes for varieties without equations",
-    	DebuggingMode => true
-    	)
+        "Schubert2",
+        AuxiliaryFiles => true,
+        Version => "0.2",
+        Date => "May, 2008",
+        Authors => {
+             {Name => "Daniel R. Grayson", Email => "dan@math.uiuc.edu", HomePage => "http://www.math.uiuc.edu/~dan/"},
+             {Name => "Michael E. Stillman", Email => "mike@math.cornell.edu", HomePage => "http://www.math.cornell.edu/People/Faculty/stillman.html"}
+             },
+        HomePage => "http://www.math.uiuc.edu/Macaulay2/",
+        Headline => "computations of characteristic classes for varieties without equations",
+        DebuggingMode => true
+        )
 
 export { AbstractSheaf, abstractSheaf, AbstractVariety, abstractVariety, schubertCycle,
      AbstractVarietyMap, adams, Base, BundleRanks, Bundles, VarietyDimension, Bundle,
@@ -20,7 +20,7 @@ export { AbstractSheaf, abstractSheaf, AbstractVariety, abstractVariety, schuber
      schur, SectionClass, sectionClass, segre, StructureMap, protect TangentBundle, tangentBundle, todd, protect ToddClass,
      VariableNames, VariableName, SubBundles, QuotientBundles, point, base}
 
-debug Core						    -- needed only for flatmonoid, sigh; also for getAttribute
+debug Core                                                  -- needed only for flatmonoid, sigh; also for getAttribute
 
 AbstractVariety = new Type of MutableHashTable
 AbstractVariety.synonym = "abstract variety"
@@ -29,7 +29,7 @@ net AbstractVariety := X -> (
      if hasAttribute(X,ReverseDictionary) then toString getAttribute(X,ReverseDictionary)
      else "a variety")
 AbstractVariety#{Standard,AfterPrint} = X -> (
-     << endl;				  -- double space
+     << endl;                             -- double space
      << concatenate(interpreterDepth:"o") << lineNumber << " : "
      << "an abstract variety of dimension " << X.dim << endl;
      )
@@ -44,7 +44,7 @@ net FlagBundle := X -> (
      if hasAttribute(X,ReverseDictionary) then toString getAttribute(X,ReverseDictionary)
      else "a flag bundle")
 FlagBundle#{Standard,AfterPrint} = X -> (
-     << endl;				  -- double space
+     << endl;                             -- double space
      << concatenate(interpreterDepth:"o") << lineNumber << " : "
      << "a flag bundle with ranks " << X.BundleRanks << endl;
      )
@@ -65,7 +65,7 @@ net AbstractVarietyMap := X -> (
      if hasAttribute(X,ReverseDictionary) then toString getAttribute(X,ReverseDictionary)
      else "a variety map")
 AbstractVarietyMap#{Standard,AfterPrint} = f -> (
-     << endl;				  -- double space
+     << endl;                             -- double space
      << concatenate(interpreterDepth:"o") << lineNumber << " : "
      << "a map to " << target f << " from " << source f << endl;
      )
@@ -80,39 +80,39 @@ net AbstractSheaf := X -> (
      if hasAttribute(X,ReverseDictionary) then toString getAttribute(X,ReverseDictionary)
      else "a sheaf")
 AbstractSheaf#{Standard,AfterPrint} = E -> (
-     << endl;				  -- double space
+     << endl;                             -- double space
      << concatenate(interpreterDepth:"o") << lineNumber << " : "
      << "an abstract sheaf of rank " << rank E << " on " << variety E << endl;
      )
 
 abstractSheaf = method(Options => {
-	  Name => null,
-	  ChernClass => null,
-	  ChernCharacter => null,
-	  Rank => null
-	  })
+          Name => null,
+          ChernClass => null,
+          ChernCharacter => null,
+          Rank => null
+          })
 abstractSheaf(AbstractVariety) := opts -> X -> (
      local ch; local rk;
      if opts.ChernCharacter =!= null then (
-	  ch = opts.ChernCharacter;
-	  rk = part(0,opts.ChernCharacter);
-	  try rk = lift(rk,ZZ) else try rk = lift(rk,QQ);
-     	  if opts.Rank =!= null and rk != opts.Rank then error "abstractSheaf: expected rank and Chern character to be compatible";
-	  )
+          ch = opts.ChernCharacter;
+          rk = part(0,opts.ChernCharacter);
+          try rk = lift(rk,ZZ) else try rk = lift(rk,QQ);
+          if opts.Rank =!= null and rk != opts.Rank then error "abstractSheaf: expected rank and Chern character to be compatible";
+          )
      else (
-     	  if opts.Rank === null then error "abstractSheaf: expected rank or Chern character";
-	  rk = opts.Rank;
-     	  ch = if opts.ChernClass === null then ch = promote(rk,intersectionRing X) else rk + logg opts.ChernClass;
-	  );
+          if opts.Rank === null then error "abstractSheaf: expected rank or Chern character";
+          rk = opts.Rank;
+          ch = if opts.ChernClass === null then ch = promote(rk,intersectionRing X) else rk + logg opts.ChernClass;
+          );
      new AbstractSheaf from {
-     	  global AbstractVariety => X,
-     	  global rank => rk,
-	  ChernCharacter => ch,
-	  if opts.Name =!= null then Name => opts.Name,
-	  global cache => new CacheTable from {
-	       if opts.ChernClass =!= null then ChernClass => opts.ChernClass
-	       }
-     	  }
+          global AbstractVariety => X,
+          global rank => rk,
+          ChernCharacter => ch,
+          if opts.Name =!= null then Name => opts.Name,
+          global cache => new CacheTable from {
+               if opts.ChernClass =!= null then ChernClass => opts.ChernClass
+               }
+          }
      )
 abstractSheaf(AbstractVariety,RingElement) := opts -> (X,f) -> abstractSheaf(X, ChernCharacter => f)
 
@@ -133,9 +133,9 @@ abstractVariety(ZZ,Ring) := opts -> (d,A) -> (
      net A := bydegree net;
      toString A := bydegree toString;
      X := new opts#Type from {
-	  global dim => d,
-     	  IntersectionRing => A
-     	  };
+          global dim => d,
+          IntersectionRing => A
+          };
      A.Variety = X)
 
 tangentBundle = method()
@@ -161,13 +161,13 @@ AbstractSheaf RingElement := (F,n) -> (
      if not isHomogeneous n then error "expected homogeneous element of degree 0 or 1";
      d := first degree n;
      if d == 0 then (
-     	  if X.?CanonicalLineBundle 
-	  then F ** abstractSheaf(X, Rank => 1, ChernClass => n * chern_1 X.CanonicalLineBundle)
-     	  else error "expected a variety with an ample line bundle"
-	  )
+          if X.?CanonicalLineBundle 
+          then F ** abstractSheaf(X, Rank => 1, ChernClass => n * chern_1 X.CanonicalLineBundle)
+          else error "expected a variety with an ample line bundle"
+          )
      else if d == 1 then (
-	  F ** abstractSheaf(X, Rank => 1, ChernClass => 1 + n)
-	  )
+          F ** abstractSheaf(X, Rank => 1, ChernClass => 1 + n)
+          )
      else error "expected element of degree 0 or 1"
      )     
 
@@ -189,41 +189,41 @@ base Sequence := args -> (
      d := null;
      oops := x -> error ("base: unrecognizable argument ",toString x);
      goodvar := x -> (
-	  if instance(x,RingElement) then baseName x
-	  else if instance(x,Symbol) or instance(x,IndexedVariable) then x
-	  else error ("base: unusable as variable: ",toString x));
+          if instance(x,RingElement) then baseName x
+          else if instance(x,Symbol) or instance(x,IndexedVariable) then x
+          else error ("base: unusable as variable: ",toString x));
      goodsym := x -> (
-	  if instance(x,RingElement) then x = baseName x;
-	  if instance(x,Symbol) or instance(x,IndexedVariableTable) then x
-	  else error ("base: unusable as subscripted symbol: ",toString x));
+          if instance(x,RingElement) then x = baseName x;
+          if instance(x,Symbol) or instance(x,IndexedVariableTable) then x
+          else error ("base: unusable as subscripted symbol: ",toString x));
      scan(args, x -> (
-	       if instance(x,Symbol) or instance(x,IndexedVariable) then newvr(x,0)
-	       else if instance(x,RingElement) then newvr(baseName x,0)
-	       else if instance(x,Option) and #x==2 and x#0 === Bundle and instance(x#1,Sequence) and #x#1== 3 then (
-		    (B,n,b) := x#1;
-		    if not instance(n,ZZ) then oops x;
-		    b = goodsym b;
-		    vrs = (vrs,apply(1..n,i->b_i));
-		    degs = (degs,1..n);
-		    B = goodvar B;
-		    newbdl (B,n,b);
-		    )
-	       else if instance(x,ZZ) then (
-		    if d =!= null then error "base: more than one integer argument encountered (as the dimension)";
-		    d = x)
-	       else oops x));
+               if instance(x,Symbol) or instance(x,IndexedVariable) then newvr(x,0)
+               else if instance(x,RingElement) then newvr(baseName x,0)
+               else if instance(x,Option) and #x==2 and x#0 === Bundle and instance(x#1,Sequence) and #x#1== 3 then (
+                    (B,n,b) := x#1;
+                    if not instance(n,ZZ) then oops x;
+                    b = goodsym b;
+                    vrs = (vrs,apply(1..n,i->b_i));
+                    degs = (degs,1..n);
+                    B = goodvar B;
+                    newbdl (B,n,b);
+                    )
+               else if instance(x,ZZ) then (
+                    if d =!= null then error "base: more than one integer argument encountered (as the dimension)";
+                    d = x)
+               else oops x));
      if d === null then d = 0;
      vrs = deepSplice vrs;
      degs = toList deepSplice degs;
      A := QQ[vrs,Degrees => degs, DegreeRank => 1];
      X := abstractVariety(d,A);
      X.TangentBundle = abstractSheaf(X,Rank => d);  -- trivial tangent bundle, for now, user can replace it
-     integral intersectionRing X := identity;		    -- this will usually be wrong, but it's the "base"
+     integral intersectionRing X := identity;               -- this will usually be wrong, but it's the "base"
      X#"bundles" = apply(bdls,(B,n,b) -> (
-	       globalReleaseFunction(B,value B);
-	       B <- abstractSheaf(X, Name => B, Rank => n, ChernClass => 1_A + sum(1 .. n, i -> A_(b_i)));
-	       globalAssignFunction(B,value B);
-	       (B,value B)));
+               globalReleaseFunction(B,value B);
+               B <- abstractSheaf(X, Name => B, Rank => n, ChernClass => 1_A + sum(1 .. n, i -> A_(b_i)));
+               globalAssignFunction(B,value B);
+               (B,value B)));
      X.args = args;
      X)
 point = base()
@@ -261,17 +261,17 @@ AbstractSheaf ^ ZZ := (E,n) -> new AbstractSheaf from {
      ChernCharacter => n * E.ChernCharacter,
      symbol rank => E.rank * n,
      symbol cache => new CacheTable from {
-	  if E.cache.?ChernClass then ChernClass => E.cache.ChernClass ^ n
-	  }
+          if E.cache.?ChernClass then ChernClass => E.cache.ChernClass ^ n
+          }
      }
 
-geometricSeries = (t,n,dim) -> (			    -- computes (1-t)^n assuming t^(dim+1) == 0
+geometricSeries = (t,n,dim) -> (                            -- computes (1-t)^n assuming t^(dim+1) == 0
      ti := 1;
      bin := 1;
      1 + sum for i from 1 to dim list ( 
-	  bin = (1/i) * (n-(i-1)) * bin;
-	  ti = ti * t;
-	  bin * ti))
+          bin = (1/i) * (n-(i-1)) * bin;
+          ti = ti * t;
+          bin * ti))
 
 AbstractSheaf ^** ZZ := (E,n) -> abstractSheaf(variety E, ChernCharacter => (ch E)^n)
 AbstractSheaf ^** QQ := AbstractSheaf ^** RingElement := (E,n) -> (
@@ -302,25 +302,25 @@ flagBundle(List,AbstractSheaf) := opts -> (bundleRanks,E) -> (
      if rank E =!= rk then error "expected rank of bundle to equal sum of bundle ranks";
      verror := () -> error "flagBundle VariableNames option: expected a good name or list of names";
      varNames = (
-	  if varNames === null then varNames = h$;
-	  if instance(varNames,Symbol)
-	  then apply(0 .. #bundleRanks - 1, bundleRanks, (i,r) -> apply(toList(1 .. r), j -> new IndexedVariable from {varNames,(i+offset,j)}))
-	  else if instance(varNames,List)
-	  then (
-	       if #varNames != n then error("expected ", toString n, " bundle names");
-	       apply(0 .. #bundleRanks - 1, bundleRanks, (i,r) -> (
-		    h := varNames#i;
-		    try h = baseName h;
-		    if h === null then apply(toList(1 .. r), j -> new IndexedVariable from {h$,(i+offset,j)})
-		    else if instance(h,Symbol) then apply(toList(1 .. r), j -> new IndexedVariable from {h,j})
-		    else if instance(h,List) then (
-			 if #h != r then error("flagBundle: expected variable name sublist of length ",toString r);
-			 apply(h, v -> (
-				   try v = baseName v;
-				   if not assignable v then error "flagBundle: encountered unusable name in variable list";
-				   v)))
-		    else verror())))
-     	  else verror());
+          if varNames === null then varNames = h$;
+          if instance(varNames,Symbol)
+          then apply(0 .. #bundleRanks - 1, bundleRanks, (i,r) -> apply(toList(1 .. r), j -> new IndexedVariable from {varNames,(i+offset,j)}))
+          else if instance(varNames,List)
+          then (
+               if #varNames != n then error("expected ", toString n, " bundle names");
+               apply(0 .. #bundleRanks - 1, bundleRanks, (i,r) -> (
+                    h := varNames#i;
+                    try h = baseName h;
+                    if h === null then apply(toList(1 .. r), j -> new IndexedVariable from {h$,(i+offset,j)})
+                    else if instance(h,Symbol) then apply(toList(1 .. r), j -> new IndexedVariable from {h,j})
+                    else if instance(h,List) then (
+                         if #h != r then error("flagBundle: expected variable name sublist of length ",toString r);
+                         apply(h, v -> (
+                                   try v = baseName v;
+                                   if not assignable v then error "flagBundle: encountered unusable name in variable list";
+                                   v)))
+                    else verror())))
+          else verror());
      -- done with user-interface preparation and checking
      Ord := GRevLex;
      X := variety E;
@@ -342,8 +342,8 @@ flagBundle(List,AbstractSheaf) := opts -> (bundleRanks,E) -> (
      FV.Rank = rk;
      FV.Base = X;
      bundles := FV.Bundles = apply(0 .. n-1, i -> (
-	       bdl := abstractSheaf(FV, Rank => bundleRanks#i, ChernClass => H promote(chclasses#i,B));
-	       bdl));
+               bdl := abstractSheaf(FV, Rank => bundleRanks#i, ChernClass => H promote(chclasses#i,B));
+               bdl));
      FV.SubBundles = (() -> ( t := 0; for i from 0 to n-2 list t = t + bundles#i ))();
      FV.QuotientBundles = (() -> ( t := 0; for i from 0 to n-2 list t = t + bundles#(n-1-i) ))();
      FV.CanonicalLineBundle = OO_FV(sum(1 .. #bundles - 1, i -> i * chern(1,bundles#i)));
@@ -354,19 +354,19 @@ flagBundle(List,AbstractSheaf) := opts -> (bundleRanks,E) -> (
      sec := product(1 .. n-1, i -> (ctop bundles#i)^(sum(i, j -> rank bundles#j)));
      pushforward C := r -> coefficient(sec,r);
      pullback AbstractSheaf := E -> (
-	  if variety E =!= X then "pullback: variety mismatch";
-	  abstractSheaf(FV,ChernCharacter => pullback ch E));
+          if variety E =!= X then "pullback: variety mismatch";
+          abstractSheaf(FV,ChernCharacter => pullback ch E));
      p := new FlagBundleStructureMap from {
-	  global target => X,
-	  global source => FV,
-	  SectionClass => sec,
-	  PushForward => pushforward,
-	  PullBack => pullback
-	  };
+          global target => X,
+          global source => FV,
+          SectionClass => sec,
+          PushForward => pushforward,
+          PullBack => pullback
+          };
      FV.StructureMap = p;
      pushforward AbstractSheaf := E -> (
-	  if variety E =!= FV then "pushforward: variety mismatch";
-	  abstractSheaf(X,ChernCharacter => pushforward (ch E * todd p)));
+          if variety E =!= FV then "pushforward: variety mismatch";
+          abstractSheaf(X,ChernCharacter => pushforward (ch E * todd p)));
      integral C := r -> integral p_* r;
      FV)
 
@@ -377,8 +377,8 @@ use AbstractVariety := X -> (
 
 tangentBundle FlagBundleStructureMap := (stashValue TangentBundle) (
      p -> (
-	  bundles := (source p).Bundles;
-	  sum(1 .. #bundles-1, i -> sum(i, j -> Hom(bundles#j,bundles#i)))))
+          bundles := (source p).Bundles;
+          sum(1 .. #bundles-1, i -> sum(i, j -> Hom(bundles#j,bundles#i)))))
 
 installMethod(symbol SPACE,OO,RingElement, (OO,h) -> OO_(variety ring h) (h))
 
@@ -429,7 +429,7 @@ expp RingElement := (A) -> (
      e := new MutableList from splice{d+1:0};
      e#0 = 1;
      for n from 1 to d do
-	  e#n = - 1/n * sum for j from 1 to n list p#j * e#(n-j);
+          e#n = - 1/n * sum for j from 1 to n list p#j * e#(n-j);
      sum toList e
      )
 
@@ -484,11 +484,11 @@ ZZ ++ AbstractSheaf := ZZ + AbstractSheaf := (n,F) -> if n === 0 then F else OO_
 AbstractSheaf ++ AbstractSheaf :=
 AbstractSheaf + AbstractSheaf := (
      (F,G) -> abstractSheaf nonnull (
-	  variety F, Rank => rank F + rank G,
-	  ChernCharacter => ch F + ch G,
-	  if F.cache.?ChernClass and G.cache.?ChernClass then 
-	    ChernClass => F.cache.ChernClass * G.cache.ChernClass
-	  )) @@ coerce
+          variety F, Rank => rank F + rank G,
+          ChernCharacter => ch F + ch G,
+          if F.cache.?ChernClass and G.cache.?ChernClass then 
+            ChernClass => F.cache.ChernClass * G.cache.ChernClass
+          )) @@ coerce
 
 adams = method()
 adams(ZZ,RingElement) := (k,ch) -> (
@@ -517,7 +517,7 @@ computeWedges = (n,A) -> (
      wedge#0 = 1_(ring A);
      wedge#1 = A;
      for p from 2 to n do
-	  wedge#p = 1/p * sum for m from 0 to p-1 list (-1)^(p-m+1) * wedge#m * adams(p-m,A);
+          wedge#p = 1/p * sum for m from 0 to p-1 list (-1)^(p-m+1) * wedge#m * adams(p-m,A);
      toList wedge
      )
 
@@ -551,9 +551,9 @@ symmetricPower(QQ, AbstractSheaf) := (n,E) -> (
      symms#0 = 1_(ring A);
      symms#1 = A;
      for p from 2 to n do (
-	  r := min(p, rank E);
-	  symms#p = sum for m from 1 to r list (-1)^(m+1) * wedge#m * symms#(p-m);
-	  );
+          r := min(p, rank E);
+          symms#p = sum for m from 1 to r list (-1)^(m+1) * wedge#m * symms#(p-m);
+          );
      abstractSheaf(variety E, ChernCharacter => symms#n)
      )
 
@@ -567,7 +567,7 @@ schur(List, AbstractSheaf) := (p,E) -> (
      wedges := computeWedges(n,ch E);
      J := jacobiTrudi(q,R); -- so the result will be a poly in the wedge powers
      F := map(ring ch E, R, join(apply(splice{0..n-1}, i -> R_i => wedges#(i+1)), 
-	                         apply(splice{n..2*n-1}, i -> R_i => 0)));
+                                 apply(splice{n..2*n-1}, i -> R_i => 0)));
      ans := F J;
      abstractSheaf(variety E, ChernCharacter => ans)
      )
@@ -592,11 +592,11 @@ schubertCycle(FlagBundle,Sequence) := (X,a) -> (
      r' := n-r;
      if r != #a then error("expected a sequence of length ", toString r);
      for i from 0 to r-1 do (
-	  ai := a#i;
-	  if not instance(ai,ZZ) or ai < 0 then error "expected a sequence of non-negative integers";
-	  if i>0 and not (a#(i-1) < a#i) then error "expected a strictly increasing sequence of integers";
-	  if not (ai < n) then error("expected a sequence of integers less than ",toString n);
-	  );
+          ai := a#i;
+          if not instance(ai,ZZ) or ai < 0 then error "expected a sequence of non-negative integers";
+          if i>0 and not (a#(i-1) < a#i) then error "expected a strictly increasing sequence of integers";
+          if not (ai < n) then error("expected a sequence of integers less than ",toString n);
+          );
      giambelli(r',E,dualpart(r',seqtolist(r',a))))
 schubertCycle(FlagBundle,List) := (X,b) -> (
      -- see page 271 of Fulton's Intersection Theory for this notation
@@ -607,20 +607,20 @@ schubertCycle(FlagBundle,List) := (X,b) -> (
      r' := n-r;
      if r != #b then error("expected a list of length ", toString r);
      for i from 0 to r-1 do (
-	  bi := b#i;
-	  if not instance(bi,ZZ) or bi < 0 then error "expected a list of non-negative integers";
-	  if i>0 and not (b#(i-1) >= b#i) then error "expected a decreasing list of integers";
-	  if not (bi <= r') then error("expected a list of integers bounded by ",toString(n-r));
-	  );
+          bi := b#i;
+          if not instance(bi,ZZ) or bi < 0 then error "expected a list of non-negative integers";
+          if i>0 and not (b#(i-1) >= b#i) then error "expected a decreasing list of integers";
+          if not (bi <= r') then error("expected a list of integers bounded by ",toString(n-r));
+          );
      giambelli(r',E,dualpart(r',b)))
 
 beginDocumentation()
 
-document {
-     Key => Schubert2,
-       "This package is a preliminary (undocumented) package intended to provide the same functionality
-       as the package ", EM "Schubert", " written for an old version of Maple."
-     }
+-- document {
+--      Key => Schubert2,
+--        "This package is a preliminary (undocumented) package intended to provide the same functionality
+--        as the package ", EM "Schubert", " written for an old version of Maple."
+--      }
 
 
 needsPackage "SimpleDoc"
@@ -647,7 +647,6 @@ doc ///
     todd
 ///
   
-
 doc ///
   Key
     AbstractVariety
@@ -672,7 +671,7 @@ doc ///
      we can compute the Todd class.
    Example
         X.TangentBundle  = abstractSheaf(X,Rank=>2, ChernClass=>(1+t)^3)
-	todd X
+        todd X
    Text
      If we want things like the Euler characteristic of a sheaf, we must also
      specify a method to take the @TO integral@ for the Chow ring A; in the case
@@ -819,24 +818,177 @@ doc ///
     projectiveSpace
 ///
 
+doc ///
+  Key
+    (chern,ZZ,ZZ,AbstractSheaf)
+  Headline
+    Get the Chern class of an abstract sheaf 
+  Usage
+    c = chern(n,m,A)
+  Inputs
+    n:ZZ
+    m:ZZ
+    A:AbstractSheaf
+  Outputs
+    c: List
+  Description
+   Text
+     Chern classes of an abstract sheaf are computed.  If called with
+     three arguments as above, a list of the Chern classes {\tt c_n(A) ..
+     c_m(A)} are returned.  Here {\tt 0\le n\le m} are integers.
+     {\tt chern} may also be called without one or both of these integer
+     arguments, in which case just one Chern class, or the total Chern
+     class is returned, respectively.
+     In the following example, we consider two vector bundles
+     {\tt A} and {\tt B} of ranks 2 and 3, respectively, on a variety
+     of which we only know that its dimension is 3.  
+   Example
+     base(3, Bundle => (A,2,a), Bundle => (B,3,b))
+     chern(B)
+     chern(-A)
+     chern(2,A*B)
+     chern(2,3,B-A)
+   Text
+     The next example gives the Chern classes of the twists of
+     a rank-2 vector bundle on the projective plane
+   Example
+     pt=base(n,p,q)
+     P2=projectiveSpace(2,pt)
+     E=abstractSheaf(P2,Rank=>2,ChernClass=>1+p*h+q*h^2)
+     chern(E*OO(n*h))
+  SeeAlso
+    segre
+///
+
+
+doc ///
+  Key
+     "Lines on hypersurfaces"
+  Headline
+     Example using Schubert2
+  Description
+   Text
+        There are d+1 conditions for a line to be
+        contained in a general hypersurface of degree d in Pn.
+        The Grassmannian of lines in Pn has dimension 2(n-1).  Therefore,
+        when d+1=2(n-1), we should expect a finite number of lines.
+        Here is a way of computing the number using Schubert2.  In the case
+        of lines on a quintic hypersurface in P4, this computation was done
+        by Hermann Schubert in 1879.
+   Text
+        We will first illustrate the method by computing the number
+        of lines on a cubic surface in P3.
+   Text
+        We first construct an @TO AbstractVariety@ representing
+        the Grassmannian of lines in P3 with its tautological sub-
+        and quotient bundles.
+   Example
+     G = flagBundle({2,2}, VariableNames => {,c})
+     (S,Q) = G.Bundles
+   Text
+        Any cubic surface is given by a cubic form on P3,
+        that is, an element of the third symmetric power of the
+        space of linear forms, which is the trivial rank 4 bundle
+        on P3.  Its image in the third symmetric power
+        {\tt symmetricPower(3,Q)}  of the
+        quotient bundle {\tt Q} vanishes at those points of the
+        Grassmannian that correspond to lines on which the
+        cubic form vanishes identically, that is, lines
+        contained in the cubic surface.  The class of this
+        locus is the top Chern class of this bundle.
+   Example
+        B = symmetricPower(3,Q)
+        c = chern(rank B,B)
+        integral c
+   Text
+        We can do the same thing for any n, (with d=2n-3) as
+        follows:
+   Example
+        f = n->(
+             d=2*n-3;
+             G = flagBundle({n-1,2});
+             (S,Q) = G.Bundles;
+             B = symmetricPower(d,Q);
+             integral chern(B)
+             );
+        for n from 2 to 15 do print( time f(n))
+   Text
+        The function {\tt time f 20} takes 16 seconds on a
+        64-bit MacBook Pro and produces a number of 53 digits.
+   Text
+        Note: In characteristic zero, using Bertini's theorem,
+        the numbers computed can be proved to be equal
+        to the actual numbers of distinct lines 
+        for general hypersurfaces.  In P3, every smooth cubic
+        surface in characteristic zero have exactly 27 lines.
+        In higher dimensions there may be smooth hypersurfaces for which
+        the number of lines is different from the "expected" number
+        that we have computed above.
+        For example, the Fermat quintic threefold has an infite number
+        of lines on it.
+  SeeAlso       
+     "Conics on a quintic threefold"
+///
+
+doc ///
+  Key
+     "Conics on a quintic threefold"       
+  Headline
+     Example using Schubert2
+  Description
+   Text
+     The number of conics (=rational curves of degree 2) on a general
+     quintic hypersurface in P4 was computed by S. Katz in 1985.  Here
+     is how the computation can be made with Schubert2.
+   Text
+     Any conic in P4 spans a unique plane.  Hence the space of conics in
+     P4 is a certain P5-bundle over the Grassmannian {\tt G} of planes in P4.  This
+     space is called {\tt X} in the following code:
+   Example
+     G = flagBundle({2,3})    -- Grassmannian of planes in P4
+     (S,Q) = G.Bundles        -- Q = rank 3 tautological quotient bundle
+     B = symmetricPower(2,Q)  -- The bundle of quadratic forms on the variable plane
+   Text
+     As a matter of convention, a projectiveBundle in Schubert2 parametrizes the
+     rank 1 quotients.  The P5-bundle of conics is given by sublinebundles of B, so
+     we take the dual in the following:
+   Example  
+     X = projectiveBundle(dual B, VariableNames => {,{z}})
+   Text
+     The equation of the general quintic is a section of the fifth symmetric
+     power of the space of linear forms on P4.  The induced equation on any given
+     conic is an element in the corresponding closed fiber of a certain vector
+     bundle {\tt A} of rank 11 on the parameter space {\tt X}.  On any given plane P,
+     and conic C in P, we get the following exact sequence:
+           $$ 0 \to H^0(O_P(3)) \to H^0(O_P(5)) \to H^0(O_C(5)) \to 0$$
+     As C varies, these sequences glue to a short exact sequence of bundles on X,
+     to give
+   Example
+     A = symmetricPower_5 Q - symmetricPower_3 Q ** OO(-z)
+   Text
+     A given conic is contained in the quintic if and only if the equation of the
+     quintic vanishes identically on the conic.  Hence the class of the locus of
+     conics contained in the quintic is the top Chern class of {\tt A}.  Hence
+     their number is the integral of this Chern class:
+   Example
+     integral chern A
+  SeeAlso
+    "Lines on hypersurfaces"
+///
+
 end
 
 restart
 installPackage ("Schubert2", UserMode => true)
+installPackage ("SimpleDoc")
 viewHelp Schubert2
 viewHelp AbstractVariety
 viewHelp AbstractSheaf
 viewHelp projectiveSpace
 viewHelp base
-options base
-
-X=base(1, Bundle => (A,2,c))
-Y=abstractVariety(1, Bundle => (A,2,c))
-
-base(3,n,m,Bundle => (B,3,c))
-
-installPackage SimpleDoc
-viewHelp SimpleDoc
+viewHelp chern
+viewHelp "Lines on hypersurfaces"
+viewHelp "Conics on a quintic threefold"
 print docTemplate
 doc ///
   Key
@@ -858,40 +1010,4 @@ doc ///
    Example
   Caveat
   SeeAlso
-///
-print docExample
-
-doc ///
-  Key
-    (frob,ZZ,Matrix)
-  Headline
-    A sample documentation node
-  Usage
-    x = from(n,M)
-  Inputs
-    n:ZZ
-      positive
-    M:Matrix
-      which is square
-  Outputs
-    x:Matrix
-      A block diagonal matrix with {\tt n}
-      copies of {\tt M} along the diagonal
-  Consequences
-    This section is used if there are side effects
-    that this function performs
-  Description
-   Text
-     Each paragraph of text begins with "Text".  The following 
-     line starts a sequence of Macaulay2 example input lines.
-     However, see @TO (matrix,List)@.
-   Example
-     M = matrix"1,2;3,4";
-     frob(3,M)
-  Caveat
-    This is not a particularly useful function
-  SeeAlso
-    "Introduction"
-    matrix
-    (directSum,List)
 ///
