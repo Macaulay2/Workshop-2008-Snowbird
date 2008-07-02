@@ -38,7 +38,7 @@ poset = method()
 poset(List,List) := (I,C) ->
      new Poset from {
 	 symbol GroundSet => I,
-	 symbol CRelations => C,
+	 symbol Relations => C,
 	 symbol cache => CacheTable
 	 }
     
@@ -63,13 +63,13 @@ P2=poset(I2,C2)
 -- input: a poset, and an element A from I
 -- output:  the index of A in the ground set of P
 -- usage: compare, OrderIdeal 
-indexElement:= (P,A) -> (
+indexElement= (P,A) -> (
       sum apply(#P.GroundSet, i-> if P.GroundSet#i == A then i else 0))
 
 -- input:  a list, potentially with nulls
 -- output:  a list w/out nulls
 -- usage:  OrderIdeal, Filter
-nonnull:=(L) -> (
+nonnull=(L) -> (
      select(L, i-> i =!= null))
 
 
@@ -80,9 +80,9 @@ nonnull:=(L) -> (
 -- input: A poset
 -- output: a matrix indexed by I that has non zero entries for each pair of relations
 -- usage:  RelationMatrix,compare
-FullRelationMatrix:= (P) -> (
+FullRelationMatrix= (P) -> (
      M:=matrix apply (#P.GroundSet, i-> 
-	  apply(#P.GroundSet, j-> if member((P.GroundSet#i,P.GroundSet#j), P.CRelations) then 1 else if i==j then 1 else 0));
+	  apply(#P.GroundSet, j-> if member((P.GroundSet#i,P.GroundSet#j), P.Relations) then 1 else if i==j then 1 else 0));
      n:=#P.GroundSet;
      N:=M^n 
      )
@@ -104,7 +104,7 @@ RelationMatrix(Poset):=(P) -> (
 --input: A poset with any type of relation C (minimal, maximal, etc.)
 --output:  The transitive closure of relations in C in our poset
 
-fullPosetRelation:= (P) -> (
+fullPosetRelation= (P) -> (
      M:=RelationMatrix(P);
      L = toList sum apply(numrows(M), i-> set(nonnull(apply(numrows(M), 
 	       j-> if (M_j)_i=!=0 and i=!=j then (I#i,I#j)))))
@@ -113,13 +113,13 @@ fullPosetRelation:= (P) -> (
 --input: A poset P with any type of relation C (minimal, maximal, etc.)
 --output:  The poset P' on the same ground set with the transitive closure of C
 
-fullPoset:= (P) -> (
+fullPoset= (P) -> (
      L = poset(P.GroundSet,fullPosetRelation(P)) 
 )
 
 -- input:  A poset, and two elements A and B from I
 -- output: true if A<= B, false else
-compare:= (P,A,B) -> (
+compare= (P,A,B) -> (
      N:=FullRelationMatrix(P);
      Aindex:=indexElement(P,A);
      Bindex:=indexElement(P,B);
@@ -143,16 +143,16 @@ testcover=(P,A,B) -> (
 --input: A poset with any type of relation C (minimal, maximal, etc.)
 --output: The minimal relations defining our poset
 
-coveringRelations:=(P) -> (
+coveringRelations=(P) -> (
      C=set{};
-     apply(#P.CRelations,i->testcover(P,P.CRelations#i#0,P.CRelations#i#1));
-     toList(set(P.CRelations)-C)
+     apply(#P.Relations,i->testcover(P,P.Relations#i#0,P.Relations#i#1));
+     toList(set(P.Relations)-C)
      )
 
 --input: A poset with any type of relation C (minimal, maximal, etc.)
 --output:  A new poset P with the minimal relations
 
-coveringRelationsPoset:=(P) -> (
+coveringRelationsPoset=(P) -> (
      L=poset(P.GroundSet,coveringRelations(P))
      )
 
@@ -160,23 +160,23 @@ coveringRelationsPoset:=(P) -> (
 --Minimal Element Construction
 --------------------------------------------------
 
-minimalElementIndex:=(P)-> (
+minimalElementIndex=(P)-> (
      M:=RelationMatrix(P);
      nonnull(apply(numcols(M), k-> if (apply(numcols(M), j-> (sum((apply(numrows(M),i-> (transpose(M))_i))))_j))#k==1 then k))
      )
 
-minimalElements:=(P) -> (
+minimalElements=(P) -> (
      L:=minimalElementIndex(P);
      apply(#L,i-> P.GroundSet#(L#i))
      )
 
-PosetMinusMins:=(P)-> (
+PosetMinusMins=(P)-> (
      L:=minimalElements(P);
      K:=fullPoset(P);
      N:=set{};
-     S:=apply(#L, j-> apply(#K.CRelations,i->(K.CRelations#i)#0===L#j));
-     E:=sum set nonnull(apply(#K.CRelations,l->if member(true,set apply(#L,k->S#k#l)) then N=N+set{K.CRelations#l}));
-     C:=toList (set(K.CRelations)-N);
+     S:=apply(#L, j-> apply(#K.Relations,i->(K.Relations#i)#0===L#j));
+     E:=sum set nonnull(apply(#K.Relations,l->if member(true,set apply(#L,k->S#k#l)) then N=N+set{K.Relations#l}));
+     C:=toList (set(K.Relations)-N);
      I:=toList (set(K.GroundSet)-set(L));
      poset(I,C)
      )
@@ -193,7 +193,7 @@ rankingPosetElements:=(P) -> (
 -- input: a poset, and an element from I
 -- output: the order ideal of a, i.e. all elements in the poset that are >= a
 -- usage:
-OrderIdeal:= (P, a) -> (
+OrderIdeal= (P, a) -> (
      M:=RelationMatrix (P);
      aindex := indexElement (P,a);
      GreaterThana:= entries((transpose(M))_aindex);
@@ -204,12 +204,28 @@ OrderIdeal:= (P, a) -> (
 -- input: a poset, and an element from I
 -- output:  the filter of a, i.e. all elements in the poset that are <= a
 -- usage:
-Filter:=(P,a) -> (
+Filter=(P,a) -> (
      M:=RelationMatrix (P);
      aindex := indexElement (P,a);
      LessThana:= entries M_aindex;
      nonnull(apply(#LessThana, i-> if LessThana_i == 1 then P.GroundSet#i))
      )
+
+
+----------------------------------------------------
+--Joins, Meets, Lattices and Atoms
+----------------------------------------------------
+-- inputs: P, poset, and two elements of P.GroundSet
+-- outputs:  the element of P.GroundSet that is the join of these
+
+I = {a,b,c,d,e,f}
+C = {(a,d),(b,d), (b,e), (c,e), (d,f), (e,f)}
+P = poset(I,C)
+
+Joins (P,a,b) -> (
+     OIa := OrderIdeal(P,a)     
+     )
+
 
 
 
