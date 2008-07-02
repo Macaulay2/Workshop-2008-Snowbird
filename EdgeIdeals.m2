@@ -2,15 +2,15 @@ newPackage("EdgeIdeals",
            Version => "0.1",
            Date => "July 1, 2008",
            Authors => {
-											 {Name => "Christopher Francisco", 
+		       {Name => "Christopher Francisco", 
                         Email => "chris@math.okstate.edu",
                         HomePage => "http://www.math.okstate.edu/~chris/"
                        },
-											 {Name => "Andrew Hoefel", 
+		       {Name => "Andrew Hoefel", 
                         Email => "handrew@mathstat.dal.ca",
                         HomePage => "http://andrew.infinitepigeons.org/"
                        },
-											 {Name => "Adam Van Tuyl", 
+		       {Name => "Adam Van Tuyl", 
                         Email => "avantuyl@sleet.lakeheadu.ca",
                         HomePage => "http://flash.lakeheadu.ca/~avantuyl/"
                        }
@@ -21,54 +21,54 @@ newPackage("EdgeIdeals",
 
 export {HyperGraph, 
         hyperGraph, 
-				Graph,
-				graph,
-				isGraph,
+	Graph,
+	graph,
+	isGraph,
         vertices, 
         edges,   
         getEdge,
-				isEdge,
-				getEdgeIndex,
-				complementGraph,
-				inducedGraph,
-				deleteEdges,
-				stanleyReisnerComplex,
-				independenceComplex,
-				cliqueComplex,
-				edgeIdeal,
-				coverIdeal,
-			  isBipartite,
-				isCMHyperGraph,
-			  isSCMHyperGraph,
-				isPerfect,
-				isChordal,
-				isLeaf,
-				isOddHole,
-				isTree,
-				isConnected,
-				cliqueNumber,
-				chromaticNumber,
-				vertexCoverNumber,
-				independenceNumber,
-				numTriangles,
-				degreeVertex,
-				numConnectedComponents,
-				smallestCycleSize,
-				allOddHoles,
-				allEvenHoles,
-				connectedComponents,
-				vertexCovers,
-				neighborSet,
-				getCliques,
-				getMaxCliques,
-				adjacencyMatrix,
-				incidenceMatrix,
-				cycle,
-				completeGraph,
-				completeMultiPartite,
-				antiHole,
-				spanningTree,
-				lineGraph
+	isEdge,
+	getEdgeIndex,
+	complementGraph,
+	inducedGraph,
+	deleteEdges,
+	stanleyReisnerComplex,
+	independenceComplex,
+	cliqueComplex,
+	edgeIdeal,
+	coverIdeal,
+	isBipartite,
+	isCMHyperGraph,
+	isSCMHyperGraph,
+	isPerfect,
+	isChordal,
+	isLeaf,
+	isOddHole,
+	isTree,
+	isConnected,
+	cliqueNumber,
+	chromaticNumber,
+	vertexCoverNumber,
+	independenceNumber,
+	numTriangles,
+	degreeVertex,
+	numConnectedComponents,
+	smallestCycleSize,
+	allOddHoles,
+	allEvenHoles,
+	connectedComponents,
+	vertexCovers,
+	neighborSet,
+	getCliques,
+	getMaxCliques,
+	adjacencyMatrix,
+	incidenceMatrix,
+	cycle,
+	completeGraph,
+	completeMultiPartite,
+	antiHole,
+	spanningTree,
+	lineGraph
         };
 
 needsPackage "SimpleDoc"
@@ -186,6 +186,18 @@ getEdgeIndex (HyperGraph, RingElement) := (H,E) -> (
 
 -- find the complement of G
 complementGraph = method();
+complementGraph Graph := G -> (
+     v = G#"vertices";
+     alledges = set(subsets(v,2));
+     gedges = set G#"edges";
+     gcedges = alledges - gedges;  -- edges of the complement
+     return(graph toList gcedges);
+     )
+
+complementGraph HyperGraph := H -> (
+     hcedge = apply(H#"edges",e-> toList (set(H#"vertices") - set e));  -- create edge set of hypergraph
+     return (hyperGraph toList hcedge);
+     )
 
 -- given a set of vertices, return induced graph on those vertices
 inducedGraph = method();
@@ -683,8 +695,39 @@ doc ///
 		       the independence number (the number of independent vertices) in {\tt G}
         Description
 	        Text
-///		      
+///	
+	      
 
+doc ///
+        Key
+	        complementGraph
+		(complementGraph, Graph)
+		(complementGraph, HyperGraph)
+	Headline
+	        returns the complement of a graph or hypergraph 
+	Usage
+	        g = complementGraph G \n h = complementGraph H
+	Inputs
+	        G:Graph
+		H:HyperGraph
+	Outputs
+	        g:Graph
+		       the complement of G, whose edges are the set of edges not in G
+		h:HyperGraph
+		       the complement of H, whose edge set is found by taking the complement of each
+		       edge of H in the vertex set
+        Description
+	        Text
+		       complementGraph behaves differently on graphs and hypergraphs
+		Example
+		       R = QQ[a,b,c,d,e]	   
+		       c5 = graph {a*b,b*c,c*d,d*e,e*a} -- graph of the 5-cycle
+		       complementGraph c5 -- the graph complement of the 5-cycle
+		       c5hypergraph = hyperGraph c5 -- the 5-cycle, but viewed as a hypergraph
+		       complementGraph c5hypergraph
+	Caveat
+	        Notice that {\tt complementGraph} works differently on graphs versus hypergraphs.
+ ///	
 -----------------------------
 -- Constructor Tests --------
 ------------------------- 0 to 6
@@ -858,6 +901,17 @@ assert(not isLeaf(G,a))
 assert(isLeaf(G,e))
 assert(not isLeaf(H,0))
 assert(isLeaf(I,0))
+///
+
+---------------------------------------
+-- Test complementGraph
+--------------------------------------- 16
+
+TEST///
+R = QQ[a,b,c,d,e]	   
+c5 = graph {a*b,b*c,c*d,d*e,e*a} 
+c5c = graph {a*c,a*d,b*d,b*e,c*e}
+assert(complementGraph c5 === c5c)
 ///
 
 ----------------------------------------------
