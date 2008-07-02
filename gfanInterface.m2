@@ -300,7 +300,7 @@ doc ///
 		(gfan, Ideal)
 		[gfan, Symmetries]
 	Headline
-		all initial monomial ideals of an ideal
+		all initial ideals of an ideal
 	Usage 
 		(M,L) = gfan I
 	Inputs
