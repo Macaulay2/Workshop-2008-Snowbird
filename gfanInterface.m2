@@ -313,13 +313,23 @@ doc ///
 		L:List
 			of all of the initial ideals of I
 	Description
+		Text
+			This method compute the Groebner fan of an ideal, which is a list of all reduced 
+			Groebner bases of an ideal. A particular Grobner basis may occur twice if it
+			is a Groebner basis under multiple term orderings. Rather than marking the each Groebner
+			basis to distinguish the leading terms, a second parallel list is given which contains
+			the lead terms of each Groebner basis.
 		Example
 			R = ZZ/32003[symbol a..symbol d];
 			I = monomialCurveIdeal(R,{1,3,4})
-			time (M,L) = gfan I
+			time (M,L) = gfan I;
 	 		M/toString/print;
 			L/toString/print;
 		Text
+			We can see that the leading terms of
+			{\tt -c^3+b*d^2, -b*c+a*d, a*c^2-b^2*d, -b^3+a^2*c} (which is the first Groebner basis
+			listed in {\tt L}) are {\tt b*d^2, a*d, a*c^2, a^2*c}.
+
 			If the ideal is invariant under some permutation of the variables, then gfan can compute
 			all initial ideals up to this equivalence, which can change an intractible problem to a doable one.
 			The cyclic group of order 4 a --> b --> c --> d --> a leaves the following ideal fixed.
@@ -329,10 +339,12 @@ doc ///
 			(inL,L) = gfan I;
 			#inL
 		Text
-			There are 96 initial ideals of this ideal.  Let's use the symmetry:
+			There are 96 initial ideals of this ideal. We can use the symmetry on the above:
 		Example
 			(inL1, L1) = gfan(I, Symmetries=>{(b,c,d,a,e)});
 			#inL1
+		Text
+			
 	SeeAlso
 		weightVector
 		initialIdeal
@@ -432,6 +444,8 @@ doc ///
 			filename of the xfig file that is produced 
 		I:Ideal 
 			of which to draw the Groebner fan.
+		Symmetries:List
+			a list of symmetries of the ideal.
 	Description
 		Text
 			Renders the Groebner fan of an ideal.
@@ -543,58 +557,78 @@ doc ///
 		gfan
 ///
 
-document {
-	Key => {groebnerCone, (groebnerCone, List,List)},
-	Headline => "the cone whose interior weight vectors give the given initial ideal",
-	Usage => "(C,H) = groebnerCone(inL,L)",
-	Inputs => { "inL" => List => {"of monomials which are to be the lead terms of the elements of ", TT "L"},
-	     "L" => List => "of polynomials"
-	     },
-	Outputs => {
-     	     "C" => {ofClass Matrix, ", the columns are the extremal rays of the Groebner cone"},
-	     "H" => {ofClass Matrix, ", the columns generate the largest linear space contained in the cone"},
-	     },
-	EXAMPLE lines ///
-	  R = ZZ/32003[symbol a..symbol d]
-	  inL = {c^4, b*d^2, b*c, b^2*d, b^3}
-	  L = {c^4-a*d^3, -c^3+b*d^2, b*c-a*d, -a*c^2+b^2*d, b^3-a^2*c}
-	  weightVector(inL,L)
-	  groebnerCone(inL,L)
-	  I = monomialCurveIdeal(R,{1,3,4})
-	  time (inLs,Ls) = gfan I
-	  weightVector(inLs#0, Ls#0)
-     	  scan(#inLs, i -> print weightVector(inLs#i, Ls#i));
-     	  scan(#inLs, i -> print groebnerCone(inLs#i, Ls#i));
-     	///,
-	Caveat => {"In the current implementation, it might be possible that a positive vector exists, but the algorithm fails to find it.  In this 
-	     case, use groebnerCone and find one by hand.  You might want to email the package author to complain too!"},
-	SeeAlso => {"gfan", "initialIdeal", "groebnerCone"}
-	}
+doc ///
+	Key
+		groebnerCone
+		(groebnerCone, List,List)
+	Headline
+		the cone whose interior weight vectors give the given initial ideal
+	Usage 
+		(C,H) = groebnerCone(inL,L)
+	Inputs 
+		inL:List 
+			of monomials which are to be the lead terms of the elements of {\tt L}
+		L:List 
+			of polynomials
+	Outputs 
+		C:Matrix
+			the columns are the extremal rays of the Groebner cone
+	  H:Matrix
+			the columns generate the largest linear space contained in the cone
+	Description
+		Example
+			R = ZZ/32003[symbol a..symbol d]
+			inL = {c^4, b*d^2, b*c, b^2*d, b^3}
+			L = {c^4-a*d^3, -c^3+b*d^2, b*c-a*d, -a*c^2+b^2*d, b^3-a^2*c}
+			weightVector(inL,L)
+			groebnerCone(inL,L)
+			I = monomialCurveIdeal(R,{1,3,4})
+			time (inLs,Ls) = gfan I
+			weightVector(inLs#0, Ls#0)
+			scan(#inLs, i -> print weightVector(inLs#i, Ls#i));
+			scan(#inLs, i -> print groebnerCone(inLs#i, Ls#i));
+	SeeAlso 
+		gfan
+		initialIdeal	
+		weightVector
+///
 
-document {
-	Key => {initialIdeal, (initialIdeal, List,Ideal), (initialIdeal, Ideal)},
-	Headline => "initial ideal with respect to a weight vector",
-	Usage => "initialIdeal(w,I) or initialIdeal(I)",
-	Inputs => { "w" => List => {"a positive weight vector"},
-	     "I" => Ideal => "in a polynomial ring (not a quotient ring)"
-	     },
-	Outputs => {
-	     {"the ideal of lead polynomials under this weight vector"}
-	     },
-        "The weight vector should be totally positive, even in the homogeneous case.  
-	The result may or may not be a monomial ideal. When a weight vector is not specified, this
-	simply uses the current term order.",
-	EXAMPLE lines ///
-	  R = ZZ/32003[symbol a..symbol d]
-	  inL = {c^4, b*d^2, b*c, b^2*d, b^3}
-	  L = {c^4-a*d^3, -c^3+b*d^2, b*c-a*d, -a*c^2+b^2*d, b^3-a^2*c}
-	  weightVector(inL,L)
-	  groebnerCone(inL,L)
-	  initialIdeal({8,8,3,1},ideal L)
-	  initialIdeal({5,5,2,1},ideal L)
-	  ///,
-	SeeAlso => {"gfan", "weightVector", "groebnerCone"}
-	}
+doc ///
+	Key
+		initialIdeal
+		(initialIdeal, List,Ideal)
+		(initialIdeal, Ideal)
+	Headline 
+		initial ideal with respect to a weight vector
+	Usage 
+		M = initialIdeal(w,I) or M = initialIdeal(I)
+	Inputs 
+		w:List
+			a positive weight vector
+		I:Ideal
+			in a polynomial ring (not a quotient ring)
+	Outputs
+		M:Ideal
+			the ideal of lead polynomials under this weight vector
+        
+	Description
+		Text
+			The weight vector should be totally positive, even in the homogeneous case.  
+			The result may or may not be a monomial ideal. When a weight vector is not specified, this
+			simply uses the current term order.
+		Example
+			R = ZZ/32003[symbol a..symbol d]
+			inL = {c^4, b*d^2, b*c, b^2*d, b^3}
+			L = {c^4-a*d^3, -c^3+b*d^2, b*c-a*d, -a*c^2+b^2*d, b^3-a^2*c}
+			weightVector(inL,L)
+			groebnerCone(inL,L)
+			initialIdeal({8,8,3,1},ideal L)
+			initialIdeal({5,5,2,1},ideal L)
+	SeeAlso 
+		gfan
+		weightVector
+		groebnerCone
+///
 
 ---Basic explicit test of gfan
 TEST ///
