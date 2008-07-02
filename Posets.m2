@@ -52,27 +52,6 @@ C2={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(a,e),(a,f),(e,f)}
 P2=newPoset(I2,C2)
 
 
--- input: A poset
--- output: a matrix indexed by I that has non zero entries for each pair of relations
--- usage:  RelationMatrix,compare
-FullRelationMatrix:= (P) -> (
-     M:=matrix apply (#P.GroundSet, i-> apply(#P.GroundSet, j-> if member((I#i,I#j), P.CRelations) then 1 else if i==j then 1 else 0));
-     n:=#I;
-     N:=M^n 
-     )
-
---input:  A matrix or a poset
---output:  A matrix with ones in all the non-zero entries
---usage:
-RelationMatrix = method()
-RelationMatrix(Matrix):= (M) -> (
-     N=matrix apply(numrows M, i-> apply(numcols M, j-> if (M_j)_i==0 then 0 else 1))
-     )
-RelationMatrix(Poset):=(P) -> (
-     M:= FullRelationMatrix(P);
-     N=RelationMatrix(M)
-     )
-
 -- input: a poset, and an element A from I
 -- output:  the index of A in the ground set of P
 -- usage: compare, OrderIdeal 
@@ -86,13 +65,31 @@ nonnull:=(L) -> (
      select(L, i-> i =!= null))
 
 
--- input:  A poset, and two elements A and B from I
--- output: true if A<= B, false else
-compare:= (P,A,B) -> (
-     N:=FullRelationMatrix(P);
-     Aindex:=indexElement(P,A);
-     Bindex:=indexElement(P,B);
-          if N_Bindex_Aindex==0 then false else true
+--------------------------------------------------
+--Transitive Closure and Element Inclusion
+--------------------------------------------------
+
+-- input: A poset
+-- output: a matrix indexed by I that has non zero entries for each pair of relations
+-- usage:  RelationMatrix,compare
+FullRelationMatrix:= (P) -> (
+     M:=matrix apply (#P.GroundSet, i-> apply(#P.GroundSet, j-> if member((I#i,I#j), P.CRelations) then 1 else if i==j then 1 else 0));
+     n:=#I;
+     N:=M^n 
+     )
+
+RelationMatrix(P)
+
+--input:  A matrix or a poset
+--output:  A matrix with ones in all the non-zero entries
+--usage:
+RelationMatrix = method()
+RelationMatrix(Matrix):= (M) -> (
+     N=matrix apply(numrows M, i-> apply(numcols M, j-> if (M_j)_i==0 then 0 else 1))
+     )
+RelationMatrix(Poset):=(P) -> (
+     M:= FullRelationMatrix(P);
+     N=RelationMatrix(M)
      )
 
 --input: A poset with any type of relation C (minimal, maximal, etc.)
@@ -111,12 +108,23 @@ fullPoset:= (P) -> (
      L = newPoset(P.GroundSet,fullPosetRelation(P)) 
 )
 
+-- input:  A poset, and two elements A and B from I
+-- output: true if A<= B, false else
+compare:= (P,A,B) -> (
+     N:=FullRelationMatrix(P);
+     Aindex:=indexElement(P,A);
+     Bindex:=indexElement(P,B);
+          if N_Bindex_Aindex==0 then false else true
+     )
+
+--------------------------------------------------
+--Covering Relations
+--------------------------------------------------
 
 testcover=(P,A,B) -> (
      L:=newPoset(P.GroundSet,fullPosetRelation(P));
-     k:=#L.GroundSet-2;
-     
-     
+     k:=#L.GroundSet-2; 
+         
      if sum(nonnull(apply(k, i-> if compare(L,A,(toList(set(L.GroundSet)-{A,B}))_i)==true and
 	       compare(L,(toList(set(L.GroundSet)-{A,B}))_i,B)==true
 	       then 1)))=!=0 then C=C+set{(A,B)};
@@ -139,6 +147,35 @@ coveringRelationsPoset:=(P) -> (
      L=newPoset(P.GroundSet,coveringRelations(P))
      )
 
+--------------------------------------------------
+--Minimal Element Construction
+--------------------------------------------------
+
+minimalElementIndex:=(P)-> (
+     M:=RelationMatrix(P);
+     nonnull(apply(numcols(M), k-> if (apply(numcols(M), j-> (sum((apply(numrows(M),i-> (transpose(M))_i))))_j))#k==1 then k))
+     )
+
+minimalElements:=(P) -> (
+     L:=minimalElementIndex(P);
+     apply(#L,i-> P.GroundSet#(L#i))
+     )
+
+PosetMinusMins:=(P)-> (
+     L:=minimalElements(P);
+     K:=fullPoset(P);
+     N:=set{};
+     S:=apply(#L, j-> apply(#K.CRelations,i->(K.CRelations#i)#0===L#j));
+     E:=sum set nonnull(apply(#K.CRelations,l->if member(true,set apply(#L,k->S#k#l)) then N=N+set{K.CRelations#l}));
+     C:=toList (set(K.CRelations)-N);
+     I:=toList (set(K.GroundSet)-set(L));
+     newPoset(I,C)
+     )
+
+
+--------------------------------------------------
+--Order and Filter Ideals
+--------------------------------------------------
 
 -- input: a poset, and an element from I
 -- output: the order ideal of a, i.e. all elements in the poset that are >= a
@@ -172,7 +209,6 @@ document { Key => Poset,
      math.AC/0611081, \"Graded Betti numbers of Cohen-Macaulay modules and 
      the Multiplicity conjecture\", by Mats Boij, Jonas Soederberg."
                     }
-
 end
 
 document { 
