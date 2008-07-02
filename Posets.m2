@@ -14,24 +14,23 @@ newPackage(
 export {
      Poset,
      poset,
-     FullRelationMatrix,
+     DirectedGraph,
+     directedGraph,
+     allPairsShortestPath,
+     transitiveClosure,
+--     FullRelationMatrix,
      RelationMatrix,
-     fullPosetRelation,
-     fullPoset,
-     coveringRelations,
-     coveringRelationsPoset,
      compare,
      indexElement,
      nonnull,
-     minimalElements,
-     PosetMinusMins,
-     rankingPosetElements,
      OrderIdeal,
      Filter,
-     Relations,
+     Relations
      GroundSet,
+     Edges,
      PosetMeet,
-     PosetJoin}
+     PosetJoin
+     }
 
 
 
@@ -42,15 +41,68 @@ poset(List,List) := (I,C) ->
      new Poset from {
 	 symbol GroundSet => I,
 	 symbol Relations => C,
+     	 symbol RelationMatrix => transitiveClosure(I,C),
 	 symbol cache => CacheTable
 	 }
     
+-------------
+    
+DirectedGraph = new Type of HashTable
+ 
+directedGraph = method()
+directedGraph(List, List) := (I,C) ->
+     new DirectedGraph from {
+     	  symbol GroundSet => I,
+     	  symbol Edges => C,
+	  symbol cache => CacheTable
+     }
+
+--------------
+
+--inputs: (I,C), I is a List (ground set) and C is a List of pairs of elements in I
+--     	     OR DirectedGraph OR Poset
+--output: a matrix whose rows and columns are indexed by I, 
+--     	    where (i,j) entry is infinity (i.e. 1/0.) if (i,j) is not in C
+--     	    and 1 otherwise (i.e. tropicalization of the "usual" adjacency matrix)
+--caveat: diagonal entries are 0
+
+adjacencyMatrix = method()
+adjacencyMatrix(List,List) := Matrix => (I, C) -> (
+     M := mutableMatrix table(#I, #I, (i,j)->1/0.);
+     ind := hashTable( apply(I, i-> i=> position(I,j-> j==i) )  ); --indices 
+     scan(C, e -> M_(ind#(e#0), ind#(e#1))= 1);
+     scan(numrows M, i-> M_(i,i) = 0);
+     matrix M      
+     )
+adjacencyMatrix(DirectedGraph) := Matrix => (G) -> adjacencyMatrix(G.GroundSet,G.Edges)
+adjacencyMatrix(Poset) := Matrix => (P) -> adjacencyMatrix(P.GroundSet,P.Relations)
+
+--input: adjacency matrix of a directed graph
+--output: a matrix whose (i,j) entry is the length of the shortest path from i to j
+--algorithm: Floyd–Warshall algorithm for all pairs shortest path
+allPairsShortestPath = method()
+allPairsShortestPath(Matrix) := Matrix => (A) -> (
+     D := mutableMatrix(A);
+     n := numrows D;
+     scan(n, k->
+	       table(n,n,(i,j)-> D_(i,j) = min(D_(i,j), D_(i,k)+D_(k,j)))
+	  );
+     matrix D
+     )
+allPairsShortestPath(DirectedGraph) := Matrix => (G)-> allPairsShortestPath(adjacencyMatrix(G))
+
 
 
 -- some toy examples
 I={a,b,c,d,e,f,g,h}
 C={(a,b),(a,c),(a,d),(b,e),(b,f),(c,e),(c,g),(d,f),(d,g),(e,h),(f,h),(g,h)}
 P=poset(I,C)
+G=directedGraph(I,C)
+A=adjacencyMatrix(I,C)
+allPairsShortestPath(A)
+adjacencyMatrix(G)
+adjacencyMatrix(P)
+transitiveClosure(I,C)
 
 I1={a,b,c,d,e,f}
 C1={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(e,f)}
@@ -66,13 +118,13 @@ P2=poset(I2,C2)
 -- input: a poset, and an element A from I
 -- output:  the index of A in the ground set of P
 -- usage: compare, OrderIdeal 
-indexElement= (P,A) -> (
-      nonnull apply(#P.GroundSet, i-> if P.GroundSet#i == A then i))
+indexElement:= (P,A) -> (
+      sum apply(#P.GroundSet, i-> if P.GroundSet#i == A then i else 0))
 
 -- input:  a list, potentially with nulls
 -- output:  a list w/out nulls
 -- usage:  OrderIdeal, Filter
-nonnull=(L) -> (
+nonnull:=(L) -> (
      select(L, i-> i =!= null))
 
 
@@ -80,53 +132,50 @@ nonnull=(L) -> (
 --Transitive Closure and Element Inclusion
 --------------------------------------------------
 
--- input: A poset
--- output: a matrix indexed by I that has non zero entries for each pair of relations
--- usage:  RelationMatrix,compare
-FullRelationMatrix= (P) -> (
-     M:=matrix apply (#P.GroundSet, i-> 
-	  apply(#P.GroundSet, j-> if member((P.GroundSet#i,P.GroundSet#j), P.Relations) then 1 else if i==j then 1 else 0));
-     n:=#P.GroundSet;
-     N:=M^n 
+--input: (I,C).  I=List, ground set.  C=List, pairs
+--output: matrix where 1 in (i,j) position where i <= j, 0 otherwise
+transitiveClosure = method()
+transitiveClosure(List,List) := List => (I,C)-> (
+     A := adjacencyMatrix(I,C);
+     D := mutableMatrix allPairsShortestPath(A);
+     scan(numrows D, i-> D_(i,i) = 0);
+     table(numrows D, numrows D, (i,j)->(
+	  if D_(i,j) ==1/0. then D_(i,j) = 0 else D_(i,j) = 1;	  
+	  )
+	  );
+     matrix D
      )
 
+--FullRelationMatrix:= (P) -> (     
+  --   M:=matrix apply (#P.GroundSet, i-> 
+	--  apply(#P.GroundSet, j-> if member((P.GroundSet#i,P.GroundSet#j), P.CRelations) then 1 else if i==j then 1 else 0));
+  --   n:=#P.GroundSet;
+  --   N:=M^n 
+  --     )
 
-
---input:  A matrix or a poset
---output:  A matrix with ones in all the non-zero entries
---usage: Joins
-RelationMatrix = method()
-RelationMatrix(Matrix):= (M) -> (
-     N=matrix apply(numrows M, i-> apply(numcols M, j-> if (M_j)_i==0 then 0 else 1))
-     )
-RelationMatrix(Poset):=(P) -> (
-     M:= FullRelationMatrix(P);
-     N=RelationMatrix(M)
-     )
 
 --input: A poset with any type of relation C (minimal, maximal, etc.)
 --output:  The transitive closure of relations in C in our poset
 
-fullPosetRelation= (P) -> (
+fullPosetRelation:= (P) -> (
      M:=RelationMatrix(P);
      L = toList sum apply(numrows(M), i-> set(nonnull(apply(numrows(M), 
-	       j-> if (M_j)_i=!=0 and i=!=j then (P.GroundSet#i,P.GroundSet#j)))))
+	       j-> if (M_j)_i=!=0 and i=!=j then (P.GroundSet#i,I#j)))))
      )
 
 --input: A poset P with any type of relation C (minimal, maximal, etc.)
 --output:  The poset P' on the same ground set with the transitive closure of C
 
-fullPoset= (P) -> (
+fullPoset:= (P) -> (
      L = poset(P.GroundSet,fullPosetRelation(P)) 
 )
 
 -- input:  A poset, and two elements A and B from I
 -- output: true if A<= B, false else
-compare= (P,A,B) -> (
-     N:=FullRelationMatrix(P);
+compare:= (P,A,B) -> (
      Aindex:=indexElement(P,A);
      Bindex:=indexElement(P,B);
-          if N_Bindex_Aindex==0 then false else true
+          if P.RelationMatrix_Bindex_Aindex==0 then false else true
      )
 
 --------------------------------------------------
@@ -146,16 +195,16 @@ testcover=(P,A,B) -> (
 --input: A poset with any type of relation C (minimal, maximal, etc.)
 --output: The minimal relations defining our poset
 
-coveringRelations=(P) -> (
+coveringRelations:=(P) -> (
      C=set{};
-     apply(#P.Relations,i->testcover(P,P.Relations#i#0,P.Relations#i#1));
-     toList(set(P.Relations)-C)
+     apply(#P.CRelations,i->testcover(P,P.CRelations#i#0,P.CRelations#i#1));
+     toList(set(P.CRelations)-C)
      )
 
 --input: A poset with any type of relation C (minimal, maximal, etc.)
 --output:  A new poset P with the minimal relations
 
-coveringRelationsPoset=(P) -> (
+coveringRelationsPoset:=(P) -> (
      L=poset(P.GroundSet,coveringRelations(P))
      )
 
@@ -163,31 +212,28 @@ coveringRelationsPoset=(P) -> (
 --Minimal Element Construction
 --------------------------------------------------
 
-minimalElementIndex=(P)-> (
+minimalElementIndex:=(P)-> (
      M:=RelationMatrix(P);
      nonnull(apply(numcols(M), k-> if (apply(numcols(M), j-> (sum((apply(numrows(M),i-> (transpose(M))_i))))_j))#k==1 then k))
      )
 
-minimalElements=(P) -> (
+minimalElements:=(P) -> (
      L:=minimalElementIndex(P);
      apply(#L,i-> P.GroundSet#(L#i))
      )
 
-PosetMinusMins=(P)-> (
+PosetMinusMins:=(P)-> (
      L:=minimalElements(P);
      K:=fullPoset(P);
      N:=set{};
-     S:=apply(#L, j-> apply(#K.Relations,i->(K.Relations#i)#0===L#j));
-     E:=sum set nonnull(apply(#K.Relations,l->if member(true,set apply(#L,k->S#k#l)) then N=N+set{K.Relations#l}));
-     C:=toList (set(K.Relations)-N);
+     S:=apply(#L, j-> apply(#K.CRelations,i->(K.CRelations#i)#0===L#j));
+     E:=sum set nonnull(apply(#K.CRelations,l->if member(true,set apply(#L,k->S#k#l)) then N=N+set{K.CRelations#l}));
+     C:=toList (set(K.CRelations)-N);
      I:=toList (set(K.GroundSet)-set(L));
      poset(I,C)
      )
 
---rankingPosetElements:=(P) -> (
---     i:=0;
---     while i<#P.GroundSet list (i,minimalElements(P)) do (P:=PosetMinusMins(P);i:=i+1)
---     )
+
 
 --------------------------------------------------
 --Order and Filter Ideals
@@ -195,8 +241,8 @@ PosetMinusMins=(P)-> (
 
 -- input: a poset, and an element from I
 -- output: the order ideal of a, i.e. all elements in the poset that are >= a
--- usage: joins
-OrderIdeal= (P, a) -> (
+-- usage:
+OrderIdeal:= (P, a) -> (
      M:=RelationMatrix (P);
      aindex := indexElement (P,a);
      GreaterThana:= entries((transpose(M))_aindex);
@@ -207,7 +253,7 @@ OrderIdeal= (P, a) -> (
 -- input: a poset, and an element from I
 -- output:  the filter of a, i.e. all elements in the poset that are <= a
 -- usage:
-Filter=(P,a) -> (
+Filter:=(P,a) -> (
      M:=RelationMatrix (P);
      aindex := indexElement (P,a);
      LessThana:= entries M_aindex;
@@ -243,20 +289,6 @@ PosetMeet = (P,a,b) ->(
      	  lowerBounds_{position (L, l -> l == max L)})
      )
 
-notI = {a,b,c,d,e,f}
-notC = {(a,d),(b,d),(b,e),(c,e),(e,f)}
-notL = poset(notI, notC)
-
-PosetJoin(notL, a,b)
-PosetMeet(notL, d,f)
-
---inputs:  P a poset
---output:  a boolean value true if it is a Lattice false if not
-
---isLattice = (P) -> (
---     apply(P.GroundSet, i-> apply (P.GroundSet, j-> 
-
-----------------------------------
 
 beginDocumentation()
 
