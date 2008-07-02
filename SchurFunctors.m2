@@ -261,7 +261,7 @@ maxFilling (List,ZZ) := (p,d)->(
 restart
 loadPackage "SchurFunctors"
 debug SchurFunctors
-maxFilling({4,3,3,2}, 6)
+maxFilling({5,3,3,2}, 6)
 ///
 character = method()
 character (List, ZZ) := (L,d)->(
@@ -311,11 +311,17 @@ find=(T,d,F)->(
 
 d=3
 F=G
-weight = method()
-weight (Filling, List) := (T,D) -> (
-     2*3--2^3, 2*3^2, 2*3
-     )
 
+weight = method()
+weight (Filling, List) := (T,D) -> product(flatten toList T, i->D#i);
+
+///
+restart
+loadPackage "SchurFunctors"
+debug SchurFunctors
+T = maxFilling({4,3,3,2}, 6)
+weight(T, {1,1,1,1,1,2})
+///
 
 simpleFind=(d,F)->(
      Trans:=Transvections(d);
