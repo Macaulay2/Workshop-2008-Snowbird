@@ -1,10 +1,21 @@
+----------------------------------------------------
+----------------------------------------------------
+-- previous version: 0.2 30Jun08
+-- author: Mike Stillman -- core
+-- author: Josephine Yu -- all remaining functions; documentation
+-- editor: Sonja Petrovic -- interface for windows; edited documentation; tests
+-- latest update: 1Jul08
+----------------------------------------------------
+----------------------------------------------------
+
 newPackage(
 	"FourTiTwo",
-    	Version => "0.2", 
-    	Date => "June 30, 2008",
+    	Version => "0.3", 
+    	Date => "July 1, 2008",
     	Authors => {
 	     {Name => "Mike Stillman", Email => "mike@math.cornell.edu", HomePage => ""},
-	     {Name => "Josephine Yu", Email => "jyu@math.mit.edu", HomePage => ""}
+	     {Name => "Josephine Yu", Email => "jyu@math.mit.edu", HomePage => ""},
+	     {Name => "Sonja Petrovic", Email => "petrovic@ms.uky.edu", HomePage => ""}
 	     },
     	Headline => "Interface to the 4ti2 package",
 	Configuration => { "path" => "",
@@ -26,7 +37,21 @@ export {
      InputType
      }
 
-path'4ti2 = FourTiTwo#Options#Configuration#"path"
+--  this was the option on MacOS:
+--path'4ti2 = FourTiTwo#Options#Configuration#"path"
+--  this is the option on my windows:
+path'4ti2 = " 4ti2_v1.3.1/win32/" --this is where I've put the 4ti2 executables!
+-- ??
+-- note i can see "cygdrive/c" ....and the rest of c-drive!! it is located ABOVE "home" directory of cygwin.
+
+-- the following command is necessary to be run under windows-cygwin:
+-- externalPath = value Core#"private dictionary"#"externalPath"
+temppath = value Core#"private dictionary"#"externalPath"
+externalPath = demark("/",separate(///\///, value ///temppath/// )) --this is to ensure 
+               --  that the slashes/backslashes are not the wrong way.
+-- otherwise, the temporary files won't be found. 
+-- note in linux this is just the null string so it doesn't make a difference.
+
 
 getFilename = () -> (
      filename := temporaryFileName();
@@ -85,7 +110,8 @@ markovBasis Matrix := Matrix => o -> (A) -> (
        	  F = openOut(filename|".mat");
      putMatrix(F,A);
      close F;
-     execstr = path'4ti2|"markov -q "|filename;
+     execstr = path'4ti2|"markov -q " |externalPath |filename; --added externalPath
+     -- execstr = path'4ti2|"4ti2int32 markov -q "|filename; -- for windows!!! (if not w/ cygwin)
      ret := run(execstr);
      if ret =!= 0 then error "error occurred while executing external program 4ti2: markov";
      getMatrix(filename|".mar")
@@ -102,7 +128,8 @@ toricGB Matrix := o -> (A) -> (
 	  cost = concatenate apply(o.Weights, x -> (x|" "));
 	  (filename|".cost") << "1 " << #o.Weights << endl << cost << endl  << close;
 	  );
-     execstr = path'4ti2|"groebner -q "|filename;
+     execstr = path'4ti2|"groebner -q "|externalPath|filename; 
+          -- execstr command changed to incorporate cygwin options (added string externalPath)
      ret := run(execstr);
      if ret =!= 0 then error "error occurred while executing external program 4ti2: groebner";
      getMatrix(filename|".gro")
@@ -116,7 +143,7 @@ circuits Matrix := Matrix => (A ->(
      F := openOut(filename|".mat");
      putMatrix(F,A);
      close F;
-     execstr = path'4ti2|"circuits -q " | filename;
+     execstr = path'4ti2|"circuits -q " | externalPath | filename;--added externalPath
      ret := run(execstr);
      if ret =!= 0 then error "error occurred while executing external program 4ti2: circuits";
      getMatrix(filename|".cir")
@@ -129,7 +156,7 @@ graverBasis Matrix := Matrix => (A ->(
      F := openOut(filename|".mat");
      putMatrix(F,A);
      close F;
-     execstr = path'4ti2|"graver -q " | filename;
+     execstr = path'4ti2|"graver -q " | externalPath | filename;
      ret := run(execstr);
      if ret =!= 0 then error "error occurred while executing external program 4ti2: graverBasis";
      getMatrix(filename|".gra")
@@ -146,7 +173,7 @@ hilbertBasis Matrix := Matrix => o -> (A ->(
        	  F = openOut(filename|".mat");
      putMatrix(F,A);
      close F;
-     execstr = path'4ti2|"hilbert -q " | filename;
+     execstr = path'4ti2|"hilbert -q " |externalPath | filename;
      ret := run(execstr);
      if ret =!= 0 then error "error occurred while executing external program 4ti2: hilbertBasis";
      getMatrix(filename|".hil")
@@ -160,7 +187,7 @@ rays Matrix := Matrix => (A ->(
      F := openOut(filename|".mat");
      putMatrix(F,A);
      close F;
-     execstr = path'4ti2|"rays -q " | filename;
+     execstr = path'4ti2|"rays -q " |externalPath | filename;
      ret := run(execstr);
      if ret =!= 0 then error "error occurred while executing external program 4ti2: rays";
      getMatrix(filename|".ray")
@@ -178,6 +205,10 @@ doc ///
      Description
           Text
 	       Interfaces most of the functionality of the software {\tt 4ti2} available at  {\tt http://www.4ti2.de/}
+	       
+	       {\bf IMPORTANT for windows/cygwin users:} Your 4ti2 must be installed inside the cygwin directory, otherwise it cannot be found under cygwin!
+	       
+	       Add: matrix represents a binomial in the following way:... blablabla
 ///;
 
 doc ///
@@ -199,7 +230,7 @@ doc ///
 	     2 4<br>
 	     1 1 1 1<br>
 	     1 2 3 4<br>
-	     The first two numbers and the numbers of rows and columns.
+	     The first two numbers are the numbers of rows and columns.
     SeeAlso
 	putMatrix
 ///;
@@ -209,7 +240,7 @@ doc ///
 	  putMatrix
      	  (putMatrix,File,Matrix)
      Headline
-     	  writes a 4ti2 format matrix in a file.
+     	  writes a matrix into a file formatted for 4ti2
      Usage
      	  putMatrix(F,A)
      Inputs
@@ -234,6 +265,8 @@ doc ///
      Key
           toBinomial
      	  (toBinomial, Matrix, Ring)	  
+     Headline
+     	  creates a toric ideal from a given exponents of its generators
      Usage
      	  toBinomial(M,R)
      Inputs
@@ -259,10 +292,13 @@ doc ///
           (toricGB, Matrix)
      	  (toricGB, Matrix, Ring)
      	  [toricGB, Weights]
+     Headline
+     	  calculates a Groebner basis of the toric ideal I_A, given A; equivalent to "groebner" in 4ti2
      Usage
      	  toricGB(A) or toricGB(A,R)
      Inputs
       	  A:Matrix    
+	       whose columns parametrize the toric variety. The toric ideal I_A is the kernel of the map defined by {\tt A}.
      Outputs
      	  B:Matrix 
 	       whose rows give binomials that form a Groebner basis of the toric ideal of {\tt A}
@@ -283,12 +319,17 @@ doc ///
      	  markovBasis
           (markovBasis, Matrix)
 	  [markovBasis, InputType]
+     Headline
+     	  calculates a generating set of the toric ideal I_A, given A; equivalent to "markov" in 4ti2
      Usage
      	  markovBasis(A) or markovBasis(A, InputType => "lattice")
      Inputs
       	  A:Matrix
+	       whose columns parametrize the toric variety; the toric ideal is the kernel of the map defined by {\tt A}.
+	       Otherwise, if InputType is set to "lattice", the rows of {\tt A} are a lattice basis and the toric ideal is the 
+	       saturation of the lattice basis ideal.
 	  s:InputType
-	       which is the string "lattice" if rows of {\tt A} specify a lattice basis     
+	       which is the string "lattice" if rows of {\tt A} specify a lattice basis
      Outputs
      	  B:Matrix 
 	       whose rows form a Markov Basis of the lattice \{z integral : A z = 0\}
@@ -307,10 +348,13 @@ doc ///
      	  graverBasis
           (graverBasis, Matrix)
      	  (graverBasis, Matrix, Ring)
+     Headline
+     	  calculates the Graver basis of the toric ideal; equivalent to "graver" in 4ti2
      Usage
      	  graverBasis(A) or graverBasis(A,R)
      Inputs
       	  A:Matrix    
+	       whose columns parametrize the toric variety. The toric ideal I_A is the kernel of the map defined by {\tt A}
      Outputs
      	  B:Matrix 
 	       whose rows give binomials that form the Graver basis of the toric ideal of {\tt A}, or
@@ -330,13 +374,16 @@ doc ///
      	  hilbertBasis
           (hilbertBasis, Matrix)
 	  [hilbertBasis, InputType]
+     Headline
+     	  calculates the Hilbert basis of the cone; equivalent to "hilbert" in 4ti2
      Usage
      	  hilbertBasis(A) or hilbertBasis(A, InputType => "lattice")
      Inputs
       	  A:Matrix    
+	       defining the cone \{z : Az = 0, z >= 0 \}
      Outputs
      	  B:Matrix 
-	       whose rows form the Hilbert basis of the cone \{z : Az = 0, z >= 0 \}
+	       whose rows form the Hilbert basis of the cone \{z : Az = 0, z >= 0 \}      
 	       or the cone \{z A : z is an integral vector and z A >= 0\} if {\tt InputType => "lattice"} is used
      Description
 	  Example
@@ -352,10 +399,13 @@ doc ///
      Key
      	  rays
           (rays, Matrix)
+     Headline
+     	  calculates the extreme rays of the cone; equivalent to "rays" in 4ti2
      Usage
      	  rays(A)
      Inputs
-      	  A:Matrix    
+      	  A:Matrix   
+	       defining the cone \{z : Az = 0, z >= 0 \}
      Outputs
      	  B:Matrix 
 	       whose rows are the extreme rays of the cone \{z : Az = 0, z >= 0 \}
@@ -373,10 +423,13 @@ doc ///
      Key
      	  circuits
           (circuits, Matrix)
+     Headline
+     	  calculates the circuits of the toric ideal; equivalent to "circuits" in 4ti2
      Usage
      	  circuits(A)
      Inputs
       	  A:Matrix    
+               whose columns parametrize the toric variety. The toric ideal I_A is the kernel of the map defined by {\tt A} 
      Outputs
      	  B:Matrix 
 	       whose rows form the circuits of A
@@ -400,19 +453,22 @@ doc ///
 
 
 
-TEST ///
-
-     
+TEST ///     
 ///
+
 
 end
 
+
 restart
-load "4ti2.m2"
-installPackage ("FourTiTwo", RemakeAllDocumentation => true)
+--load "4ti2.m2"
+installPackage ("FourTiTwo", RemakeAllDocumentation => true, UserMode=>true)
 viewHelp FourTiTwo
 
+
+
 debug FourTiTwo
+
 
 A = matrix{{1,1,1,1},{0,1,2,3}}
 A = matrix{{1,1,1,1},{0,1,3,4}}
