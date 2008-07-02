@@ -29,7 +29,9 @@ export {
      OrderIdeal,
      Filter,
      Relations,
-     GroundSet}
+     GroundSet,
+     PosetMeet,
+     PosetJoin}
 
 
 
@@ -65,7 +67,7 @@ P2=poset(I2,C2)
 -- output:  the index of A in the ground set of P
 -- usage: compare, OrderIdeal 
 indexElement= (P,A) -> (
-      sum apply(#P.GroundSet, i-> if P.GroundSet#i == A then i else 0))
+      nonnull apply(#P.GroundSet, i-> if P.GroundSet#i == A then i))
 
 -- input:  a list, potentially with nulls
 -- output:  a list w/out nulls
@@ -92,7 +94,7 @@ FullRelationMatrix= (P) -> (
 
 --input:  A matrix or a poset
 --output:  A matrix with ones in all the non-zero entries
---usage:
+--usage: Joins
 RelationMatrix = method()
 RelationMatrix(Matrix):= (M) -> (
      N=matrix apply(numrows M, i-> apply(numcols M, j-> if (M_j)_i==0 then 0 else 1))
@@ -193,7 +195,7 @@ PosetMinusMins=(P)-> (
 
 -- input: a poset, and an element from I
 -- output: the order ideal of a, i.e. all elements in the poset that are >= a
--- usage:
+-- usage: joins
 OrderIdeal= (P, a) -> (
      M:=RelationMatrix (P);
      aindex := indexElement (P,a);
@@ -218,20 +220,43 @@ Filter=(P,a) -> (
 ----------------------------------------------------
 -- inputs: P, poset, and two elements of P.GroundSet
 -- outputs:  the element of P.GroundSet that is the join of these
-
-I = {a,b,c,d,e,f}
-C = {(a,d),(b,d), (b,e), (c,e), (d,f), (e,f)}
-P = poset(I,C)
-
---Joins (P,a,b) -> (
---     OIa := OrderIdeal(P,a)     
---     OIb := OrderIdeal(P,b)
---     upperBounds := toList (set(OIa)*set(OIb))
---     P.Relations
---     )
+-- usage:
+PosetJoin = (P,a,b) -> (
+     OIa := OrderIdeal(P,a);     
+     OIb := OrderIdeal(P,b);
+     upperBounds := toList (set(OIa)*set(OIb));
+     if upperBounds == {} then (print "there is no Join here") else (M := RelationMatrix(P);
+     	  L := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
+     	  upperBounds_{position (L, l -> l == min L)})
+     )
 
 
+--inputs:  P a poset, and 2 elements of P.GroundSet
+--outputs:  the element in P.GroundSet that is the meet of these
+-- usage:
+PosetMeet = (P,a,b) ->(
+     Fa:= Filter(P,a);
+     Fb:= Filter(P,b);
+     lowerBounds:= toList (set(Fa)*set(Fb));
+     if lowerBounds == {} then (print "there is no Meet here") else (M := RelationMatrix(P);
+     	  L := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
+     	  lowerBounds_{position (L, l -> l == max L)})
+     )
 
+notI = {a,b,c,d,e,f}
+notC = {(a,d),(b,d),(b,e),(c,e),(e,f)}
+notL = poset(notI, notC)
+
+PosetJoin(notL, a,b)
+PosetMeet(notL, d,f)
+
+--inputs:  P a poset
+--output:  a boolean value true if it is a Lattice false if not
+
+--isLattice = (P) -> (
+--     apply(P.GroundSet, i-> apply (P.GroundSet, j-> 
+
+----------------------------------
 
 beginDocumentation()
 
