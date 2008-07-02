@@ -1,12 +1,17 @@
+needsPackage "Polymake"
+
 newPackage(
 	"gfanInterface",
-    	Version => "0.1", 
-    	Date => "March 11, 2007",
+    	Version => "0.2", 
+    	Date => "July 2, 2008",
     	Authors => {
-	     {Name => "Mike Stillman", Email => "mike@math.cornell.edu", HomePage => ""}
+	     {Name => "Mike Stillman", Email => "mike@math.cornell.edu", HomePage => ""},
+	     {Name => "Andrew Hoefel", Email => "handrew@mathstat.dal.ca", HomePage => ""}
 	     },
     	Headline => "Interface to A. Jensen's gfan package",
-	Configuration => { "path" => "",
+			Configuration => { 
+			 "path" => "",
+			 "fig2devpath" => "",
 	     "keep files" => true
 	      },
     	DebuggingMode => true
@@ -17,6 +22,7 @@ export {
      }
 
 gfan'path = gfanInterface#Options#Configuration#"path"
+fig2dev'path = gfanInterface#Options#Configuration#"fig2dev'path"
 
 --needs "FourierMotzkin.m2"
 needsPackage "FourierMotzkin"
@@ -50,6 +56,18 @@ weightVector(List,List) := (inL,L) -> (
      )
 
 renderStaircase = method()
+renderStaircase(Ideal) := (I) -> (
+	 d := 2 +max( flatten entries gens I / exponents /flatten /max );
+	 renderStaircase(d, I);
+)
+
+renderStaircase(ZZ,Ideal) := (d,I) -> (
+    F := temporaryFileName();
+		renderStaircase(F,d,1,{I});		
+		ex := fig2dev'path |"fig2dev -Lpng "| F | " " | F |".png";
+		run ex;
+		show URL("file://"|F|".png");
+	)
 renderStaircase(String,ZZ,Ideal) := (F,d,I) -> (
 		renderStaircase(F,d,1,{I});	
 	)
@@ -66,9 +84,8 @@ renderStaircase(String,ZZ,ZZ,List) := (F,d,w,L) -> (
     f := temporaryFileName();
     << "using temporary file " << f << endl;
 
-     ex = gfan'path| "gfan " | ex | "  <" | f ;
-		 ex = ex | " | gfan_renderstaircase -m -d "| d | " -w " | w ;
-		 ex = ex | " >" | F;
+     ex = gfan'path| "gfan_renderstaircase -m -d "| d | " -w " | w ;
+		 ex = ex | " < " | f |" >" | F;
 		
      writeGfanIdealList(f, L);
      run ex;
@@ -120,18 +137,22 @@ writeGfanIdealList(String,List) := (filename,L) -> (
      p := char R;
      F << if p === 0 then "Q" else "Z/"|p|"Z";
      F << toExternalString(new Array from gens R) << endl;
-     scan(L, I ->(
+     F << "{" << endl;
+     for j from 0 to #L-1 do (
        -- Now make the list of the gens of I
-			 I = initialIdeal I;
-       F << "{";
+			 I = initialIdeal L#j;
+       F << "{" << endl;
        n := numgens I - 1;
        for i from 0 to n do (
      	  F << toExternalString(I_i);
-	  		if i < n then F << "," else F << "}";
-	  	 	F << endl;
-			 )
+	  		if i < n then F << "," else (
+				  F << endl << "}";
+					if j =!= #L-1 then F << ",";
+				);
+				F << endl;
 			 )
 	  );
+     F << "}" << endl;
      F << close;
      )
 
@@ -494,18 +515,19 @@ document {
 	SeeAlso => {"gfan", "weightVector", "groebnerCone"}
 	}
 
-TEST ///
-
 ---Basic explicit test of gfan
+TEST ///
 QQ[x,y];
 (M,L) = gfan(ideal(x+y));
 assert(#M === 2);
 assert(set M === set{{x},{y}});
 assert(#L === 2);
 assert(L === {{ x+y} ,{x+y}});
+///
 
 ----Check that using symmetries gives the
 ----same output as without.
+TEST ///
 QQ[x,y,z]
 (M,L) = gfan(ideal(x+y,y+z));
 (N,T) = gfan(ideal(x+y,y+z), Symmetries=>{(z,y,x)});
@@ -517,7 +539,6 @@ Mset = set apply(M, set);
 Lset = set apply(L, set);
 assert( Nset === Mset);
 assert( Tset === Lset);
-
 ///
 
 end

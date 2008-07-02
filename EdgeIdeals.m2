@@ -101,7 +101,7 @@ hyperGraph (Ideal) := HyperGraph => (I) ->
 ( hyperGraph monomialIdeal I
 )
 
-hyperGraph List := HyperGraph => E -> 
+hyperGraph (List) := HyperGraph => (E) -> 
 ( 
 	M := null; 
 	if all(E, e-> class e === List) then M = monomialIdeal apply(E, product);
@@ -151,7 +151,6 @@ graph (HyperGraph) := Graph => (H) -> (
 hyperGraph (Graph) := HyperGraph => (G) -> (
 		new HyperGraph from G
 	)	
-
 
 vertices = method();
 vertices HyperGraph := H -> H#"vertices";
