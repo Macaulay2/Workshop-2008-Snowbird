@@ -19,9 +19,9 @@ newPackage(
 -- Do we still need isSinglyGraded?  i.e. is pushForward still a
 -- problem?
    
-export{isNormal, integralClosure, conductor, ICfractions, ICmap,
-idealizerReal, nonNormalLocus, Index, icFracP, conductorElement,
-reportSteps, intClI, minPressy, reductorVariable} 
+export{integralClosure, idealizerReal, nonNormalLocus, Index,
+isNormal, conductor, ICfractions, ICmap, icFracP, conductorElement,
+reportSteps, intClI, minPressy} 
 
 needsPackage "Elimination"
 
@@ -54,26 +54,32 @@ needsPackage "Elimination"
 -- idealizer, or of different possibly choices that "work" for the
 -- nonNormalLocus. 
 
-integralClosure = method(Options=>{Variable => global w, Limit => infinity})
+integralClosure = method(Options=>{
+	  Variable => global w, 
+	  Limit => infinity, 
+	  Strategy => null})
 integralClosure Ring := Ring => o -> (R) -> (
      -- 1 argument: Quotient ring. 
      -- 2 options: 
      -- return: The quotient ring that is the integral closure of R or
      -- a set of rings whose direct sum is the integral closure of R. 
-     M := flattenRing R;
-     ICout := integralClosureHelper(nonNormalLocus M_0, gens M_0 ,M_1,o.Limit, o.Variable, 0);
-     if #ICout == 2 then (
-	  R.ICfractions = ICout#1;
-     	  R.ICmap = ICout#0;
-     	  target ICout#0
-	  )
-     else (
-	  n := substitute((#ICout)/2, ZZ);
-	  ICout = apply(n-1, i -> {ICout#(2*i), ICout#(2*i+1)});
-	  R.ICfractions = apply(ICout, i -> i#1);
-	  R.ICmap = apply(ICout, i -> i#0);
-	  apply(R.ICmap, i -> target i)
-	  )
+     if Strategy === null then (
+     	  M := flattenRing R;
+     	  ICout := integralClosureHelper(nonNormalLocus M_0, gens M_0 ,M_1,o.Limit, o.Variable, 0);
+     	  if #ICout == 2 then (
+	       R.ICfractions = ICout#1;
+     	       R.ICmap = ICout#0;
+     	       target ICout#0
+	       )
+     	  else (
+	       n := substitute((#ICout)/2, ZZ);
+	       ICout = apply(n-1, i -> {ICout#(2*i), ICout#(2*i+1)});
+	       R.ICfractions = apply(ICout, i -> i#1);
+	       R.ICmap = apply(ICout, i -> i#0);
+	       apply(R.ICmap, i -> target i)
+	       )
+     	  )
+     else icFracP(R)
      )
 
 integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
@@ -392,31 +398,6 @@ subMonOrderHelper = (Ord, l, count, newOrd) -> (
      )
 
 
---- needs work for operation over ZZ	    	    
-isReductor = (f) -> (
-     inf := leadTerm part(1,f);
-     inf != 0 and
-     (set support(inf) * set support(f - inf)) === set{})
-
-findReductor = (L) -> (  
-     L1 := sort apply(L, f -> (size f,f));
-     L2 := select(1, L1, p -> isReductor(p#1));
-     error("debug me");
-     if #L2 > 0 then (
-	  p := part(1,L2#0#1);
-	  coef := (terms p)/leadCoefficient;
-	  pos := position(coef, i -> (i == 1) or (i == -1));
-	  if pos =!= null then (
-     	       t := (terms p)_pos;
-	       lct := leadCoefficient t;
-	       (lct*t, lct*t - lct*L2#0#1)
-	       )
-	  else(t = leadTerm p;
-	       lct = 1/(leadCoefficient t);
-	       (lct*t, lct*t - lct*L2#0#1))
-     	  )
-     )
-
 reductorVariable = (f) -> (
      -- assumes all variables in ring have degree 1.
      -- input: polynomial
@@ -464,7 +445,6 @@ reduceLinears Ideal := o -> (I) -> (
        << "reducing using " << g#0 << endl << endl;
        F = map(R,R,{g#0 => g#1});
        L = apply(L, i -> F(i));
---       error "checking";
        g
        );
      -- Now loop through and improve M
@@ -493,11 +473,23 @@ backSubstitute List := (M) -> (
 
 minPressy = method()
 minPressy Ideal := (I) -> (
-     -- if the ring I is a tower, flatten it here...
+     --  1 argument: I an ideal.  It is not clear what it does if I is in
+     --  a quotient ring.  
+     --  Returns: an ideal J such that (ring I)/I is isomorphic to
+     --  (ring J)/J.
+     --  Approach: look at generators of I, find those with linear
+     --  terms that don't use the linear variables in any other
+     --  terms. Then map that variable to remainder. Collect mapping
+     --  information and cache in the ideal (ring in the case of the
+     --  ring call).  
+     --
+     --  if the ring I is a tower, flatten it first.
      R := ring I;
      flatList := flattenRing R;
      flatR := flatList_0;
      RDegs := (monoid flatR).Options.Degrees;
+     -- reset all degrees to 1 to use fast algorithms to find reductor
+     -- variables. reset to regular degrees later. 
      if any(RDegs, i -> i =!= {1}) then (
 	  S := (coefficientRing flatR)(monoid[gens flatR,
 		    MonomialOrder => (monoid flatR).Options.MonomialOrder,
@@ -528,24 +520,17 @@ minPressy Ideal := (I) -> (
      substitute(ideal compress gens J,newS)
      )
 
-minPressy Ring := R -> (
-     I := minPressy ideal R;
-     (ring I)/I)
-
 minimalPresentation Ideal := Ideal => opts -> (I) -> (
---     << "entering minPressy"<< endl;
---     error "debug me";
      result := minPressy(I);
      result)
 
 minimalPresentation Ring := Ring => opts -> (R) -> (
---     << "entering minPressy"<< endl;
---     error "debug me";
      I := ideal presentation R;
      result := minPressy I;
      finalRing := (ring result)/result;
      f := substitute(matrix I.cache.minimalPresentationMap, finalRing);
      fInv := substitute(matrix I.cache.minimalPresentationMapInv, R);
+--     error("debug me");
      R.cache.minimalPresentationMap = map(finalRing, R, f);
      R.cache.minimalPresentationMapInv = map (R, finalRing, fInv);
      finalRing
@@ -555,22 +540,28 @@ minimalPresentation Ring := Ring => opts -> (R) -> (
 restart
 loadPackage "IntegralClosure"
 
-R = ZZ/101[x,y,z]
+U = ZZ/101[x,y,z]
 f = x^2+x+2*y+z
 g = x^2+y^2+x
 h = x^2+3*x -2*y + 4*z
 
-I = ideal(x,f)
+I = ideal(f)
 J = ideal(z,g)
 
-S = R/I
-T= R/J
+S = U/I
+T= U/J
 
-minimalPresentation I
+P = ideal(x)
+
+minimalPresentation P
 minimalPresentation J
 
 minimalPresentation S
 minimalPresentation T
+
+S.cache.minimalPresentationMap
+S.cache.minimalPresentationMapInv
+F = map(R, target I.cache.minimalPresentationMapInv)
 
 C=ZZ/101[x,y,z,Degrees => {2,3,1}]/ideal(x-x^2-y,z+x*y)
 V= time minPressy(C)
