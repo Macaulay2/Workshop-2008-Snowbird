@@ -27,8 +27,9 @@ export {
      PosetMinusMins,
      rankingPosetElements,
      OrderIdeal,
-     Filter
-     }
+     Filter,
+     Relations,
+     GroundSet}
 
 
 
@@ -224,6 +225,9 @@ P = poset(I,C)
 
 --Joins (P,a,b) -> (
 --     OIa := OrderIdeal(P,a)     
+--     OIb := OrderIdeal(P,b)
+--     upperBounds := toList (set(OIa)*set(OIb))
+--     P.Relations
 --     )
 
 
