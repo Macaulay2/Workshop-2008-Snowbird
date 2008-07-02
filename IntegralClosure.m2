@@ -400,24 +400,41 @@ subMonOrderHelper = (Ord, l, count, newOrd) -> (
 
 reductorVariable = (f) -> (
      -- assumes all variables in ring have degree 1.
-     -- input: polynomial
-     -- return: 
+     -- 1 argument: a polynomial.
+     -- return: a list of two elements.  The first element is a number
+     -- and the second a monomial, that form a linear term in f such
+     -- that the variable does not occur in any other term of f.  If
+     -- no such term exists in f, it returns {}.
      inf := part(1,f);
      restf := set support(f-inf);
      supInf := set support(inf);
      varList := toList (supInf-restf);
+     -- either varList = {} and there are no linear terms whose
+     -- variables don't occur elsewhere, otherwise we found such
+     -- linear terms. 
      if varList === {} then varList
      else (
      	  termf := terms f;
      	  s := select(termf, i -> member(leadMonomial i , varList));
      	  coef := s/leadCoefficient;
      	  pos := position(coef, i -> (i == 1) or (i == -1));
+	  -- best to choose linear terms with coefficient 1 or -1 if
+	  -- possible. 
      	  if pos =!= null then (coef_pos, leadMonomial s_pos)
      	  else {coef_0, leadMonomial s_0}
      	  )
      )
      
 findReductor = (L) -> (
+     -- 1 argument: A list of polynomials, generally formed from
+     -- generators of an ideal. 
+     -- Returns: a pair consisting of a variable x and x - 1/c f where
+     -- cx is a linear term of f such that x does not occur in any
+     -- other term of f. 
+     --
+     -- Sorts through polynomials in the list to find the smallest one
+     -- to use first to find a variable to use to find a "smaller
+     -- ring" in minimalPresentation. 
      L1 := sort apply(L, f -> (size f,f));
      redVar := {};
      L2 := select(1, L1, p -> (
@@ -431,10 +448,12 @@ findReductor = (L) -> (
 
 reduceLinears = method(Options => {Limit=>infinity})
 reduceLinears Ideal := o -> (I) -> (
-     -- returns (J,L), where J is an ideal,
-     -- and L is a list of: (variable x, poly x+g)
-     -- where x+g is in I, and x doesn't appear in J.
-     -- also x doesn't appear in any poly later in the L list
+     -- 1 argument: an ideal
+     -- 1 optional argument: a limit on the recursion through the
+     -- generators of the ideal.  
+     -- Return: (J,L), where J is an ideal, and L is a list of:
+     -- (variable x, poly x+g) where x+g is in I, and x doesn't appear
+     -- in J and x does not appear in any polynomial later in the L list.
      R := ring I;
      L := flatten entries gens I;
      count := o.Limit;
@@ -447,13 +466,18 @@ reduceLinears Ideal := o -> (I) -> (
        L = apply(L, i -> F(i));
        g
        );
+       error("what is m");
      -- Now loop through and improve M
-     M = backSubstitute M;  -- rewrite as M will now be a list of pairs....
+     M = backSubstitute M;  
      (ideal L, M)
      )
 
-backSubstitute = method()
-backSubstitute List := (M) -> (
+backSubstitute = (M) -> (
+     -- 1 argument: A list of pairs of variable and a polynomial. 
+     -- Return: A list of pairs of the form (variable x, poly x+g)
+     -- where x+g is in I, and x does not appear in any polynomial
+     -- later. 
+     --
      -- If M has length <= 1, then nothing needs to be done
      if #M <= 1 then M
      else (
@@ -499,12 +523,16 @@ minPressy Ideal := (I) -> (
 	  )
      else  S = flatR; 
      IS := substitute(I, vars S);
+     -- If S is a quotientRing we need to lift the quotient to find
+     -- the right result. 
      if class S === QuotientRing then (
 	  defI := ideal presentation S; 
 	  S = ring defI;
 	  IS = defI + substitute(IS, S)
   	  );
+     -- reduceLinears manages the loop finding variables and maps.
      (J,G) := reduceLinears(IS);
+     -- Finally we rebuild the smaller ring and make the maps.
      xs := set apply(G, first);
      varskeep := rsort (toList(set gens S - xs));
      newS := (coefficientRing S)(
@@ -512,7 +540,7 @@ minPressy Ideal := (I) -> (
      if not isSubset(set support J, set varskeep) -- this should not happen
      then error "internal error in minPressy: not all vars were reduced in ideal";
      I.cache.minimalPresentationMapInv = map(R,S)*map(S, newS, varskeep);
-     -- Now we need to make the other map...
+     -- We need to make the other map.
      X := new MutableList from gens S;
      scan(G, (v,g) -> X#(index v) = g);
      maptoS := apply(toList X, f -> substitute(f,newS));
@@ -525,12 +553,16 @@ minimalPresentation Ideal := Ideal => opts -> (I) -> (
      result)
 
 minimalPresentation Ring := Ring => opts -> (R) -> (
+     -- 1 argument: A ring R (most often a quotient ring).
+     -- Return:  A ring isomorphic to R using minimalPresentation on
+     -- the presentation ideal of R.  For more information see
+     -- minimalPresentation Ideal.
      I := ideal presentation R;
      result := minPressy I;
      finalRing := (ring result)/result;
+     -- put the maps cached on I in the right place for the ring. 
      f := substitute(matrix I.cache.minimalPresentationMap, finalRing);
      fInv := substitute(matrix I.cache.minimalPresentationMapInv, R);
---     error("debug me");
      R.cache.minimalPresentationMap = map(finalRing, R, f);
      R.cache.minimalPresentationMapInv = map (R, finalRing, fInv);
      finalRing
@@ -553,6 +585,7 @@ T= U/J
 
 P = ideal(x)
 
+minimalPresentation I
 minimalPresentation P
 minimalPresentation J
 
