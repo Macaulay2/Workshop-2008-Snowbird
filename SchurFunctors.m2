@@ -248,6 +248,12 @@ schurModulesMap (Module, Module, Function) := (N,M,F) -> (
      matrix apply(#l, j->sum(F(l#j), a->a#0*straighten(a#1,N)))      
      )
 
+maxFilling = method(TypicalValue=>Filling)
+maxFilling (List,ZZ) := (p,d)->(
+-- makes a maximal semistandard tableau filled with 0..d-1 for a given partition p      
+     
+     )
+
 character = method()
 character (List, ZZ) := (L,d)->(
      L = reverse L;
@@ -296,7 +302,8 @@ find=(T,d,F)->(
 
 d=3
 F=G
-weight=(T,D)->(
+weight = method()
+weight (Filling, List) := (T,D) -> (
      2*3--2^3, 2*3^2, 2*3
      )
 
