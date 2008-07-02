@@ -13,7 +13,7 @@ newPackage(
  
 export {
      Poset,
-     newPoset,
+     poset,
      FullRelationMatrix,
      RelationMatrix,
      compare,
@@ -27,7 +27,8 @@ export {
 
 Poset = new Type of HashTable
 
-newPoset := (I,C) ->
+poset = method()
+poset(List,List) := (I,C) ->
      new Poset from {
 	 symbol GroundSet => I,
 	 symbol CRelations => C,
@@ -39,17 +40,17 @@ newPoset := (I,C) ->
 -- some toy examples
 I={a,b,c,d,e,f,g,h}
 C={(a,b),(a,c),(a,d),(b,e),(b,f),(c,e),(c,g),(d,f),(d,g),(e,h),(f,h),(g,h)}
-P=newPoset(I,C)
+P=poset(I,C)
 
 I1={a,b,c,d,e,f}
 C1={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(e,f)}
-P1=newPoset(I1,C1)
+P1=poset(I1,C1)
 
 --Poset P1 with additional relations (a,e) and (a,f) added
 
 I2={a,b,c,d,e,f}
 C2={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(a,e),(a,f),(e,f)}
-P2=newPoset(I2,C2)
+P2=poset(I2,C2)
 
 
 -- input: a poset, and an element A from I
@@ -73,12 +74,13 @@ nonnull:=(L) -> (
 -- output: a matrix indexed by I that has non zero entries for each pair of relations
 -- usage:  RelationMatrix,compare
 FullRelationMatrix:= (P) -> (
-     M:=matrix apply (#P.GroundSet, i-> apply(#P.GroundSet, j-> if member((I#i,I#j), P.CRelations) then 1 else if i==j then 1 else 0));
-     n:=#I;
+     M:=matrix apply (#P.GroundSet, i-> 
+	  apply(#P.GroundSet, j-> if member((P.GroundSet#i,P.GroundSet#j), P.CRelations) then 1 else if i==j then 1 else 0));
+     n:=#P.GroundSet;
      N:=M^n 
      )
 
-RelationMatrix(P)
+
 
 --input:  A matrix or a poset
 --output:  A matrix with ones in all the non-zero entries
@@ -105,7 +107,7 @@ fullPosetRelation:= (P) -> (
 --output:  The poset P' on the same ground set with the transitive closure of C
 
 fullPoset:= (P) -> (
-     L = newPoset(P.GroundSet,fullPosetRelation(P)) 
+     L = poset(P.GroundSet,fullPosetRelation(P)) 
 )
 
 -- input:  A poset, and two elements A and B from I
@@ -122,7 +124,7 @@ compare:= (P,A,B) -> (
 --------------------------------------------------
 
 testcover=(P,A,B) -> (
-     L:=newPoset(P.GroundSet,fullPosetRelation(P));
+     L:=poset(P.GroundSet,fullPosetRelation(P));
      k:=#L.GroundSet-2; 
          
      if sum(nonnull(apply(k, i-> if compare(L,A,(toList(set(L.GroundSet)-{A,B}))_i)==true and
@@ -144,7 +146,7 @@ coveringRelations:=(P) -> (
 --output:  A new poset P with the minimal relations
 
 coveringRelationsPoset:=(P) -> (
-     L=newPoset(P.GroundSet,coveringRelations(P))
+     L=poset(P.GroundSet,coveringRelations(P))
      )
 
 --------------------------------------------------
@@ -169,8 +171,9 @@ PosetMinusMins:=(P)-> (
      E:=sum set nonnull(apply(#K.CRelations,l->if member(true,set apply(#L,k->S#k#l)) then N=N+set{K.CRelations#l}));
      C:=toList (set(K.CRelations)-N);
      I:=toList (set(K.GroundSet)-set(L));
-     newPoset(I,C)
+     poset(I,C)
      )
+
 
 
 --------------------------------------------------
