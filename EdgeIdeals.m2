@@ -287,6 +287,15 @@ numTriangles = method();
 
  -- return degree of vertex
 degreeVertex = method();
+degreeVertex (HyperGraph, ZZ) := (H,N) ->	(
+		degreeVertex(H, (H#"ring")_N)
+	)
+degreeVertex (HyperGraph, RingElement) := (H,V) ->	(
+		use H#"ring";
+		N := index V;
+		if N === null then error "Variable is not a vertex of the given HyperGraph";
+		number(H#"edges", E-> member(V,E))
+	)
 
  -- number of connected components
 numConnectedComponents = method();
@@ -358,6 +367,7 @@ lineGraph = method();
 ---------------------------------------------------------
 ---------------------------------------------------------
 ---------------------------------------------------------
+
 doc ///
 	Key
 		HyperGraph
@@ -367,15 +377,29 @@ doc ///
 
 doc ///
 	Key
+		Graph
+	Headline 
+		a class for graphs.
+	Description
+		Text
+			This class represents simple graphs. This class extends @TO HyperGraph@ and hence
+			inherits all HyperGraph methods.
+	SeeAlso
+		HyperGraph
+///
+
+doc ///
+	Key
 		hyperGraph
 		(hyperGraph, Ring, List)
 		(hyperGraph, MonomialIdeal)
 		(hyperGraph, Ideal)
 		(hyperGraph, List)
+		(hyperGraph, Graph)
 	Headline 
 		constructor for HyperGraph.
 	Usage
-		H = hyperGraph(R,E) \n H = hyperGraph(I) \n H = hyperGraph(E)
+		H = hyperGraph(R,E) \n H = hyperGraph(I) \n H = hyperGraph(E) \n H = hyperGraph(G)
 	Inputs
 		R:Ring
 			whose variables correspond to vertices of the hypergraph.
@@ -385,8 +409,37 @@ doc ///
 			which must be square-free and whose generators become the edges of the hypergraph.
 		J:Ideal
 			which must be square-free monomial and whose generators become the edges of the hypergraph.
+		G:Graph
+			which is to be converted to a HyperGraph.
 	Outputs 
 		H:HyperGraph
+///
+
+doc ///
+	Key
+		graph
+		(graph, Ring, List)
+		(graph, MonomialIdeal)
+		(graph, Ideal)
+		(graph, List)
+		(graph, HyperGraph)
+	Headline 
+		constructor for Graph.
+	Usage
+		G = graph(R,E) \n G = graph(I) \n G = graph(E) \\ G = graph(H)
+	Inputs
+		R:Ring
+			whose variables correspond to vertices of the hypergraph.
+		E:List
+			contain a list of edges, which themselves are lists of vertices.
+		I:MonomialIdeal
+			which must be square-free and whose generators become the edges of the hypergraph.
+		J:Ideal
+			which must be square-free monomial and whose generators become the edges of the hypergraph.
+		H:HyperGraph
+			which is to be converted to a graph. The edges in {\tt H} must be of size two.
+	Outputs 
+		G:Graph
 ///
 
 doc ///
@@ -457,6 +510,31 @@ doc ///
 			which is true iff {\tt E} (or {\tt support M}) is an edge of {\tt H}.
 	SeeAlso
 		getEdgeIndex
+///
+
+doc ///
+	Key
+		degreeVertex
+		(degreeVertex, HyperGraph, ZZ)
+		(degreeVertex, HyperGraph, RingElement)
+	Headline 
+		gives degree of a vertex.
+	Usage
+		D = degreeVertex(H,N) \n D = degreeVertex(H,V)
+	Inputs
+		H:HyperGraph
+		N:ZZ
+			the index of a vertex.
+		V:RingElement
+			a vertex/variable of the HyperGraph.
+	Outputs 
+		D:ZZ
+			which is the degree of vertex {\tt V} (or vertex number {\tt N}). 
+	Description
+		Text
+			The degree of a vertex in a hypergraph is the number of edges that contain the vertex.
+	SeeAlso
+		vertices
 ///
 
 doc ///
@@ -585,6 +663,13 @@ assert(#(vertices H) == 3)
 
 TEST///
 R = QQ[a,b,c]
+H = hyperGraph(R, {{a,b,c}})
+assert(#(edges H) == 1)
+assert(#(vertices H) == 3)
+///
+
+TEST///
+R = QQ[a,b,c]
 H = hyperGraph(R, {a*b,b*c})
 assert(#(edges H) == 2)
 assert(#(vertices H) == 3)
@@ -646,10 +731,26 @@ assert( getEdgeIndex(H,{a,c}) == -1)
 assert( getEdgeIndex(H,a*c) == -1)
 ///
 
+----------------------------------
+-- degreeVertex Test -------------
+----------------------------------
+TEST///
+R = QQ[a,b,c,d]
+H = hyperGraph(monomialIdeal {a*b,b*c,c*d,c*a})
+assert( degreeVertex(H,a) == 2)
+assert( degreeVertex(H,0) == 2)
+assert( degreeVertex(H,b) == 2)
+assert( degreeVertex(H,1) == 2)
+assert( degreeVertex(H,c) == 3)
+assert( degreeVertex(H,2) == 3)
+assert( degreeVertex(H,d) == 1)
+assert( degreeVertex(H,3) == 1)
+///
 
 --------------------------------------
 -- Test edgeIdeal and coverIdeal 
 ---------------------------------------
+
 
 TEST///
 R = QQ[a,b,c]
