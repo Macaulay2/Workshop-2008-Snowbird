@@ -302,10 +302,10 @@ diagonal=(L)->(
 find=(T,d,F)->(
      Trans:=Transvections(d),
      TransEval:=apply(Trans,M->Specialization(M,F)),
-     T:=matrix apply(TransEval,k->{k-Specialization(Identity(d),F)}),
+     TE:=matrix apply(TransEval,k->{k-Specialization(Identity(d),F)}),
      D:=apply(d,j->(j+1)_QQ),
      M:=Specialization(diagonal(D),F)-weight(T,D)*Specialization(Identity(d),F),
-     return syz(T||M)
+     return syz(TE||M)
      )
 
 
