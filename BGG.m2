@@ -1,3 +1,4 @@
+needsPackage "BoijSoederberg"
 newPackage(
 	"BGG",
     	Version => "0.2", 
@@ -13,7 +14,6 @@ newPackage(
     	Headline => "Bernstein-Gelfand-Gelfand correspondence",
     	DebuggingMode => true
     	)
-
 needsPackage "BoijSoederberg"
 
 export {
@@ -35,11 +35,11 @@ bgg = method()
 bgg(ZZ,Module,PolynomialRing) := Matrix => (i,M,E) ->(
      S :=ring(M);
      numvarsE := rank source vars E;
-     ev:=map(E,S,vars E);
-     f0:=basis(i,M);
-     f1:=basis(i+1,M);
-     g :=((vars S)**f0)//f1;
-     b:=(ev g)*((transpose vars E)**(ev source f0));
+     ev := map(E,S,vars E);
+     f0 := basis(i,M);
+     f1 := basis(i+1,M);
+     g := ((vars S)**f0)//f1;
+     b := (ev g)*((transpose vars E)**(ev source f0));
      --correct the degrees (which are otherwise wrong in the transpose)
      map(E^{(rank target b):i+1},E^{(rank source b):i}, b));
 
@@ -229,7 +229,7 @@ document {
 	  "E" => PolynomialRing => "exterior algebra"
 	   },
      Outputs => {
-	  {"dimensions of cohomogy groups"}  
+	  {TO "BoijSoederberg::CohomologyTally", " dimensions of cohomology groups"}  
 	  },
      "
      This function takes as input a coherent sheaf ", TT "F", ", two integers ", TT "l", 
@@ -318,7 +318,45 @@ document {
 	  cohomologyTable(presentation F,E,-6,6)
      	  ///,
      SeeAlso => {symExt}
-     }
+     }, 
+
+TEST ///
+          S = ZZ/32003[x_0..x_2]; 
+	  E = ZZ/32003[e_0..e_2, SkewCommutative=>true];
+	  M = coker matrix {{x_0^2, x_1^2}};
+	  m = presentation truncate(regularity M,M);
+	  assert(symExt(m,E)==map(E^{4:1},E^4,{{e_2,e_1,e_0,0},{0,e_2,0,e_0},{0,0,e_2,e_1},{3:0,e_2}}))
+///
+TEST ///
+          S = ZZ/32003[x_0..x_2]; 
+	  E = ZZ/32003[e_0..e_2, SkewCommutative=>true];
+	  M = coker matrix {{x_0^2, x_1^2, x_2^2}};
+	  assert(bgg(1,M,E)==map(E^{3:2},,{{e_1, e_0, 0}, {e_2, 0, e_0}, {0, e_2, e_1}}))
+///
+TEST ///	  
+	  S = ZZ/32003[x_0..x_2]; 
+	  E = ZZ/32003[e_0..e_2, SkewCommutative=>true];
+	  m = matrix{{x_0,x_1}};
+	  regularity coker m
+	  T = tateResolution(m,E,-2,4)
+          assert(toList(7:1) == apply(length T+1, i-> rank T#i))
+	  assert(all(toList(1..length T), i-> (matrix entries T.dd_i)==matrix {{e_2}}))
+///
+TEST /// 
+	  S = ZZ/32003[x_0..x_2]; 
+	  PP2 = Proj S; 
+	  F =sheaf S^1
+          C = cohomologyTable(F,-10,5)
+	  assert(values C == apply(keys C, p -> rank HH^(p#0)(F(p#1))))
+///
+TEST /// 	  
+	  S = ZZ/32003[x_0..x_2]; 
+	  E = ZZ/32003[e_0..e_2, SkewCommutative=>true];
+	  alphad = map(E^1,E^{2:-1},{{e_1,e_2}})
+          assert(matrix entries beilinson(alphad,S) == matrix {{x_0, 0, -x_2, 0, x_0, x_1}})
+          alpha = map(E^{2:-1},E^{1:-2},{{e_1},{e_2}});
+	  assert(matrix entries beilinson(alpha,S) ==  map(S^6,S^1,{{0}, {-1}, {0}, {1}, {0}, {0}}))
+///,
 end
 uninstallPackage "BGG"
 restart
