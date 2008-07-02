@@ -22,7 +22,7 @@ export {
      }
 
 gfan'path = gfanInterface#Options#Configuration#"path"
-fig2dev'path = gfanInterface#Options#Configuration#"fig2dev'path"
+fig2dev'path = gfanInterface#Options#Configuration#"fig2devpath"
 
 --needs "FourierMotzkin.m2"
 needsPackage "FourierMotzkin"
