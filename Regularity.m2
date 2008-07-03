@@ -208,7 +208,55 @@ mRegularity (Ideal):= opts -> I -> (
      );
 
 
---=======================================================================================
+--=====================================================================
+-- functions for Giulio Caviglia's idea (computing regularity by slicing with hyperplanes)
+
+-- finding a hperplae that is not contained in any of the associated primes of Ass(inI)
+
+findHyperplane = (I,n) -> (
+     R := ring I;
+     d := # gens R;
+     inI := monomialIdeal apply(flatten entries gens gb I,leadTerm);
+     as := apply(ass inI - set {monomialIdeal gens R}, t-> flatten entries gens t); -- returns a list of lists containing gens of the Ass(in I) 
+     i := 1;
+     while (not i>n) do (
+	  subs = apply(subsets(d,i), s->apply(s, t->R_t));   
+	  l = select(1,subs, s-> not any(as, t-> isSubset(s,t)));
+	  if l != {} then return sum l#0 else i = i+1;	
+     	  );
+    return null
+          )	    	      
+
+slice = h -> (
+     R := ring h;
+     X := gens R;
+     d := #X;
+     z := index max support h;
+     S := R/h;
+     f := map(R, R, (for j to z-1 list X_j) |{X_(z)-h}|(for j from z+1 to d-1 list X_j));
+     g := map(coefficientRing R[X-set{X_z}],R);
+     return g*f
+     )    
+     
+     
+fastReg = method (TypicalValue=>ZZ,Options =>{Alarm => 5,Lenght=>3})     
+fastReg (Ideal):= opts -> I -> (     
+     while true do (
+	  alarm(2);
+	  try return regularity I else (
+	       h =findHyperplane(I,3);
+	       I = (slice h) (I);
+	       )
+	  )
+     )      
+     
+     
+  h =findHyperplane(I,3)
+  I = (slice h) (I);
+  regularity I        
+     
+     
+     
 --Tests
 
 TEST ///
