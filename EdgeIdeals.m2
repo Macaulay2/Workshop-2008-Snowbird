@@ -421,7 +421,15 @@ cycle (List) := Graph =>(L)-> (
 
  -- return graph of complete n-graph
 completeGraph = method();
-
+completeGraph (Ring) := Graph =>(R) -> completeGraph(generators R)
+completeGraph (Ring, ZZ) := Graph =>(R, N) -> completeGraph(apply(N, i->R_i))
+completeGraph (List) := Graph =>(L)-> (
+  if #L === 0 then error "Cannot construct complete graph on no vertices";
+	E := for i from 0 to #L -2 list
+				for j from i+1 to #L-1 list
+		    	L#i * L# j;
+	graph(R, flatten E)
+)
  -- return the complete multi-partite graph
 completeMultiPartite = method();
 
@@ -814,7 +822,33 @@ doc ///
 			cycle {e,c,d,b}
 ///	
 
- 
+doc ///
+	Key
+		completeGraph
+		(completeGraph, Ring)
+		(completeGraph, Ring, ZZ)
+		(completeGraph, List)
+	Headline
+		returns a complete graph.
+	Usage
+		K = cycle R \n K = cycle(R,N) \n K = cycle L
+	Inputs
+		R:Ring
+		N:ZZ
+			number of variables to use
+		L:List
+			of vertices to make into a complete graph
+	Outputs
+		K:Graph
+			which is a complete graph on the vertices in {\tt L} or on the variables of {\tt R}.
+	Description
+		Example
+			R = QQ[a,b,c,d,e]	   
+			completeGraph R
+			completeGraph(R,3)
+			completeGraph {a,c,e}
+///	
+
  
 doc ///
         Key
@@ -840,7 +874,6 @@ doc ///
 		       Stuff
 ///	
  
-
 -----------------------------
 -- Constructor Tests --------
 ------------------------- 0 to 6
