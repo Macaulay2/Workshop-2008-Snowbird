@@ -639,6 +639,10 @@ doc ///
       AbstractSheaf@ is represented by its total chern class (or by its chern
       character).  An @TO AbstractVarietyMap@ is a 'morphism' of abstract
       varieties, and the information encoded is the pull-back to the corresponding intersection rings.
+    Text
+      This package and its documentation are still rather incomplete, but see the examples
+      @TO "Lines on hypersurfaces"@ and @TO "Conics on a quintic threefold"@, which should
+      be enough to figure out some of what's possible.
   SeeAlso
     AbstractSheaf
     chern
@@ -690,7 +694,11 @@ doc ///
       @TO projectiveSpace@,
       @TO projectiveBundle@,
       @TO flagBundle@,
-      @TO base@,
+      @TO base@.
+    Text
+      This package and its documentation are still rather incomplete, but see the examples
+      @TO "Lines on hypersurfaces"@ and @TO "Conics on a quintic threefold"@, which should
+      be enough to figure out some of what's possible.
   SeeAlso
     AbstractSheaf
     chern
@@ -796,7 +804,7 @@ doc ///
     q:Symbol
     A:Symbol
     r:ZZ
-    a:ZZ
+    a:Symbol
   Outputs
     X:AbstractVariety
   Consequences
@@ -904,14 +912,8 @@ doc ///
         We can do the same thing for any n, (with d=2n-3) as
         follows:
    Example
-        f = n->(
-             d=2*n-3;
-             G = flagBundle({n-1,2});
-             (S,Q) = G.Bundles;
-             B = symmetricPower(d,Q);
-             integral chern(B)
-             );
-        for n from 2 to 15 do print( time f(n))
+        f = n->(G = flagBundle({n-1,2}); integral chern(symmetricPower(2*n-3,(G.Bundles)_1)))
+        for n from 2 to 8 do print( time f(n))
    Text
         The function {\tt time f 20} takes 16 seconds on a
         64-bit MacBook Pro and produces a number of 53 digits.
@@ -976,12 +978,43 @@ doc ///
     "Lines on hypersurfaces"
 ///
 
+doc ///
+  Key
+      schubertCycle
+  Headline
+      Schubert Cycles on a Grassmannian in terms of Chern classes of the Tautological bundle.
+  Usage
+     c=schubertCycle(F,s)
+  Inputs
+     F:FlagBundle 
+     s:Sequence
+  Outputs
+     c:RingElement 
+  Description
+   Text
+     If F is the flag bundle parametrizing subspaces of dimension s and their respective
+     quotient spaces of dimension q of an n-dimensional vector space A, such as
+   Example
+     base(0, Bundle=>(A, 8, a))
+     F=flagBundle ({5,3},A)
+   Text
+     where q = 3 and n = 8, we may think of F as the space of projective (q-1)-planes
+     in P^(n-1). Fix a complete flag of projective subspaces A_0..A_{n-1} in A.
+     The mechanism {\tt F_(a_1..a_q) }, where 0<= a_1 <= .. a_q <= n-1
+     produces the class of the Schubert cycle consisting of those
+     (q-1)-planes meeting A_i in dimensions a_1 .. a_q. 
+  Caveat
+   Code only deals with Grassmannians, not with general flag bundles.
+  SeeAlso
+///
+
 end
 
 restart
 installPackage ("Schubert2", UserMode => true)
 installPackage ("SimpleDoc")
 viewHelp Schubert2
+viewHelp schubertCycle
 viewHelp AbstractVariety
 viewHelp AbstractSheaf
 viewHelp projectiveSpace
