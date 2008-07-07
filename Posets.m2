@@ -50,23 +50,23 @@ poset(List,List) := (I,C) ->
 -----------------------------
 I={a,b,c,d,e,f,g,h}
 C={(a,b),(a,c),(a,d),(b,e),(b,f),(c,e),(c,g),(d,f),(d,g),(e,h),(f,h),(g,h)}
-P=poset(I,C)
-G=directedGraph(I,C)
-A=adjacencyMatrix(I,C)
-allPairsShortestPath(A)
-adjacencyMatrix(G)
-adjacencyMatrix(P)
-transitiveClosure(I,C)
+--P=poset(I,C)
+--G=directedGraph(I,C)
+--A=adjacencyMatrix(I,C)
+--allPairsShortestPath(A)
+--adjacencyMatrix(G)
+--adjacencyMatrix(P)
+--transitiveClosure(I,C)
 
 I1={a,b,c,d,e,f}
 C1={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(e,f)}
-P1=poset(I1,C1)
+--P1=poset(I1,C1)
 
 --Poset P1 with additional relations (a,e) and (a,f) added
 
 I2={a,b,c,d,e,f}
 C2={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(a,e),(a,f),(e,f)}
-P2=poset(I2,C2)
+--P2=poset(I2,C2)
     
 -------------
 
