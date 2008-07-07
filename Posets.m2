@@ -52,11 +52,11 @@ I={a,b,c,d,e,f,g,h}
 C={(a,b),(a,c),(a,d),(b,e),(b,f),(c,e),(c,g),(d,f),(d,g),(e,h),(f,h),(g,h)}
 --P=poset(I,C)
 --G=directedGraph(I,C)
---A=adjacencyMatrix(I,C)
---allPairsShortestPath(A)
---adjacencyMatrix(G)
---adjacencyMatrix(P)
---transitiveClosure(I,C)
+--A=adjacencyMatrix(I,C) -- not exported
+--allPairsShortestPath(A) -- not exported
+--adjacencyMatrix(G) -- not exported
+--adjacencyMatrix(P) -- not exported
+--transitiveClosure(I,C) 
 
 I1={a,b,c,d,e,f}
 C1={(a,c),(a,d),(b,c),(b,d),(c,e),(d,e),(e,f)}
@@ -267,30 +267,46 @@ Filter:=(P,a) -> (
 --Joins, Meets, Lattices and Atoms
 ----------------------------------------------------
 -- inputs: P, poset, and two elements of P.GroundSet
--- outputs:  the element of P.GroundSet that is the join of these
+-- outputs:  the element of P.GroundSet that is the join of these, and false if no join exists
 -- usage:
 PosetJoin = (P,a,b) -> (
      OIa := OrderIdeal(P,a);     
      OIb := OrderIdeal(P,b);
      upperBounds := toList (set(OIa)*set(OIb));
-     if upperBounds == {} then (print "there is no Join here") else (M := P.RelationMatrix;
+     if upperBounds == {} then (false) else (M := P.RelationMatrix;
      	  L := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
      	  upperBounds_{position (L, l -> l == min L)})
      )
 
 
 --inputs:  P a poset, and 2 elements of P.GroundSet
---outputs:  the element in P.GroundSet that is the meet of these
+--outputs:  the element in P.GroundSet that is the meet of these, and false if no meet exists
 -- usage:
 PosetMeet = (P,a,b) ->(
      Fa:= Filter(P,a);
      Fb:= Filter(P,b);
      lowerBounds:= toList (set(Fa)*set(Fb));
-     if lowerBounds == {} then (print "there is no Meet here") else (M := P.RelationMatrix;
+     if lowerBounds == {} then (false) else (M := P.RelationMatrix;
      	  L := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
      	  lowerBounds_{position (L, l -> l == max L)})
      )
 
+
+--inputs: a poset P
+--output:  boolean value for whether or not it is a lattice
+--usage:
+--isLattice = (P) -> (
+ --    checkJoins := unique flatten apply(P4.GroundSet, elt -> 
+--	                apply (P4.GroundSet, elt2-> PosetJoin(P4,elt, elt2))
+  --   checkMeets :=  unique flatten apply(P.GroundSet, elt -> 
+--	                apply (P.GroundSet, elt2-> PosetMeet(P,elt, elt2) ))
+     
+     )
+
+I4 = {a,b,c}
+C4 = {(a,b), (a,c)}
+--P4 = poset(I4,C4)
+--PosetJoin(P4,b,c)
 
 beginDocumentation()
 
