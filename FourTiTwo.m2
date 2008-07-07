@@ -38,7 +38,8 @@ export {
      toricGraver,
      hilbertBasis,
      rays,
-     InputType
+     InputType,
+     toricGraverDegrees
      }
 
 
@@ -197,8 +198,23 @@ rays Matrix := Matrix => (A ->(
      ))
 
 -- SP: the output command interface
---output = method()
-
+-- I would like to have a command that gives the list of degrees of Graver/Groebner/Circuit/Markov file;
+-- the way 4ti2 does this is you tell it the whatever.mar or whatever.cir file and it writes the degrees
+-- to the screen.
+toricGraverDegrees = method()
+toricGraverDegrees Matrix := Matrix => (A ->(
+     filename := getFilename();
+     << "using temporary file name " << filename << endl;
+     F := openOut(filename|".mat");
+     putMatrix(F,A);
+     close F;
+     execstr = path'4ti2|"graver -q " | externalPath | filename;
+     ret := run(execstr);
+     if ret =!= 0 then error "error occurred while executing external program 4ti2: graver"; -- getMatrix(filename|".gra")
+     execstr = path'4ti2|"output --degrees " | externalPath | filename|".gra";
+     ret := run(execstr);
+     if ret =!= 0 then error "error occurred while executing external program 4ti2: output";
+     ))
 
 
 beginDocumentation()
@@ -435,13 +451,38 @@ doc ///
 	       A = matrix "1,1,1,1; 1,2,3,4"
 	       toricGraver(A)
 	  Text
-	       If we preer to store the ideal instead, we may use:
+	       If we prefer to store the ideal instead, we may use:
 	  Example
 	       R = QQ[a..d]
 	       toricGraver(A,R)
 	  Text
 	       Note that this last ideal equals the toric ideal I_A since every Graver basis element is actually in I_A.
 ///;
+
+doc ///
+     Key
+     	  toricGraverDegrees
+          (toricGraverDegrees, Matrix)
+     Headline
+     	  displays the degrees of all Graver basis elements for the toric ideal I_A; equivalent to "output --degrees foo.gra" in 4ti2
+     Usage
+     	  toricGraverDegrees(A) 
+     Inputs
+      	  A:Matrix    
+	       whose columns parametrize the toric variety. The toric ideal I_A is the kernel of the map defined by {\tt A}
+     Description
+     	  Text
+	       Very often the Graver basis consits of too many binomials, and one is only interested in their degrees. In this case,
+	       instead of looking at the Graver basis of I_A, we may just want to look for the degrees of binomials which show up:
+	  Example
+	       A = matrix "1,1,1,1; 1,2,3,4"
+	       toricGraver(A) -- the Graver basis
+	       toricGraverDegrees(A) -- just the degrees
+	  Text
+	       Note that these are all 1-norms of the vectors. Since I_A is homogeneous, there are 3 binomials of degree 2 (norm 4) 
+	       and 2 binomials of degree 3 (norm 6).
+///;
+
 
 doc ///
      Key
