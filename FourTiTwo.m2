@@ -5,10 +5,10 @@
 --     	    	      	   core
 -- author: Josephine Yu -- 
 --     	    	      	   all remaining functions; documentation
--- editor: Sonja Petrovic -- 
+-- Sonja Petrovic -- 
 --     	    	      	   interface for windows; edited documentation; tests
 --     	    	      	   
--- latest update: 2Jul08
+-- latest update: 6Jul08
 ----------------------------------------------------
 ----------------------------------------------------
 
@@ -32,10 +32,10 @@ export {
      toBinomial,
      getMatrix,
      putMatrix,
-     markovBasis,
-     toricGB,
-     circuits,
-     graverBasis,
+     toricMarkov,
+     toricGroebner,
+     toricCircuits,
+     toricGraver,
      hilbertBasis,
      rays,
      InputType
@@ -50,7 +50,8 @@ path'4ti2 = (options FourTiTwo).Configuration#"path"
 -- externalPath = value Core#"private dictionary"#"externalPath"
 -- Note: outside of cygwin (linux/mac), this string is just the null string. 
 -- But under Windows machines this is necessary (the value of the string is C:/cygwin).
-externalPath = replace("/","\\",value Core#"private dictionary"#"externalPath")
+--externalPath = replace("/","\\",value Core#"private dictionary"#"externalPath")
+externalPath = replace("\\\\","/",value Core#"private dictionary"#"externalPath")
 -- Without this command, the temporary files won't be found and there will be a ton of error messages.
 
 
@@ -101,8 +102,8 @@ toBinomial(Matrix,Ring) := (M,S) -> (
      ideal apply(entries M, toBinom)
      )
 
-markovBasis = method(Options=> {InputType => null})
-markovBasis Matrix := Matrix => o -> (A) -> (
+toricMarkov = method(Options=> {InputType => null})
+toricMarkov Matrix := Matrix => o -> (A) -> (
      filename := getFilename();
      << "using temporary file name " << filename << endl;
      if o.InputType === "lattice" then
@@ -117,10 +118,10 @@ markovBasis Matrix := Matrix => o -> (A) -> (
      if ret =!= 0 then error "error occurred while executing external program 4ti2: markov";
      getMatrix(filename|".mar")
      )
---markovBasis(Matrix,Ring) := o -> (A,S) -> toBinomial(markovBasis(A,o), S)
+toricMarkov(Matrix,Ring) := o -> (A,S) -> toBinomial(toricMarkov(A,o), S)
 
-toricGB = method(Options=>{Weights=>null})
-toricGB Matrix := o -> (A) -> (
+toricGroebner = method(Options=>{Weights=>null})
+toricGroebner Matrix := o -> (A) -> (
      filename := getFilename();
      << "using temporary file name " << filename << endl;
      F := openOut(filename|".mat");
@@ -136,10 +137,10 @@ toricGB Matrix := o -> (A) -> (
      if ret =!= 0 then error "error occurred while executing external program 4ti2: groebner";
      getMatrix(filename|".gro")
      )
-toricGB(Matrix,Ring) := o -> (A,S) -> toBinomial(toricGB(A,o), S)
+toricGroebner(Matrix,Ring) := o -> (A,S) -> toBinomial(toricGroebner(A,o), S)
 
-circuits = method()
-circuits Matrix := Matrix => (A ->(
+toricCircuits = method()
+toricCircuits Matrix := Matrix => (A ->(
      filename := getFilename();
      << "using temporary file name " << filename << endl;
      F := openOut(filename|".mat");
@@ -151,8 +152,8 @@ circuits Matrix := Matrix => (A ->(
      getMatrix(filename|".cir")
      ))
 
-graverBasis = method()
-graverBasis Matrix := Matrix => (A ->(
+toricGraver = method()
+toricGraver Matrix := Matrix => (A ->(
      filename := getFilename();
      << "using temporary file name " << filename << endl;
      F := openOut(filename|".mat");
@@ -160,10 +161,10 @@ graverBasis Matrix := Matrix => (A ->(
      close F;
      execstr = path'4ti2|"graver -q " | externalPath | filename;
      ret := run(execstr);
-     if ret =!= 0 then error "error occurred while executing external program 4ti2: graverBasis";
+     if ret =!= 0 then error "error occurred while executing external program 4ti2: graver";
      getMatrix(filename|".gra")
      ))
-graverBasis (Matrix,Ring) := Ideal => ((A,S)->toBinomial(graverBasis(A),S))
+toricGraver (Matrix,Ring) := Ideal => ((A,S)->toBinomial(toricGraver(A),S))
 
 hilbertBasis = method(Options=> {InputType => null})
 hilbertBasis Matrix := Matrix => o -> (A ->(
@@ -177,7 +178,7 @@ hilbertBasis Matrix := Matrix => o -> (A ->(
      close F;
      execstr = path'4ti2|"hilbert -q " |externalPath | filename;
      ret := run(execstr);
-     if ret =!= 0 then error "error occurred while executing external program 4ti2: hilbertBasis";
+     if ret =!= 0 then error "error occurred while executing external program 4ti2: hilbert";
      getMatrix(filename|".hil")
      ))
 
@@ -211,6 +212,7 @@ doc ///
      Description
           Text
 	       Interfaces most of the functionality of the software {\tt 4ti2} available at  {\tt http://www.4ti2.de/}.
+	       (The user needs to have 4ti2 installed on his/her machine.)
 	        
 	       A {\tt d\times n} integral matrix {\tt A} (with nonnegative entries) specifies a map from a polynomial 
 	       ring in d variables to a polynomial ring with n variables by specifying exponents of the variables indexing
@@ -233,7 +235,14 @@ doc ///
 	       B. Sturmfels, {\bf Gr\"obner bases and convex polytopes.} 
 	       American Mathematical Society, University Lectures Series, No 8, Providence, Rhode Island, 1996. 
 	       
-               {\bf Note for cygwin users:}  set the path for 4ti2 inside .Macaulay2/init-FourTiTwo.m2 
+               {\bf Note for cygwin users:} 
+	       If a problem occurs during package installation and/or loading, it should be fixed 
+	       by setting the path inside the file .Macaulay2/init-FourTiTwo.m2  to whatever folder 4ti2 is installed.
+	       For example, if  4ti2 has been installed in C:/cygwin/4ti2_v1.3.1/win32 , then the line 
+	       inside the init-FourTiTwo.m2 file will look like this:  "path" => "4ti2_v1.3.1/win32/"  .<br>
+	       Alternately, the path for 4ti2 may be set when loading the package using the following command:<br>
+	       loadPackage("FourTiTwo", Configuration=>{"path"=>"4ti2_v1.3.1/win32/"})  <br>
+	       assuming that 4ti2 has been installed in C:/cygwin/4ti2_v1.3.1/win32.
 ///;
 
 doc ///
@@ -290,7 +299,7 @@ doc ///
           toBinomial
      	  (toBinomial, Matrix, Ring)	  
      Headline
-     	  creates a toric ideal from a given exponents of its generators
+     	  creates a toric ideal from a given set of exponents of its generators
      Usage
      	  toBinomial(M,R)
      Inputs
@@ -311,14 +320,14 @@ doc ///
 
 doc ///
      Key
-     	  toricGB
-          (toricGB, Matrix)
-     	  (toricGB, Matrix, Ring)
-     	  [toricGB, Weights]
+     	  toricGroebner
+          (toricGroebner, Matrix)
+     	  (toricGroebner, Matrix, Ring)
+     	  [toricGroebner, Weights]
      Headline
      	  calculates a Groebner basis of the toric ideal I_A, given A; equivalent to "groebner" in 4ti2
      Usage
-     	  toricGB(A) or toricGB(A,R)
+     	  toricGroebner(A) or toricGroebner(A,R)
      Inputs
       	  A:Matrix    
 	       whose columns parametrize the toric variety. The toric ideal I_A is the kernel of the map defined by {\tt A}.
@@ -332,21 +341,29 @@ doc ///
      Description
 	  Example
 	       A = matrix "1,1,1,1; 1,2,3,4"
-	       toricGB(A)
+	       toricGroebner(A)
+	  Text
+	       Note that the output of the command is a matrix whose rows are the exponents of the binomials that for a Groebner basis of the toric ideal I_A.
+	       As a shortcut, one can ask for the output to be an ideal instead:
+	  Example
 	       R = QQ[a..d]
-	       toricGB(A,R)
-	       toricGB(A,Weights=>{1,2,3,4})
+	       toricGroebner(A,R)
+	  Text
+	       4ti2 offers the use of weight vectors representing term orders, as follows:
+	  Example
+	       toricGroebner(A,Weights=>{1,2,3,4})
  ///;
  
  doc ///
      Key
-     	  markovBasis
-          (markovBasis, Matrix)
-	  [markovBasis, InputType]
+     	  toricMarkov
+          (toricMarkov, Matrix)
+	  (toricMarkov, Matrix, Ring)
+	  [toricMarkov, InputType]
      Headline
      	  calculates a generating set of the toric ideal I_A, given A; equivalent to "markov" in 4ti2
      Usage
-     	  markovBasis(A) or markovBasis(A, InputType => "lattice")
+     	  toricMarkov(A) or toricMarkov(A, InputType => "lattice") or toricMarkov(A,R)
      Inputs
       	  A:Matrix
 	       whose columns parametrize the toric variety; the toric ideal is the kernel of the map defined by {\tt A}.
@@ -354,44 +371,76 @@ doc ///
 	       saturation of the lattice basis ideal.	       
 	  s:InputType
 	       which is the string "lattice" if rows of {\tt A} specify a lattice basis
+	  R:Ring
+	       polynomial ring in which the toric ideal I_A should live
      Outputs
      	  B:Matrix 
 	       whose rows form a Markov Basis of the lattice \{z integral : A z = 0\}
 	       or the lattice spanned by the rows of {\tt A} if the option InputType => "lattice" is used
      Description
+     	  Text
+	       Suppose we would like to comput the toric ideal defining the variety parametrized by the following matrix:
+	  Example
+	       A = matrix"1,1,1,1;0,1,2,3"
+	  Text
+	       Since there are 4 columns, the ideal will live in the polynomial ring with 4 variables.
 	  Example
 	       R = QQ[a..d]
-	       M = markovBasis(A)
+	       M = toricMarkov(A)
+	  Text
+	       Note that rows of M are the exponents of minimal generators of I_A.  To get the ideal, we can do the following:
+	  Example
       	       I = toBinomial(M,R)
-     	       B = syz A
-	       N = markovBasis(transpose B, InputType => "lattice")
-	       J = toBinomial(N,R)-- markovBasis(transpose B, R, InputType => "lattice")
-     	       I == J	       
+	  Text
+	       Alternately, we might wish to give a lattice basis ideal instead of the matrix A. The lattice basis will be specified 
+	       by a matrix, as follows:
+	  Example
+	       B = syz A 
+	       N = toricMarkov(transpose B, InputType => "lattice")	  
+	       J = toBinomial(N,R) -- toricMarkov(transpose B, R, InputType => "lattice")	     
+	  Text
+	       We can see that the two ideals are equal:
+	  Example
+     	       I == J
+	  Text
+	       Also, notice that instead of "toBinomial" command we could have used the following:
+	  Example
+	       toricMarkov(A,R)	       
 ///;
 
 doc ///
      Key
-     	  graverBasis
-          (graverBasis, Matrix)
-     	  (graverBasis, Matrix, Ring)
+     	  toricGraver
+          (toricGraver, Matrix)
+     	  (toricGraver, Matrix, Ring)
      Headline
      	  calculates the Graver basis of the toric ideal; equivalent to "graver" in 4ti2
      Usage
-     	  graverBasis(A) or graverBasis(A,R)
+     	  toricGraver(A) or toricGraver(A,R)
      Inputs
       	  A:Matrix    
 	       whose columns parametrize the toric variety. The toric ideal I_A is the kernel of the map defined by {\tt A}
+	  R:Ring
+	       polynomial ring in which the toric ideal I_A should live
      Outputs
      	  B:Matrix 
 	       whose rows give binomials that form the Graver basis of the toric ideal of {\tt A}, or
      	  I:Ideal
 	       whose generators form the Graver basis for the toric ideal
      Description
+     	  Text
+	       The Graver basis for any toric ideal I_A contains (properly) the union of all reduced Groebner basis of I_A.  
+	       Any element in the Graver basis of the ideal is called a primitive binomial.
 	  Example
 	       A = matrix "1,1,1,1; 1,2,3,4"
-	       graverBasis(A)
+	       toricGraver(A)
+	  Text
+	       If we preer to store the ideal instead, we may use:
+	  Example
 	       R = QQ[a..d]
-	       graverBasis(A,R)
+	       toricGraver(A,R)
+	  Text
+	       Note that this last ideal equals the toric ideal I_A since every Graver basis element is actually in I_A.
 ///;
 
 doc ///
@@ -444,12 +493,12 @@ doc ///
 
 doc ///
      Key
-     	  circuits
-          (circuits, Matrix)
+     	  toricCircuits
+          (toricCircuits, Matrix)
      Headline
      	  calculates the circuits of the toric ideal; equivalent to "circuits" in 4ti2
      Usage
-     	  circuits(A)
+     	  toricCircuits(A)
      Inputs
       	  A:Matrix    
                whose columns parametrize the toric variety. The toric ideal I_A is the kernel of the map defined by {\tt A} 
@@ -457,10 +506,14 @@ doc ///
      	  B:Matrix 
 	       whose rows form the circuits of A
      Description
+     	  Text
+	       The cicruits are contained in the Graver basis of I_A. In fact, they are precisely the primitive binomials in the ideal
+	       with  minimal support.
 	  Example
-	       needsPackage "FourTiTwo"
 	       A = matrix "1,1,1,1; 1,2,3,4"
-	       circuits A
+	       toricCircuits A
+	  Text 
+	       The ideal generated by the circuits of A in general differs from the toric ideal of A.
 ///;
 
 doc ///
@@ -468,26 +521,26 @@ doc ///
      	  InputType
      Description
           Text
-     	      Put {\tt InputType => "lattice"} as a argument in the functions markovBasis and hilbertBasis
+     	      Put {\tt InputType => "lattice"} as a argument in the functions toricMarkov and hilbertBasis
      SeeAlso
-     	  markovBasis
+     	  toricMarkov
 	  hilbertBasis
 ///;
 
 
 TEST/// 
-  loadPackage "FourTiTwo"    --testing markovBasis w/ matrix inputt
+  loadPackage "FourTiTwo"    --testing toricMarkov w/ matrix inputt
   A = matrix "1,1,1,1; 1,2,3,4"
-  M = markovBasis(A)
+  M = toricMarkov(A)
   R = QQ[x_0,x_1,x_2,x_3]
   I = toBinomial(M,R)
   Irnc3 = ideal(x_0*x_2-x_1^2,x_1*x_3-x_2^2,x_0*x_3-x_1*x_2)
   assert(I==Irnc3)
 ///
 TEST ///   
-  loadPackage "FourTiTwo"   --testing markovBasis w/ lattice input
+  loadPackage "FourTiTwo"   --testing toricMarkov w/ lattice input
   B = matrix "1,-2,1,0; 0,1,-2,1"
-  M = markovBasis(B, InputType => "lattice")
+  M = toricMarkov(B, InputType => "lattice")
   R = QQ[x_0,x_1,x_2,x_3]
   I = toBinomial(M,R)
   Irnc3 = ideal(x_0*x_2-x_1^2,x_1*x_3-x_2^2,x_0*x_3-x_1*x_2)
@@ -497,7 +550,7 @@ TEST ///
   loadPackage "FourTiTwo"   --testing circuits
   R=CC[x_0,x_1,x_2,x_3]
   A = matrix "1,1,1,1; 1,2,3,4"
-  C = circuits(A)  --circuits returned by 4ti2
+  C = toricCircuits(A)  --circuits returned by 4ti2
   Icir = toBinomial(C,R) -- circuit ideal returend by 4ti2
   Ctrue = matrix{{0,1,-2,1},{1,-2,1,0},{1,0,-3,2},{2,-3,0,1}} --known: all circuits
   IcirTrue = toBinomial(Ctrue,R) --known: circuit ideal
@@ -524,9 +577,9 @@ TEST ///
   assert(numcols M1 == 4)
 ///
 TEST///
-  loadPackage "FourTiTwo"   --testing toricGB
+  loadPackage "FourTiTwo"   --testing toricGroebner
   A = matrix "1,0,1,1,0,1,1,0,1,0,0,0,0,0,0,0,0,0;0,1,1,0,0,0,0,0,0,1,0,1,1,0,1,0,0,0;0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,1,0,1;0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,1,1;0,1,1,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0;1,0,1,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0;0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,1;0,0,0,0,0,0,1,0,1,0,0,0,1,0,1,1,0,1;0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1"
-  M = toricGB(A); --note this matrix is the design matrix for the p1 statistical model on 4 nodes using a constant rho. (see fienberg/rinaldo/petrovic; in prep-missing reference).
+  M = toricGroebner(A); --note this matrix is the design matrix for the p1 statistical model on 4 nodes using a constant rho. (see fienberg/rinaldo/petrovic; in prep-missing reference).
   assert(numrows M == 137)
   assert(numrows M == 18)
   R = QQ[x_1..x_18]
@@ -536,11 +589,11 @@ TEST///
 TEST///
   loadPackage "FourTiTwo"   --testing graver  
   A1 = matrix "3,2,1,0;0,1,2,3"
-  G = graverBasis(A1)
+  G = toricGraver(A1)
   assert( numrows G==5)
   assert(numcols G==4)
   A = matrix "1,0,1,1,0,1,1,0,1,0,0,0,0,0,0,0,0,0;0,1,1,0,0,0,0,0,0,1,0,1,1,0,1,0,0,0;0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,1,0,1;0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,1,1;0,1,1,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0;1,0,1,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0;0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,1,1;0,0,0,0,0,0,1,0,1,0,0,0,1,0,1,1,0,1;0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1"
-  M = graverBasis(A);   --note this matrix is the design matrix for the p1 statistical model on 4 nodes using a constant rho. (see fienberg/rinaldo/petrovic; in prep-missing reference).
+  M = toricGraver(A);   --note this matrix is the design matrix for the p1 statistical model on 4 nodes using a constant rho. (see fienberg/rinaldo/petrovic; in prep-missing reference).
   assert(numrows M == 7462)
   assert(numrows M == 18)
 ///
@@ -565,19 +618,19 @@ debug FourTiTwo
 A = matrix{{1,1,1,1},{0,1,2,3}}
 A = matrix{{1,1,1,1},{0,1,3,4}}
 B = syz A
-time markovBasis A
+time toricMarkov A
 A
-markovBasis(A, InputType => "lattice")
+toricMarkov(A, InputType => "lattice")
 R = QQ[a..d]
-time toricGB(A)
+time toricGroebner(A)
 toBinomial(transpose B, R)
-circuits(A)
+toricCircuits(A)
 H = hilbertBasis(A)
 hilbertBasis(transpose B)
 toBinomial(H,QQ[x,y])
-graverBasis(A)
+toricGraver(A)
 A
-markovBasis(A)
+toricMarkov(A)
 
 7 9
 A = matrix"
@@ -589,10 +642,10 @@ A = matrix"
 0,1,1, 0,-1, 0, 0, 0,-1;
 1,1,0, 0,-1, 0,-1, 0, 0"
 transpose A
-markovBasis transpose A
+toricMarkov transpose A
 hilbertBasis transpose A
-graverBasis transpose A
-circuits transpose A
+toricGraver transpose A
+toricCircuits transpose A
 
 27 27
 A = matrix"
@@ -623,10 +676,10 @@ A = matrix"
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0;
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0;
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1"
-markovBasis A
+toricMarkov A
 R = QQ[x_1..x_27]
-markovBasis(A,R)
-toricGB(A,R)
+toricMarkov(A,R)
+toricGroebner(A,R)
 gens gb oo
 
 I = toBinomial(matrix{{}}, QQ[x])
