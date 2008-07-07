@@ -29,7 +29,8 @@ export {
      GroundSet,
      Edges,
      PosetMeet,
-     PosetJoin
+     PosetJoin,
+     isLattice
      }
 
 
@@ -296,18 +297,14 @@ PosetMeet = (P,a,b) ->(
 --output:  boolean value for whether or not it is a lattice
 --usage:
 isLattice = (P) -> (
-    checkJoins := unique flatten apply(P4.GroundSet, elt -> 
-	                apply (P4.GroundSet, elt2-> PosetJoin(P4,elt, elt2)));
-    checkMeets :=  unique flatten apply(P.GroundSet, elt -> 
+    checkJoins := unique flatten flatten apply(P.GroundSet, elt -> 
+	                apply (P.GroundSet, elt2-> PosetJoin(P,elt, elt2)));
+    checkMeets :=  unique flatten flatten apply(P.GroundSet, elt -> 
 	                apply (P.GroundSet, elt2-> PosetMeet(P,elt, elt2) ));
-    if member(false, set(flatten{A,B})) === true then false else true 
+    if member(false, set(flatten{checkJoins,checkMeets})) === true then false else true 
      )
 
 
-I4 = {a,b,c}
-C4 = {(a,b), (a,c)}
---P4 = poset(I4,C4)
---PosetJoin(P4,b,c)
 
 beginDocumentation()
 
