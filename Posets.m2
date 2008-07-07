@@ -25,7 +25,7 @@ export {
      nonnull,
      OrderIdeal,
      Filter,
-     Relations
+     Relations,
      GroundSet,
      Edges,
      PosetMeet,
