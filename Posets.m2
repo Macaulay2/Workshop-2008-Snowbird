@@ -295,13 +295,14 @@ PosetMeet = (P,a,b) ->(
 --inputs: a poset P
 --output:  boolean value for whether or not it is a lattice
 --usage:
---isLattice = (P) -> (
- --    checkJoins := unique flatten apply(P4.GroundSet, elt -> 
---	                apply (P4.GroundSet, elt2-> PosetJoin(P4,elt, elt2))
-  --   checkMeets :=  unique flatten apply(P.GroundSet, elt -> 
---	                apply (P.GroundSet, elt2-> PosetMeet(P,elt, elt2) ))
-     
+isLattice = (P) -> (
+    checkJoins := unique flatten apply(P4.GroundSet, elt -> 
+	                apply (P4.GroundSet, elt2-> PosetJoin(P4,elt, elt2)));
+    checkMeets :=  unique flatten apply(P.GroundSet, elt -> 
+	                apply (P.GroundSet, elt2-> PosetMeet(P,elt, elt2) ));
+    if member(false, set(flatten{A,B})) === true then false else true 
      )
+
 
 I4 = {a,b,c}
 C4 = {(a,b), (a,c)}
