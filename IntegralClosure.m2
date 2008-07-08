@@ -20,7 +20,7 @@ newPackage(
 -- problem?
    
 export{integralClosure, idealizerReal, nonNormalLocus, Index,
-isNormal, conductor, ICfractions, ICmap, icFracP, conductorElement,
+isNormal, conductor, icFractions, icMap, icFracP, conductorElement,
 reportSteps, intClI, minPressy} 
 
 needsPackage "Elimination"
@@ -72,16 +72,16 @@ integralClosure Ring := Ring => o -> (R) -> (
      	  M := flattenRing R;
      	  ICout := integralClosureHelper(nonNormalLocus M_0, gens M_0 ,M_1,o.Limit, o.Variable, 0);
      	  if #ICout == 2 then (
-	       R.ICfractions = ICout#1;
-     	       R.ICmap = ICout#0;
+	       R.icFractions = ICout#1;
+     	       R.icMap = ICout#0;
      	       target ICout#0
 	       )
      	  else (
 	       n := substitute((#ICout)/2, ZZ);
 	       ICout = apply(n-1, i -> {ICout#(2*i), ICout#(2*i+1)});
-	       R.ICfractions = apply(ICout, i -> i#1);
-	       R.ICmap = apply(ICout, i -> i#0);
-	       RIdeal := apply(R.ICmap, i -> trim ideal target i);
+	       R.icFractions = apply(ICout, i -> i#1);
+	       R.icMap = apply(ICout, i -> i#0);
+	       RIdeal := apply(R.icMap, i -> trim ideal target i);
 	       apply(RIdeal, i -> (ring i)/i)
 	       )
      	  )
@@ -131,8 +131,10 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
 	       newI := minimalPresentation(newI1);
 	       S = ring newI;
 	       B2 := S/newI;
-	       FF := substitute(((newI1).cache.minimalPresentationMap).matrix, B2);
+	       FF :=
+	       substitute(((newI1).cache.minimalPresentationMap).matrix, B2);
 	       F := map(B2,target newPhi, FF);
+	       --error("debug me");
 	       return integralClosureHelper(radical(F newJ1), join(fracs,fractions), F*newPhi*phi, counter-1,newVar,indexVar + # gens targ - # gens source newPhi )  
      	       );
      	  );
@@ -188,8 +190,8 @@ idealizerReal (Ideal, Thing) := o -> (J, f) -> (
 
 nonNormalLocus = method()
 nonNormalLocus Ring := (R) -> (
-     -- This handles the first node: finding an ideal that contains the NNL 
-     -- locus.
+     -- This handles the first key step in DeJong's algorithm: finding
+     -- an ideal that contains the NNL locus. 
      -- 1 argument: a ring. it must be flattened. normally it will be
      -- a quotient ring. 
      -- Return: an ideal containing the non-normal locus of R.   
@@ -265,9 +267,49 @@ conductor(RingMap) := Ideal => (F) -> (
 	  else error "conductor: expected a homogeneous ideal in a graded ring"
      )
 
+icMap = method()
+icMap(Ring) := RingMap => R -> (
+     -- 1 argument: a ring.  May be a quotient ring, or a tower ring.
+     -- Returns: The map from R to the integral closure of R.  
+     -- Note:  This is a map where the target is finitely generated as
+     -- a module over the source, so it can be used as the input to
+     -- conductor and other methods that require this. 
+     if isNormal R then map(R,R) 
+     else (S := integralClosure R;
+	  R.icMap)
+     )
+
+     
+
+///
+restart
+loadPackage"IntegralClosure"
+S = QQ [(symbol Y)_1, (symbol Y)_2, (symbol Y)_3, (symbol Y)_4, symbol x, symbol y, Degrees => {{7, 1}, {5, 1}, {6, 1}, {6, 1}, {1, 0}, {1, 0}}, MonomialOrder => ProductOrder {4, 2}]
+J =
+ideal(Y_3*y-Y_2*x^2,Y_3*x-Y_4*y,Y_1*x^3-Y_2*y^5,Y_3^2-Y_2*Y_4*x,Y_1*Y_4-Y_2^2*y^3)
+T = S/J       
+J = integralClosure T
+KF = frac(ring ideal J)
+M1 = first entries substitute(vars T, KF)
+M2 = apply(T.ICfractions, i -> matrix{{i}})
+
+assert(ICfractions T == substitute(matrix {{(Y_2*y^2)/x, (Y_1*x)/y,
+Y_1, Y_2, Y_3, Y_4, x, y}}, frac T))
+///
+
+--------------------------------------------------------------------
+icFractions = method()
+icFractions(Ring) := Matrix => (R) -> (
+     if isNormal R then vars R
+     else stuff
+     )
+
+--------------------------------------------------------------------
 
 icFracP = method(Options=>{conductorElement => null, Limit => infinity, reportSteps => false})
 icFracP Ring := List => o -> (R) -> (
+     -- 1 argument: a ring whose base field has characteristic p.
+     -- Returns: Fractions...
      P := ideal presentation R;
      c := codim P;
      S := ring P;
@@ -666,9 +708,14 @@ document {
      PARA {
 	  "This package computes the integral closure of a ring via the algorithm 
 	  in Theo De Jong's paper, ", EM "An Algorithm for 
-	  Computing the Integral Closure", ", J. Symbolic Computation, (1998) 26, 273-277.
+	  Computing the Integral Closure", ", J. Symbolic Computation, 
+	  (1998) 26, 273-277, for a ring in any characteristic and allows the
+	  option to use the algorithm of Anurag Singh and Irena Swanson given in
+	  ", EM "blah", ", arXiv:, for rings in positive characteristic p.
 	  The fractions that generate the integral closure over R are obtained 
-     	  with the command ", TT "ICfractions R", "."
+     	  with the command ", TT "ICfractions R", " if you use De
+	  Jong's algorithm via ", TT "integralClosure R", "and the output of
+	  Singh and Swanson's algorithm is already these fractions."
 	  }
      }
 
@@ -691,9 +738,23 @@ document {
      true, then tests the R1 condition using the jacobian of ", TT "R", "."
      }	 
 
+--- needs better examples and check on how it reads...
+
 document {
-     Key => integralClosure,
-     Headline => "compute the integral closure of a ring",
+     Key => {integralClosure, (integralClosure, Ring)},
+     Headline => "compute the integral closure of a reduced ring",
+     Usage => "integralClosure R",
+     Inputs => {
+	  "R" => {"that is reduced and presented as a quotient ring"},
+	  Variable => {"an unassigned symbol"},
+	  },
+     Outputs => {{"that is the integral closure of ", TT "R", " in its total 
+	       ring of fractions when ", TT "R", " is a domain.  When ", TT "R", 
+	       " is reduced, a list of rings is returned with the property that the 
+	       direct product of the rings is isomorphic to the integral closure 
+	       of ", TT "R", ". The output rings use new indexed variables based 
+	       on the symbol ", TT "w"}
+	  },
      "The code for this function allows users to retrieve 
      certain information if desired.  
      The information of largest interest is the fractions that 
@@ -717,24 +778,7 @@ document {
      (1998) 26, 273-277.  This implementation is written and maintained 
      by Amelia Taylor, ", HREF {"mailto:amelia.taylor@coloradocollege.edu", 
      "<amelia.taylor@coloradocollege.edu>"}, ".",
-     SeeAlso => {"ICmap", "ICfractions", "conductor", "isNormal"}
-     }
-
-document {
-     Key => (integralClosure,Ring),
-     Headline => "compute the integral closure of a reduced ring",
-     Usage => "integralClosure R",
-     Inputs => {
-	  "R" => {"that is reduced and presented as a quotient ring"},
-	  Variable => {"an unassigned symbol"},
-	  },
-     Outputs => {{"that is the integral closure of ", TT "R", " in its total 
-	       ring of fractions when ", TT "R", " is a domain.  When ", TT "R", 
-	       " is reduced, a list of rings is returned with the property that the 
-	       direct product of the rings is isomorphic to the integral closure 
-	       of ", TT "R", ". The output rings use new indexed variables based 
-	       on the symbol ", TT "w"}
-	  },
+     PARA{},
      "A domain example.",
       EXAMPLE {
 	  "R = QQ[x,y,z]/ideal(x^6-z^6-y^2*z^4);",
@@ -776,7 +820,7 @@ document {
      ring ", TT "R", " as input rather than the output 
      of ", TO "integralClosure", ".  In this way you can use these 
      functions without running ", TT "integralClosure", ".",
-     SeeAlso => {"conductor", "isNormal"},
+     SeeAlso => {"icMap", "icFractions", "conductor", "isNormal"}
      }
     
 document {
@@ -785,26 +829,36 @@ document {
      the integral closure of a reduced ring."
      }
 
---document {
---     Key => {ICmap, (ICmap,Ring)},
---    Headline => "natural map from an affine domain into its integral closure.",
---     Usage => "ICmap R",
---     Inputs => {
---	  "R" => {ofClass Ring, " that is an affine domain"}
---	  },
---     Outputs => {
---	  {ofClass RingMap, " from ", TT "R", " to its integral closure"}
---	  },
---    "Note that if an integrally closed ring is given as input, the identity map from 
---     the ring to itself is returned.",
---    	  EXAMPLE {
---	  "R = QQ[x,y,z]/ideal(x^6-z^6-y^2*z^4);",
---      	  "ICmap R"},
---     PARA{},
---     "This finite map is needed to compute the ", TO "conductor", " of the integral closure 
---     into the original ring.",
---     SeeAlso => {"conductor"}
---     }
+--- I don't love the third example in icMap
+document {
+     Key => {icMap, (icMap,Ring)},
+    Headline => "natural map from an affine domain into its integral closure.",
+     Usage => "icMap R",
+     Inputs => {
+	  "R" => {ofClass Ring, " that is an affine domain"}
+	  },
+     Outputs => {
+	  	  {ofClass RingMap, " from ", TT "R", " to its integral closure"}
+	  },
+    "If an integrally closed ring is given as input, the identity map from 
+     the ring to itself is returned.", 
+     EXAMPLE{
+	  "R = QQ[x,y]/ideal(x+2);",
+	  "icMap R"},
+     "This finite map is needed to compute the ", TO "conductor", " of the integral closure 
+     into the original ring.",
+    	  EXAMPLE {
+	  "S = QQ[a,b,c]/ideal(a^6-c^6-b^2*c^4);",
+      	  "conductor(icMap S)"},
+     PARA{},
+     "If the user has already run the computation ", TT "integralClosure R", 
+     " then this map can also be obtained by typing ",
+     TT "R.ICmap", ".",
+     EXAMPLE { 
+	  "integralClosure S;",
+	  "S.icMap"},
+     SeeAlso => {"conductor"},
+     }
     
 
 --document {
@@ -851,7 +905,7 @@ document {
      Usage => "conductor F",
      Inputs => {
 	  "F" => {ofClass RingMap, " from a ring ", TT "R", " to a ring ", TT "S", 
-	       ". The map must be a finite"},
+	       ". The map must be a finite."},
 	  },
      Outputs => {
 	  {ofClass Ideal, " that is the conductor of ", TT "S", " into ", TT "R", "."}
@@ -861,11 +915,12 @@ document {
      TEX "g \\in R \\mid g S \\subset f(R)", "}.  One way to think
      about this is that the conductor is the set of universal denominators
      of ", TT "S", " over ", TT "R", ", or as the largest ideal of ", TT "R", " 
-     which is also an ideal in ", TT "S", ".",
+     which is also an ideal in ", TT "S", ". On natural use is the
+     conductor of the map from a ring to its integral closure. ",
      EXAMPLE {
 	  "R = QQ[x,y,z]/ideal(x^6-z^6-y^2*z^4);",
 	  "S = integralClosure R",
-	  "F = R.ICmap",
+	  "F = R.icMap",
 	  "conductor F"
 	  },
      PARA{},
@@ -876,7 +931,7 @@ document {
      inhomogeneous.  If the source of the map ", TT "F", " is not
      homogeneous ", TT "conductor", " returns the message -- No
      conductor for ", TT "F", ".",
-     SeeAlso =>{"pushForward", "integralClosure"} 
+     SeeAlso =>{"pushForward", "integralClosure", "icMap"} 
      }
 
 document {
@@ -1029,14 +1084,7 @@ document {
 }
 
 document {
-     Key => intClI,
-     Headline => "compute the integral closure
-                   of a principal ideal in prime characteristic",
-     SeeAlso => {"icFracP"}
-}
-
-document {
-     Key => (intClI, RingElement, RingElement, ZZ),
+     Key => {intClI,(intClI, RingElement, RingElement, ZZ)},
      Headline => "compute the integral closure
                   in prime characteristic of a principal ideal",
      Usage => "intClI (a, D, N)",
@@ -1174,12 +1222,13 @@ assert(
 ///
 
 -- Test of ICfractions
---TEST ///
---S = QQ [(symbol Y)_1, (symbol Y)_2, (symbol Y)_3, (symbol Y)_4, symbol x, symbol y, Degrees => {{7, 1}, {5, 1}, {6, 1}, {6, 1}, {1, 0}, {1, 0}}, MonomialOrder => ProductOrder {4, 2}]
---J = ideal(Y_3*y-Y_2*x^2,Y_3*x-Y_4*y,Y_1*x^3-Y_2*y^5,Y_3^2-Y_2*Y_4*x,Y_1*Y_4-Y_2^2*y^3)
---T = S/J       
---assert(ICfractions T == substitute(matrix {{(Y_2*y^2)/x, (Y_1*x)/y, Y_1, Y_2, Y_3, Y_4, x, y}}, frac T))
-----///
+--TEST 
+///
+S = QQ [(symbol Y)_1, (symbol Y)_2, (symbol Y)_3, (symbol Y)_4, symbol x, symbol y, Degrees => {{7, 1}, {5, 1}, {6, 1}, {6, 1}, {1, 0}, {1, 0}}, MonomialOrder => ProductOrder {4, 2}]
+J = ideal(Y_3*y-Y_2*x^2,Y_3*x-Y_4*y,Y_1*x^3-Y_2*y^5,Y_3^2-Y_2*Y_4*x,Y_1*Y_4-Y_2^2*y^3)
+T = S/J       
+assert(ICfractions T == substitute(matrix {{(Y_2*y^2)/x, (Y_1*x)/y, Y_1, Y_2, Y_3, Y_4, x, y}}, frac T))
+///
 
 -- Test of isNormal
 TEST ///
