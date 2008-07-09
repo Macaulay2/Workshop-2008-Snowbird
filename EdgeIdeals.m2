@@ -43,7 +43,7 @@ export {HyperGraph,
 	isPerfect,
 	isChordal,
 	isLeaf,
-	isOddHole,
+	hasOddHole,
 	isTree,
 	isConnected,
 	cliqueNumber,
@@ -311,7 +311,11 @@ getGoodLeaf HyperGraph := H ->
 
 
  -- (True or False if exists odd hole (not triangle) )
-isOddHole = method();
+hasOddHole = method();
+hasOddHole Graph := G -> (
+     coverI:=coverIdeal G;
+     any(ass coverI^2,i->codim i > 3)
+     )     
 
  -- (True or False if graph is a tree)
 isTree = method();
@@ -342,6 +346,9 @@ chromaticNumber HyperGraph := H -> (
 
  -- return vertex cover number
 vertexCoverNumber = method();
+vertexCovers HyperGraph := H -> (
+     min apply(flatten entries gens coverIdeal H,i->first degree i)
+     )
 
  -- return independence number
 independenceNumber = method();
@@ -351,6 +358,9 @@ independenceNumber Graph:= G -> (
 
  -- return number of triangles
 numTriangles = method();
+numTriangles Graph := G -> (
+     number(ass (coverIdeal G)^2,i->codim i==3)
+     )
 
  -- return degree of vertex
 degreeVertex = method();
@@ -375,8 +385,12 @@ smallestCycleSize = method();
 -- Return Lists
 
 
- -- return all odd holes
+-- return all odd holes
 allOddHoles = method();
+allOddHoles Graph := G -> (
+     coverI:=coverIdeal G;
+     select(ass coverI^2,i->codim i > 3)
+     )
 
  -- return all even holes (this would be SLOWWW!)
 allEvenHoles = method();
@@ -386,6 +400,9 @@ connectedComponents = method();
 
  -- return all minimal vertex covers
 vertexCovers  = method();
+vertexCovers HyperGraph := H -> (
+     flatten entries gens coverIdeal H
+     )
 
  -- return neighbors of a vertex of a set
 neighborSet = method();
