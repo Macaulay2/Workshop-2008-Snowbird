@@ -257,7 +257,6 @@ isBipartite Graph := G -> (
      return m % (coverIdeal G)^2 == 0;
      );
 
-
  -- Boolean function (True of False if graph is CM)
 isCMhyperGraph = method();
 
@@ -265,7 +264,12 @@ isCMhyperGraph = method();
 isSCMhyperGraph = method();
 
  -- Boolean function (True or False if graph is perfect)
-isPefect = method();
+isPerfect = method();
+isPerfect Graph := G -> (
+     if hasOddHole G then return false;
+     if hasOddHole complementGraph G then return false;
+     return true;
+     )
 
  -- Boolean  function (True of False if graph is chordal)
 isChordal = method();
@@ -329,7 +333,9 @@ isConnected = method();
 
  -- return clique number
 cliqueNumber = method();
-
+cliqueNumber Graph := G -> (
+     #(last getCliques G)
+     )
 
  -- return chromatic number
 chromaticNumber = method();
@@ -409,10 +415,32 @@ neighborSet = method();
 
  -- return all cliques of the graph
 getCliques = method();
+getCliques (Graph,ZZ) := (G,d) -> (
+     subs:=apply(subsets(G#"vertices",d),i->subsets(i,2));
+     cliqueIdeals:=apply(subs,i->ideal apply(i,j->product j));
+     edgeId:=edgeIdeal G;
+     apply(select(cliqueIdeals,i->isSubset(i,edgeId)),j->support j)
+       )
+getCliques Graph := G -> (
+     numVerts:=#(G#"vertices");
+     cliques:={};
+     count:=2;
+     while count <= numVerts do (
+	  newCliques:=getCliques(G,count);
+	  if newCliques == {} then return flatten cliques;
+	  cliques=append(cliques,newCliques);
+	  count=count+1;
+	  );
+     flatten cliques
+     )
 
  -- return all cliques of maximal size
 getMaxCliques = method();
-
+getMaxCliques Graph := G -> (
+     cliqueList:=getCliques G;
+     clNum:=#(last cliqueList);
+     select(cliqueList,i->#i == clNum)
+     )
 
 
 -- Return Matrices
@@ -1077,6 +1105,18 @@ c5c = graph {a*c,a*d,b*d,b*e,c*e}
 assert(complementGraph c5 === c5c)
 ///
 
+-----------------------------------------
+-- Test isPerfect
+-------------------------------------- 17
+
+TEST///
+R = QQ[a..g]
+G = graph {a*b,b*c,c*d,d*e,e*f,f*g,a*g} 
+H = complementGraph G
+assert hasOddHole G
+assert not hasOddHole H
+assert not isPerfect G
+///
 ----------------------------------------------
 end
 
