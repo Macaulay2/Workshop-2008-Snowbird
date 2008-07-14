@@ -154,6 +154,7 @@ hyperGraph (Graph) := HyperGraph => (G) -> (
 
 vertices = method();
 vertices HyperGraph := H -> H#"vertices";
+vertices Graph := G -> G#"vertices";
 
 edges = method();
 edges HyperGraph := H -> H#"edges";
@@ -199,9 +200,14 @@ complementGraph HyperGraph := H -> (
      return (hyperGraph toList hcedge);
      )
 
+--------------------------------------------------------------------------------
+-- inducedGraph
 -- given a set of vertices, return induced graph on those vertices
+--------------------------------------------------------------------------------
 inducedGraph = method();
+
 inducedGraph (Graph,List) := (G,S) -> graph inducedGraph(hyperGraph(G), S)
+
 inducedGraph (HyperGraph,List) := (H,S) -> (
      if (isSubset(set S, set H#"vertices") =!= true) then error "Second argument must be a subset of the vertices";
      ie := select(H#"edges",e -> isSubset(set e,set S));
@@ -212,21 +218,26 @@ inducedGraph (HyperGraph,List) := (H,S) -> (
      return(hyperGraph(R,ienew));
      )
 
-
+----------------------------------------------------------------------------------
+-- deleteEdges
 -- remove edges from G
+----------------------------------------------------------------------------------
 deleteEdges = method();
+
 deleteEdges (HyperGraph,List) := (H,E) -> (
-     if (isSubset(set E,set H#"edges") =!= true) then error "Second argument must be a subset of the edges";
+     if (isSubset(set E,set H#"edges") =!= true) then error "Second argument must be a subset of the edges, entered as a list";
      newedges:=set(H#"edges")-set(E);
      return (hyperGraph toList newedges)
      )
 
 deleteEdges (Graph,List) := (H,E) -> (graph deleteEdges (hyperGraph(H),E))
 
--- change type
+-- Functions for changing the TYPE
+
 
  -- turn G from a graph to simplicial complex
 stanleyReisnerComplex = method();
+
 
 -- find independenceComplex
 independenceComplex =method();
@@ -239,13 +250,20 @@ cliqueComplex =method();
 
 -- return ideals
 
+----------------------------------------------------------------------
+-- edgeIdeal
+-- return the edge ideal of a graph or hypergraph
+----------------------------------------------------------------------
 
- -- edge ideal of G
 edgeIdeal = method();
 edgeIdeal HyperGraph := H -> (monomialIdeal apply(H#"edges",product)) 
 
- -- Alexander dual of edge ideal
+----------------------------------------------------------------------
+-- coverIdeal
+-- return the Alexander dual of edge ideal, otherwise known as the cover ideal
+------------------------------------------------------------------------
 coverIdeal = method();
+
 coverIdeal HyperGraph := H -> dual edgeIdeal H
 
 
@@ -352,7 +370,7 @@ chromaticNumber HyperGraph := H -> (
 
  -- return vertex cover number
 vertexCoverNumber = method();
-vertexCovers HyperGraph := H -> (
+vertexCoverNumber HyperGraph := H -> (
      min apply(flatten entries gens coverIdeal H,i->first degree i)
      )
 
@@ -572,16 +590,28 @@ doc ///
 	Key
 		vertices
 		(vertices, HyperGraph)
+	        (vertices, Graph)
 	Headline 
-		gets the vertices of a HyperGraph.
+		gets the vertices of a HyperGraph or Graph.
 	Usage
-		V = vertices(H)
+		V = vertices(H) or V = vertices(G)
 	Inputs
 		H:HyperGraph
 		        the input
+		G:Graph
+		        the input	
 	Outputs 
 		V:List
 			of the vertices of {\tt H}.
+        Description
+	        Text
+		        This function takes a graph or hypergraph, and returns the vertex set of the graph.
+		Example
+	                S = QQ[a..d]
+			g = graph {a*b,b*c,c*d,d*a} -- the four cycle
+			vertices(g)
+			h = hyperGraph{a*b*c}
+			vertices(h) -- the vertex d is treated as an isolated vertex
 ///
 
 doc ///
@@ -1117,7 +1147,19 @@ assert hasOddHole G
 assert not hasOddHole H
 assert not isPerfect G
 ///
-----------------------------------------------
+
+---------------------------------------------
+--Test vertices
+---------------------------------------------
+
+TEST///
+R = QQ[a..g]
+G = graph {a*b,b*c,c*d,d*e,e*f,f*g,a*g} 
+V = vertices(G)
+assert(vertices(G) == toList{a,b,c,d,e,f,g})
+///
+
+
 end
 
 
