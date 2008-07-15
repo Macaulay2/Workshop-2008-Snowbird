@@ -367,12 +367,16 @@ chromaticNumber HyperGraph := H -> (
      return (Chi); 
      )
 
+----------------------------------------------------
+-- vertexCoverNumber
+-- return the vertex cover number of a (hyper)graph
+---------------------------------------------------
 
- -- return vertex cover number
 vertexCoverNumber = method();
 vertexCoverNumber HyperGraph := H -> (
      min apply(flatten entries gens coverIdeal H,i->first degree i)
      )
+
 
  -- return independence number
 independenceNumber = method();
@@ -422,7 +426,12 @@ allEvenHoles = method();
  -- return the connected components
 connectedComponents = method();
 
- -- return all minimal vertex covers
+----------------------------------------
+-- vertexCovers
+-- return all minimal vertex covers 
+-- (these are the generators of the Alexander dual of the edge ideal)
+----------------------------------------
+
 vertexCovers  = method();
 vertexCovers HyperGraph := H -> (
      flatten entries gens coverIdeal H
@@ -508,8 +517,7 @@ lineGraph = method();
 
 
 ---------------------------------------------------------
----------------------------------------------------------
----------------------------------------------------------
+-- Simple Doc information
 ---------------------------------------------------------
 
 doc ///
@@ -584,34 +592,6 @@ doc ///
 			which is to be converted to a graph. The edges in {\tt H} must be of size two.
 	Outputs 
 		G:Graph
-///
-
-doc ///
-	Key
-		vertices
-		(vertices, HyperGraph)
-	        (vertices, Graph)
-	Headline 
-		gets the vertices of a HyperGraph or Graph.
-	Usage
-		V = vertices(H) or V = vertices(G)
-	Inputs
-		H:HyperGraph
-		        the input
-		G:Graph
-		        the input	
-	Outputs 
-		V:List
-			of the vertices of {\tt H}.
-        Description
-	        Text
-		        This function takes a graph or hypergraph, and returns the vertex set of the graph.
-		Example
-	                S = QQ[a..d]
-			g = graph {a*b,b*c,c*d,d*a} -- the four cycle
-			vertices(g)
-			h = hyperGraph{a*b*c}
-			vertices(h) -- the vertex d is treated as an isolated vertex
 ///
 
 doc ///
@@ -948,7 +928,98 @@ doc ///
 	        Text
 		       Stuff
 ///	
+
+---------------------------------------------------------
+-- VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+---------------------------------------------------------
+doc ///
+	Key
+		vertexCoverNumber
+		(vertexCoverNumber, HyperGraph)
+	Headline 
+		find the vertex covering number of a (hyper)graph
+	Usage
+		c = vertexCoverNumber(H) 
+	Inputs
+		H:HyperGraph
+		        the input
+	Outputs 
+		c:ZZ
+			the vertex covering number
+        Description
+	        Text
+		        This function takes a graph or hypergraph, and returns the vertex covering number, that is,
+			the size of smallest vertex cover of the (hyper)graph.  This corresponds to the smallest
+			degree of a generator of the cover ideal of the (hyper)graph.
+		Example
+	                S = QQ[a..d]
+			g = graph {a*b,b*c,c*d,d*a} -- the four cycle
+			vertexCoverNumber g
+		        S = QQ[a..e]
+			g = graph {a*b,a*c,a*d,a*e,b*c,b*d,b*e,c*d,c*e,d*e} -- the complete graph K_5
+			vertexCoverNumber g
+		      	h = hyperGraph {a*b*c,a*d,c*e,b*d*e}
+			vertexCoverNumber(h)
+///
  
+
+doc ///
+	Key
+		vertexCovers
+		(vertexCovers, HyperGraph)
+	Headline 
+		list the minimal vertex covers of a (hyper)graph.
+	Usage
+		c = vertexCovers(H) 
+	Inputs
+		H:HyperGraph
+		        the input
+	Outputs 
+		c:List
+			of the minimal vertex covers of {\tt H}.  The vertex covers are represented as monomials.
+        Description
+	        Text
+		        This function takes a graph or hypergraph, and returns the minimal vertex cover of the graph or
+			hypergraph.   A vertex cover is a subset of the vertices such that every edge of the (hyper)graph has
+			non-empty intersection with this set.  The minimal vertex covers are given by the minimal generators
+			of the cover ideal of H.
+		Example
+	                S = QQ[a..d]
+			g = graph {a*b,b*c,c*d,d*a} -- the four cycle
+			vertexCovers g
+		        coverIdeal g
+			flatten entries gens coverIdeal g == vertexCovers g
+			S = QQ[a..e]
+			h = hyperGraph {a*b*c,a*d,c*e,b*d*e}
+			vertexCovers(h)
+///
+ 
+doc ///
+	Key
+		vertices
+		(vertices, HyperGraph)
+	Headline 
+		gets the vertices of a HyperGraph or Graph.
+	Usage
+		V = vertices(H) 
+	Inputs
+		H:HyperGraph
+		        the input
+	Outputs 
+		V:List
+			of the vertices of {\tt H}.
+        Description
+	        Text
+		        This function takes a graph or hypergraph, and returns the vertex set of the graph.
+		Example
+	                S = QQ[a..d]
+			g = graph {a*b,b*c,c*d,d*a} -- the four cycle
+			vertices(g)
+			h = hyperGraph{a*b*c}
+			vertices(h) -- the vertex d is treated as an isolated vertex
+///
+
+
 -----------------------------
 -- Constructor Tests --------
 ------------------------- 0 to 6
@@ -1146,6 +1217,17 @@ H = complementGraph G
 assert hasOddHole G
 assert not hasOddHole H
 assert not isPerfect G
+///
+
+-------------------------------------------
+-- Test vertexCovers
+-------------------------------------------
+TEST///
+S = QQ[a..d]
+g = graph {a*b,b*c,c*d,d*a} -- the four cycle
+vertexCovers g
+coverIdeal g
+assert(flatten entries gens coverIdeal g == vertexCovers g)
 ///
 
 ---------------------------------------------
