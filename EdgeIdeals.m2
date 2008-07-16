@@ -32,7 +32,6 @@ export {HyperGraph,
 	complementGraph,
 	inducedGraph,
 	deleteEdges,
-	stanleyReisnerComplex,
 	independenceComplex,
 	cliqueComplex,
 	edgeIdeal,
@@ -53,7 +52,7 @@ export {HyperGraph,
 	numTriangles,
 	degreeVertex,
 	numConnectedComponents,
-	smallestCycleSize,
+	--smallestCycleSize,
 	allOddHoles,
 	allEvenHoles,
 	connectedComponents,
@@ -68,93 +67,124 @@ export {HyperGraph,
 	completeMultiPartite,
 	antiHole,
 	spanningTree,
-	lineGraph
+	lineGraph,
+	simplicialComplexToHyperGraph,
+	hyperGraphToSimplicialComplex
         };
 
 needsPackage "SimpleDoc"
 
+
+----------------------------------------------------------------------------------------
+--
+-- TYPES
+--
+----------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------
+-- HyperGraph
+----------------------------------------------------------------------------------------
+
 HyperGraph = new Type of HashTable;
 
 hyperGraph = method(TypicalValue => HyperGraph);
+
 hyperGraph (Ring, List) := HyperGraph => (R, E) -> 
 ( 
-	V := gens R;
-	if all(E, e-> class class e === PolynomialRing) then E = apply(E, support);
-  E = apply(E, unique); --- Enforces square-free
-  H := new HyperGraph from hashTable({"ring" => R, "vertices" => V, "edges" => E});
-  if any(H#"edges", e -> not instance(e, List)) then error "Edges must be lists.";
-  if any(H#"edges", e -> not isSubset(e,H#"vertices")) then error "Edges must be subsets of the vertices.";
-  if any(0..#(H#"edges") -1, I -> 
-         any(0..I-1, J-> isSubset(H#"edges"#I, H#"edges"#J) or isSubset(H#"edges"#J, H#"edges"#I))
-     )
-      then error "Edges satisfy a inclusion relation";
-  return H;
+     V := gens R;
+     if all(E, e-> class class e === PolynomialRing) then E = apply(E, support);
+     E = apply(E, unique); --- Enforces square-free
+     H := new HyperGraph from hashTable({"ring" => R, "vertices" => V, "edges" => E});
+     if any(H#"edges", e -> not instance(e, List)) then error "Edges must be lists.";
+     if any(H#"edges", e -> not isSubset(e,H#"vertices")) then error "Edges must be subsets of the vertices.";
+     if any(0..#(H#"edges") -1, I -> 
+	  any(0..I-1, J-> isSubset(H#"edges"#I, H#"edges"#J) or isSubset(H#"edges"#J, H#"edges"#I))
+     	  )
+     then error "Edges satisfy a inclusion relation";
+     return H;
 )
 
 hyperGraph (MonomialIdeal) := HyperGraph => (I) -> 
 ( 
-	if not isSquareFree I then error "Ideals must be square-free.";
-	hyperGraph(ring I, apply(flatten entries gens I, support))
+     if not isSquareFree I then error "Ideals must be square-free.";
+     hyperGraph(ring I, apply(flatten entries gens I, support))
 )
 
 hyperGraph (Ideal) := HyperGraph => (I) -> 
-( hyperGraph monomialIdeal I
+( 
+     hyperGraph monomialIdeal I
 )
 
 hyperGraph (List) := HyperGraph => (E) -> 
 ( 
-	M := null; 
-	if all(E, e-> class e === List) then M = monomialIdeal apply(E, product);
-	if all(E, e-> class class e === PolynomialRing) then M = monomialIdeal E;
-	if M === null then error "Edge must be represented by a list or a monomial.";
-	if #E =!= numgens M then error "Edges satisfy an inclusion relation."; 
-	hyperGraph M
+     M := null; 	
+     if all(E, e-> class e === List) then M = monomialIdeal apply(E, product);
+     if all(E, e-> class class e === PolynomialRing) then M = monomialIdeal E;
+     if M === null then error "Edge must be represented by a list or a monomial.";
+     if #E =!= numgens M then error "Edges satisfy an inclusion relation."; 
+     hyperGraph M
 )
+
+
+----------------------------------------------------------------------------
+-- Graph
+----------------------------------------------------------------------------
+
+Graph = new Type of HyperGraph;
+
+graph = method(TypicalValue => Graph);
+
+graph (Ring, List) := Graph => (R, E) ->
+(
+     H := hyperGraph(R, E);
+     if not isGraph(H) then error "Edges must be of size two.";
+     new Graph from H
+)	
+
+graph (MonomialIdeal) := Graph => (I) -> 
+(
+     H := hyperGraph(I);
+     if not isGraph(H) then error "Ideal must have quadratic generators.";
+     new Graph from H
+)	
+
+graph (Ideal) := Graph => (I) -> 
+(
+     H := hyperGraph(I);
+     if not isGraph(H) then error "Ideal must have quadratic generators.";
+     new Graph from H
+)	
+
+graph List := Graph => E -> 
+(
+     H := hyperGraph(E);
+     if not isGraph(H) then error "Edges must be of size two.";
+     new Graph from H
+)	
+
+graph (HyperGraph) := Graph => (H) -> 
+(
+     if not isGraph(H) then error "Edges must be of size two.";
+     new Graph from H
+)	
+
+hyperGraph (Graph) := HyperGraph => (G) -> 
+(
+     new HyperGraph from G
+)	
+
+
+-------------------------------------------------------------------
+--
+-- FUNCTIONS
+--
+------------------------------------------------------------------
+
 
 isGraph = method();
 isGraph HyperGraph := Boolean => (H) -> (
 		all(H#"edges", e-> #e === 2 )
 	)
-
-Graph = new Type of HyperGraph;
-
-graph = method(TypicalValue => Graph);
-graph (Ring, List) := Graph => (R, E) -> (
-		H := hyperGraph(R, E);
-		if not isGraph(H) then error "Edges must be of size two.";
-		new Graph from H
-	)	
-
-graph (MonomialIdeal) := Graph => (I) -> (
-		H := hyperGraph(I);
-		if not isGraph(H) then error "Ideal must have quadratic generators.";
-		new Graph from H
-	)	
-
-graph (Ideal) := Graph => (I) -> (
-		H := hyperGraph(I);
-		if not isGraph(H) then error "Ideal must have quadratic generators.";
-		new Graph from H
-	)	
-
-graph List := Graph => E -> (
-		H := hyperGraph(E);
-		if not isGraph(H) then error "Edges must be of size two.";
-		new Graph from H
-	)	
-
-graph (HyperGraph) := Graph => (H) -> (
-		if not isGraph(H) then error "Edges must be of size two.";
-		new Graph from H
-	)	
-
-hyperGraph (Graph) := HyperGraph => (G) -> (
-		new HyperGraph from G
-	)	
-
-vertices = method();
-vertices HyperGraph := H -> H#"vertices";
-vertices Graph := G -> G#"vertices";
 
 edges = method();
 edges HyperGraph := H -> H#"edges";
@@ -234,9 +264,6 @@ deleteEdges (Graph,List) := (H,E) -> (graph deleteEdges (hyperGraph(H),E))
 
 -- Functions for changing the TYPE
 
-
- -- turn G from a graph to simplicial complex
-stanleyReisnerComplex = method();
 
 
 -- find independenceComplex
@@ -367,16 +394,6 @@ chromaticNumber HyperGraph := H -> (
      return (Chi); 
      )
 
-----------------------------------------------------
--- vertexCoverNumber
--- return the vertex cover number of a (hyper)graph
----------------------------------------------------
-
-vertexCoverNumber = method();
-vertexCoverNumber HyperGraph := H -> (
-     min apply(flatten entries gens coverIdeal H,i->first degree i)
-     )
-
 
  -- return independence number
 independenceNumber = method();
@@ -426,16 +443,6 @@ allEvenHoles = method();
  -- return the connected components
 connectedComponents = method();
 
-----------------------------------------
--- vertexCovers
--- return all minimal vertex covers 
--- (these are the generators of the Alexander dual of the edge ideal)
-----------------------------------------
-
-vertexCovers  = method();
-vertexCovers HyperGraph := H -> (
-     flatten entries gens coverIdeal H
-     )
 
  -- return neighbors of a vertex of a set
 neighborSet = method();
@@ -516,8 +523,89 @@ spanningTree = method();
 lineGraph = method();
 
 
+--------------------------------------------------
+-- hyperGraphToSimplicialComplex
+-- change the type of a (hyper)graph to a simplicial complex
+---------------------------------------------------
+hyperGraphToSimplicialComplex = method()
+hyperGraphToSimplicialComplex HyperGraph := H -> (
+     simplicialComplex flatten entries gens edgeIdeal H
+     )
+
+
+-- AVT -- needs to be fixed
+--------------------------------------------------
+-- simplicialComplexToHyperGraph
+-- change the type of a simplicial complex to a (hyper)graph
+---------------------------------------------------
+
+simplicialComplexToHyperGraph = method()
+--simplicialComplexToHyperGraph SimplicialComplex := D -> (
+--          hyperGraph flatten entries facets D
+--     )
+
+
+
+-- AVT (I'm still working on this)
+------------------------------------------------------
+-- smallestCycleSize
+-- length of smallest induced cycle in a graph
+-------------------------------------------------------
+--smallestCycleSize = method();
+--smallestCycleSize Graph := G -> (
+--     R =  res edgeIdeal complementGraph G;
+--     smallestCycle:=0;
+--     i = 1;
+--     while  (smallestCycle = 0) and (i < pdim betti R) do (
+--        A = R_i;
+--        B = flatten degrees A;
+--     	t = tally B
+--     	if (t #? (i+1)) then (
+--	     if #R_i = t#(i+1) then i = i+1 else smallestCycle = i+1;
+--	     )
+--	else smallestCycle = i+1;     
+--	)
+--   	return (smallestCycle)
+--     )
+
+----------------------------------------------------
+-- vertexCoverNumber
+-- return the vertex cover number of a (hyper)graph
+---------------------------------------------------
+
+vertexCoverNumber = method();
+vertexCoverNumber HyperGraph := H -> (
+     min apply(flatten entries gens coverIdeal H,i->first degree i)
+     )
+
+----------------------------------------
+-- vertexCovers
+-- return all minimal vertex covers 
+-- (these are the generators of the Alexander dual of the edge ideal)
+----------------------------------------
+
+vertexCovers  = method();
+vertexCovers HyperGraph := H -> (
+     flatten entries gens coverIdeal H
+     )
+
+-----------------------------------------
+-- vertices
+-- returns the vertices of the (hyper)graph
+--------------------------------------------
+
+vertices = method();
+vertices HyperGraph := H -> H#"vertices";
+--vertices Graph := G -> G#"vertices";
+
+
+
+
+
+---------------------------------------------------------
 ---------------------------------------------------------
 -- Simple Doc information
+---------------------------------------------------------
 ---------------------------------------------------------
 
 doc ///
@@ -929,9 +1017,45 @@ doc ///
 		       Stuff
 ///	
 
+
+
 ---------------------------------------------------------
--- VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+-- DOCUMENTATION simplicialComplexToHyperGraph
+----------------------------------------------------------
+
+--doc ///
+--	Key
+--		simplicialComplexToHyperGraph
+--		(simplicialComlexToHyperGraph, SimplicialComplex)
+--	Headline 
+--		change the type of a simplicial complex to a (hyper)graph
+--	Usage
+--		h = simplicialComplexToHyperGraph(D) 
+--	Inputs
+--		D:SimplicialComplex
+--		        the input
+--	Outputs 
+--		h:HyperGraph
+--			whose edges are the facets of D
+ --       Description
+--	        Text
+--		        This function takes a simplicial complex and changes it type to a HyperGraph by
+--			returning a hypergraph whose edges are defined by the facets of the simplicial
+--			complex
+--		Example
+--	                S = QQ[a..f]
+--			loadPackage "SimplicialComplexes"
+--			Delta = simplicialComplex {a*b*c,b*c*d,c*d*e,d*e*f}
+ --                       h = simplicialComplexToHyperGraph Delta
+--///
+ 
+-------------------------------------------
+
+
 ---------------------------------------------------------
+-- DOCUMENTATION vertexCoverNumber
+---------------------------------------------------------
+
 doc ///
 	Key
 		vertexCoverNumber
@@ -962,6 +1086,10 @@ doc ///
 			vertexCoverNumber(h)
 ///
  
+
+---------------------------------------------------------
+-- DOCUMENTATION vertexCovers
+---------------------------------------------------------
 
 doc ///
 	Key
@@ -994,12 +1122,17 @@ doc ///
 			vertexCovers(h)
 ///
  
+ 
+---------------------------------------------------------
+-- DOCUMENTATION vertices
+---------------------------------------------------------
+
 doc ///
 	Key
 		vertices
 		(vertices, HyperGraph)
 	Headline 
-		gets the vertices of a HyperGraph or Graph.
+		gets the vertices of a (hyper)graph
 	Usage
 		V = vertices(H) 
 	Inputs
@@ -1220,6 +1353,15 @@ assert not isPerfect G
 ///
 
 -------------------------------------------
+-- Test vertexCoverNumber
+-------------------------------------------
+TEST///
+S = QQ[a..d]
+g = graph {a*b,b*c,c*d,d*a} -- the four cycle
+assert(vertexCoverNumber g == 2)
+///
+
+-------------------------------------------
 -- Test vertexCovers
 -------------------------------------------
 TEST///
@@ -1231,7 +1373,7 @@ assert(flatten entries gens coverIdeal g == vertexCovers g)
 ///
 
 ---------------------------------------------
---Test vertices
+-- Test vertices
 ---------------------------------------------
 
 TEST///
