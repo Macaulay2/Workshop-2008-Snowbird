@@ -52,7 +52,7 @@ export {HyperGraph,
 	numTriangles,
 	degreeVertex,
 	numConnectedComponents,
-	--smallestCycleSize,
+	smallestCycleSize,
 	allOddHoles,
 	allEvenHoles,
 	connectedComponents,
@@ -422,10 +422,6 @@ degreeVertex (HyperGraph, RingElement) := (H,V) ->	(
  -- number of connected components
 numConnectedComponents = method();
 
- -- length of smallest induced cycle
-smallestCycleSize = method();
-
-
 
 -- Return Lists
 
@@ -546,27 +542,41 @@ simplicialComplexToHyperGraph = method()
 
 
 
--- AVT (I'm still working on this)
+
 ------------------------------------------------------
 -- smallestCycleSize
 -- length of smallest induced cycle in a graph
 -------------------------------------------------------
---smallestCycleSize = method();
---smallestCycleSize Graph := G -> (
---     R =  res edgeIdeal complementGraph G;
---     smallestCycle:=0;
---     i = 1;
---     while  (smallestCycle = 0) and (i < pdim betti R) do (
---        A = R_i;
---        B = flatten degrees A;
---     	t = tally B
---     	if (t #? (i+1)) then (
---	     if #R_i = t#(i+1) then i = i+1 else smallestCycle = i+1;
---	     )
---	else smallestCycle = i+1;     
---	)
---   	return (smallestCycle)
---     )
+smallestCycleSize = method();
+
+smallestCycleSize Graph := G -> (
+     R :=  res edgeIdeal complementGraph G;
+     smallestCycle:=0;
+     i := 1;
+     -- this loop determines if there is a non-linear syzygy
+     -- the first non-linear syzygy tells us the smallest induced
+     -- cycle has lenght >= 4.  This is based upon 
+     -- the paper of Eisenbud-Green-Hulek-Popescu,
+     -- "Restricting linear syzygyies: algebra and geometry"
+     while  ((smallestCycle == 0) and (i <= pdim betti R)) do (
+	  A := R_i;
+          B := flatten degrees A     ;
+	  t := tally B;
+	  if (t #? (i+1)) then (
+               d := rank A;
+	       if d == t#(i+1) then i = i+1 else smallestCycle = i+2;
+               )	   
+       	  else smallestCycle = i+2;     
+       );
+     -- If the resolution is linear, smallestCycle still has the value of 0
+     -- Because the resolution is linear, the graph is chordal, by
+     -- a result of Froberg.  To decide if it is a tree (no cycles)
+     -- or has a 3-cycle, we compare the number of edges to vertices.
+     if smallestCycle == 0 then (
+       	  if  (#G#"edges" > (#G#"vertices")-1) then smallestCycle =3;
+       	  );            
+     return (smallestCycle);
+     );	 
 
 ----------------------------------------------------
 -- vertexCoverNumber
@@ -1019,6 +1029,7 @@ doc ///
 
 
 
+
 ---------------------------------------------------------
 -- DOCUMENTATION simplicialComplexToHyperGraph
 ----------------------------------------------------------
@@ -1050,6 +1061,50 @@ doc ///
 --///
  
 -------------------------------------------
+
+
+
+---------------------------------------------------------
+-- DOCUMENTATION smallestCycleSize
+----------------------------------------------------------
+ 
+doc ///
+        Key
+	        smallestCycleSize 
+		(smallestCycleSize, Graph)
+	Headline
+	        returns the size of the smallest induced cycle of a graph
+	Usage
+	        s = smallestCycleSize(G)
+	Inputs
+		G:Graph
+		     the input
+	Outputs
+		s:ZZ
+		     the size of the smallest induced cycle
+        Description
+	        Text
+		     This function returns the size of the smallest induced cycle of a graph.
+		     It is based upon Theorem 2.1 in the paper "Restricting linear syzygies:
+		     algebra and geometry" by Eisenbud, Green, Hulek, and Popsecu.  This theorem
+		     states that if G is graph, then the edge ideal of the complement of G satisfies
+		     property N_{2,p}, that is, the resolution of I(G^c) is linear up to the p-th step,
+		     if and only if, the smallest induced cycle of G has length p+3.  The algorithm
+		     looks at the resolution of the edge ideal of the complement to determine the size
+		     of the smallest cycle.    	  
+		Example      
+     	       	     T = QQ[x_1..x_9]
+		     g = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9,x_9*x_1} -- a 9-cycle
+		     smallestCycleSize g
+		     h = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9} -- a tree (no cycles)
+		     smallestCycleSize h
+		     l =  graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9,x_9*x_1,x_1*x_4}
+		     smallestCycleSize l
+		Text
+		     Note that if g is tree, then {\tt smallestCycleSize g = 0}
+///
+
+
 
 
 ---------------------------------------------------------
