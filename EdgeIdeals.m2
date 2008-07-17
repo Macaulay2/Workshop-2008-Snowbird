@@ -54,10 +54,17 @@ export {HyperGraph,
 	hyperGraphToSimplicialComplex,
 	incidenceMatrix,
 	independenceComplex,
+<<<<<<< .mine
+	cliqueComplex,
+	edgeIdeal,
+        coverIdeal,
+        isBipartite,
+=======
 	independenceNumber,
 	inducedGraph,
       	isBipartite,
 	isChordal,
+>>>>>>> .r7285
 	isCMHyperGraph,
 	isConnected,
 	isEdge,
@@ -90,14 +97,20 @@ export {HyperGraph,
 ----------------------------------------------------------------------------------------
 
 HyperGraph = new Type of HashTable;
-
 hyperGraph = method(TypicalValue => HyperGraph);
 
-hyperGraph (Ring, List) := HyperGraph => (R, E) -> 
-( 
+hyperGraph (PolynomialRing, List) := HyperGraph => (R, E) -> ( 
+     -- Output: HyperGraph over R with edges E
+     -- Assert: R is a polynomial ring
+     -- Assert: E is a List of Lists of variables of R or
+     --         E is a List of square-free monomials in R 
+     if not all (E, e -> class e === List) 
+              or not all (E, e -> class class e === PolynomialRing) 
+     then error "Edges must be lists of varibles or monomials.";
      V := gens R;
-     if all(E, e-> class class e === PolynomialRing) then E = apply(E, support);
-     E = apply(E, unique); --- Enforces square-free
+     --- check needed for square free 
+     if any(E, e-> class class e === PolynomialRing) then E = apply(E, support);
+     E = apply(E, unique); --- Enforces square-free if edges are given as lists
      H := new HyperGraph from hashTable({"ring" => R, "vertices" => V, "edges" => E});
      if any(H#"edges", e -> not instance(e, List)) then error "Edges must be lists.";
      if any(H#"edges", e -> not isSubset(e,H#"vertices")) then error "Edges must be subsets of the vertices.";
@@ -1432,6 +1445,10 @@ doc ///
 		     the size of the smallest induced cycle
         Description
 	        Text
+<<<<<<< .mine
+		       Stuff @TO http://www.google.ca@ blah.
+///	
+=======
 		     This function returns the size of the smallest induced cycle of a graph.
 		     It is based upon Theorem 2.1 in the paper "Restricting linear syzygies:
 		     algebra and geometry" by Eisenbud, Green, Hulek, and Popsecu.  This theorem
@@ -1488,6 +1505,7 @@ doc ///
 		      	h = hyperGraph {a*b*c,a*d,c*e,b*d*e}
 			vertexCoverNumber(h)
 ///
+>>>>>>> .r7285
  
 
 ---------------------------------------------------------
