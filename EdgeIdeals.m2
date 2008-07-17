@@ -194,6 +194,13 @@ hyperGraph (Graph) := HyperGraph => (G) ->
 
 adjacencyMatrix = method();
 
+adjacencyMatrix Graph := G -> (
+     vert:= G#"vertices";
+     n := #vert;
+     m := toList apply(0..n-1,i-> toList apply(0..n-1,j-> if isEdge(G,{vert_i,vert_j}) then 1 else 0));  
+     return (matrix m)
+     )
+
 
 ------------------------------------------------------------
 -- allEvenHoles
@@ -748,6 +755,7 @@ simplicialComplexToHyperGraph SimplicialComplex := D -> (
 smallestCycleSize = method();
 
 smallestCycleSize Graph := G -> (
+     if numTriangles G =!= 0 then return(3);
      R :=  res edgeIdeal complementGraph G;
      smallestCycle:=0;
      i := 1;
@@ -768,11 +776,8 @@ smallestCycleSize Graph := G -> (
        );
      -- If the resolution is linear, smallestCycle still has the value of 0
      -- Because the resolution is linear, the graph is chordal, by
-     -- a result of Froberg.  To decide if it is a tree (no cycles)
-     -- or has a 3-cycle, we compare the number of edges to vertices.
-     if smallestCycle == 0 then (
-       	  if  (#G#"edges" > (#G#"vertices")-1) then smallestCycle =3;
-       	  );            
+     -- a result of Froberg.  Since we have taken care of the case
+     -- that G has a triangle, the graph will be a tree.
      return (smallestCycle);
      );	 
 
@@ -785,7 +790,7 @@ smallestCycleSize Graph := G -> (
 
 spanningTree = method();
 
-
+-- to write this function, we need to first check if the graph is connected
 
 ----------------------------------------------------
 -- vertexCoverNumber
@@ -924,6 +929,42 @@ doc ///
 -- DOCUMENTATION FOR FUNCTIONS
 --**********************************************************
 
+	      
+------------------------------------------------------------
+-- DOCUMENTATION adjacencyMatrix
+------------------------------------------------------------
+
+doc ///
+        Key
+	        adjacencyMatrix
+		(adjacencyMatrix, Graph)
+	Headline
+	        returns the adjacency Matrix of a graph
+	Usage
+	        m = adjacencyMatrix g
+	Inputs
+	        g:Graph
+	Outputs
+	        m:Matrix
+		       the adjacency matrix of the graph
+        Description
+	        Text
+		       This function returns the adjacency matrix of the inputed graph.  The (i,j)^{th} position
+		       of the matrix is 1 if there is an edge between the i^{th} vertex and j^{th} vertex,
+		       and 0 otherwises.  The rows and columns are indexed by the variables of the ring and uses the 
+		       ordering of the variables for determining the order of the rows and columns.
+		Example
+                       S = QQ[a..f]
+		       g = graph {a*b,a*c,b*c,c*d,d*e,e*f,f*a,a*d}
+		       t = adjacencyMatrix g	  
+		       T = QQ[f,e,d,c,b,a]
+		       g =  graph {a*b,a*c,b*c,c*d,d*e,e*f,f*a,a*d}
+		       t = adjacencyMatrix g -- although the same graph, matrix is different since variables have different ordering
+		
+///		      
+
+
+	      
 	      
 ------------------------------------------------------------
 -- DOCUMENTATION chromaticNumber
@@ -1569,6 +1610,20 @@ assert(#(edges H) === 2)
 assert(#(vertices H) === 3)
 ///
 
+
+
+-----------------------------
+-- Test adjacencyMatrix
+-----------------------------
+
+TEST///
+R = QQ[a..d]
+c4 = graph {a*b,b*c,c*d,d*a} -- 4-cycle plus an isolated vertex!!!!
+adjacencyMatrix c4
+m = matrix {{0,1,0,1},{1,0,1,0},{0,1,0,1},{1,0,1,0}}
+assert(adjacencyMatrix c4 == m)
+
+//
 ------------------------
 -- Test chromaticNumber
 ------------------------ 
@@ -1723,6 +1778,18 @@ assert(not isLeaf(G,a))
 assert(isLeaf(G,e))
 assert(not isLeaf(H,0))
 assert(isLeaf(I,0))
+///
+
+-------------------------------------
+-- Test simplicialComplexToHyperGraph
+-------------------------------------
+
+TEST///
+S = QQ[a..f]
+needsPackage "SimplicialComplexes"
+Delta = simplicialComplex {a*b*c,b*c*d,c*d*e,d*e*f}
+h = simplicialComplexToHyperGraph Delta
+assert(class h === HyperGraph)
 ///
 
 -----------------------------
