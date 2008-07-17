@@ -23,53 +23,53 @@ export {HyperGraph,
         hyperGraph, 
 	Graph,
 	graph,
-	isGraph,
-        vertices, 
-        edges,   
-        getEdge,
-	isEdge,
-	getEdgeIndex,
-	complementGraph,
-	inducedGraph,
-	deleteEdges,
-	independenceComplex,
-	cliqueComplex,
-	edgeIdeal,
-	coverIdeal,
-	isBipartite,
-	isCMHyperGraph,
-	isSCMHyperGraph,
-	isPerfect,
-	isChordal,
-	isLeaf,
-	hasOddHole,
-	isTree,
-	isConnected,
-	cliqueNumber,
-	chromaticNumber,
-	vertexCoverNumber,
-	independenceNumber,
-	numTriangles,
-	degreeVertex,
-	numConnectedComponents,
-	smallestCycleSize,
+	adjacencyMatrix,
 	allOddHoles,
 	allEvenHoles,
-	connectedComponents,
-	vertexCovers,
-	neighborSet,
-	getCliques,
-	getMaxCliques,
-	adjacencyMatrix,
-	incidenceMatrix,
-	cycle,
+	antiHole,
+	chromaticNumber,
+	cliqueComplex,
+	cliqueNumber,
+	coverIdeal,
+	complementGraph,
 	completeGraph,
 	completeMultiPartite,
-	antiHole,
-	spanningTree,
+	connectedComponents,
+	cycle,
+	degreeVertex,
+	deleteEdges,
+	edgeIdeal,
+	edges, 
+	getCliques,
+	getEdge,
+	getEdgeIndex,
+	getMaxCliques,
+	hasOddHole,
+	hyperGraphToSimplicialComplex,
+	incidenceMatrix,
+	independenceComplex,
+	independenceNumber,
+	inducedGraph,
+      	isBipartite,
+	isChordal,
+	isCMHyperGraph,
+	isConnected,
+	isEdge,
+	isGraph,
+	isLeaf,
+	isPerfect,
+	isSCMHyperGraph,
+	isTree,
 	lineGraph,
+	neighborSet,
+	numConnectedComponents,
+	numTriangles,
 	simplicialComplexToHyperGraph,
-	hyperGraphToSimplicialComplex
+	smallestCycleSize,
+	spanningTree,
+	vertexCoverNumber,
+	vertexCovers,
+	vertices
         };
 
 needsPackage "SimpleDoc"
@@ -529,16 +529,21 @@ hyperGraphToSimplicialComplex HyperGraph := H -> (
      )
 
 
--- AVT -- needs to be fixed
+
 --------------------------------------------------
 -- simplicialComplexToHyperGraph
 -- change the type of a simplicial complex to a (hyper)graph
 ---------------------------------------------------
 
 simplicialComplexToHyperGraph = method()
+
+-- AVT:  I can't get this one to work -- how do we get it to accept 
+-- a simplicial complex as input?
+--
+--needsPackage "SimplicialComplexes"
 --simplicialComplexToHyperGraph SimplicialComplex := D -> (
---          hyperGraph flatten entries facets D
---     )
+--	  hyperGraph flatten entries facets D
+--	  )
 
 
 
@@ -1034,10 +1039,12 @@ doc ///
 -- DOCUMENTATION simplicialComplexToHyperGraph
 ----------------------------------------------------------
 
+-- AVT: needs to be fixed
+
 --doc ///
 --	Key
 --		simplicialComplexToHyperGraph
---		(simplicialComlexToHyperGraph, SimplicialComplex)
+--		(simplicialComplexToHyperGraph, SimplicialComplex)
 --	Headline 
 --		change the type of a simplicial complex to a (hyper)graph
 --	Usage
@@ -1045,11 +1052,11 @@ doc ///
 --	Inputs
 --		D:SimplicialComplex
 --		        the input
---	Outputs 
---		h:HyperGraph
+--	Outputs 		
+--	        h:HyperGraph
 --			whose edges are the facets of D
- --       Description
---	        Text
+--       Description
+-- 	        Text
 --		        This function takes a simplicial complex and changes it type to a HyperGraph by
 --			returning a hypergraph whose edges are defined by the facets of the simplicial
 --			complex
@@ -1057,7 +1064,7 @@ doc ///
 --	                S = QQ[a..f]
 --			loadPackage "SimplicialComplexes"
 --			Delta = simplicialComplex {a*b*c,b*c*d,c*d*e,d*e*f}
- --                       h = simplicialComplexToHyperGraph Delta
+--                      h = simplicialComplexToHyperGraph Delta
 --///
  
 -------------------------------------------
@@ -1101,7 +1108,7 @@ doc ///
 		     l =  graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9,x_9*x_1,x_1*x_4}
 		     smallestCycleSize l
 		Text
-		     Note that if g is tree, then {\tt smallestCycleSize g = 0}
+		     Note that if g is tree a tree if and only if {\tt smallestCycleSize g = 0}
 ///
 
 
@@ -1405,6 +1412,16 @@ H = complementGraph G
 assert hasOddHole G
 assert not hasOddHole H
 assert not isPerfect G
+///
+
+--------------------------------------------
+-- Test smallestCycleSize
+--------------------------------------------
+
+TEST///
+T = QQ[x_1..x_9]
+g = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9,x_9*x_1} -- a 9-cycle
+assert(smallestCycleSize g == 9)
 ///
 
 -------------------------------------------
