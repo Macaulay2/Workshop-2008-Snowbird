@@ -1,3 +1,5 @@
+needsPackage "SimplicialComplexes"
+
 newPackage("EdgeIdeals", 
            Version => "0.1",
            Date => "July 1, 2008",
@@ -97,9 +99,9 @@ hyperGraph (PolynomialRing, List) := HyperGraph => (R, E) -> (
      -- Assert: R is a polynomial ring
      -- Assert: E is a List of Lists of variables of R or
      --         E is a List of square-free monomials in R 
-     if not all (E, e -> class e === List) 
-              or not all (E, e -> class class e === PolynomialRing) 
-     then error "Edges must be lists of varibles or monomials.";
+     if any(E, e -> class e =!= List) and any(E, e -> class class e =!= PolynomialRing)
+     then ( print apply(E, e -> class e) ;error "Edges must be lists of varibles or monomials.");
+
      V := gens R;
      --- check needed for square free 
      if any(E, e-> class class e === PolynomialRing) then E = apply(E, support);
@@ -544,7 +546,6 @@ incidenceMatrix = method();
 --------------------------------------------------------------------------------
 independenceComplex =method();
 
-needsPackage "SimplicialComplexes";
 independenceComplex HyperGraph := H -> (simplicialComplex edgeIdeal H)
 
 
@@ -702,7 +703,7 @@ isSCMhyperGraph = method();
 ------------------------------------------------------------
 
 isTree = method();
-isTree Graph := G -> (smallestCycleSize g == 0);
+isTree Graph := G -> (smallestCycleSize G == 0);
 
 ------------------------------------------------------------------
 -- lineGraph
@@ -746,7 +747,6 @@ numTriangles Graph := G -> (
 
 simplicialComplexToHyperGraph = method()
 
-needsPackage "SimplicialComplexes"
 simplicialComplexToHyperGraph SimplicialComplex := D -> (
 	  hyperGraph flatten entries facets D
 	  )
@@ -964,7 +964,7 @@ doc ///
 		       g = graph {a*b,a*c,b*c,c*d,d*e,e*f,f*a,a*d}
 		       t = adjacencyMatrix g	  
 		       T = QQ[f,e,d,c,b,a]
-		       g =  graph {a*b,a*c,b*c,c*d,d*e,e*f,f*a,a*d}
+		       g = graph {a*b,a*c,b*c,c*d,d*e,e*f,f*a,a*d}
 		       t = adjacencyMatrix g -- although the same graph, matrix is different since variables have different ordering
 		
 ///		      
@@ -1412,7 +1412,6 @@ doc ///
 			complex
 		Example
 	                S = QQ[a..f]
-			needsPackage "SimplicialComplexes"
 			Delta = simplicialComplex {a*b*c,b*c*d,c*d*e,d*e*f}
                         h = simplicialComplexToHyperGraph Delta
 ///
@@ -1629,7 +1628,7 @@ adjacencyMatrix c4
 m = matrix {{0,1,0,1},{1,0,1,0},{0,1,0,1},{1,0,1,0}}
 assert(adjacencyMatrix c4 == m)
 
-//
+///
 ------------------------
 -- Test chromaticNumber
 ------------------------ 
@@ -1792,7 +1791,6 @@ assert(isLeaf(I,0))
 
 TEST///
 S = QQ[a..f]
-needsPackage "SimplicialComplexes"
 Delta = simplicialComplex {a*b*c,b*c*d,c*d*e,d*e*f}
 h = simplicialComplexToHyperGraph Delta
 assert(class h === HyperGraph)
@@ -1833,18 +1831,15 @@ assert(flatten entries gens coverIdeal g == vertexCovers g)
 -----------------------------
 
 TEST///
-R = QQ[a..g]
-G = graph {a*b,b*c,c*d,d*e,e*f,f*g,a*g} 
+R = QQ[a..f]
+G = graph {a*b,b*c,c*d,d*e,e*f} 
 V = vertices(G)
-assert(vertices(G) == toList{a,b,c,d,e,f,g})
+assert(vertices(G) == {a,b,c,d,e,f})
 ///
-
 
 end
 
-
 restart
-needsPackage "SimplicialComplexes"
 installPackage ("EdgeIdeals", UserMode=>true)
 loadPackage "EdgeIdeals"
 viewHelp
