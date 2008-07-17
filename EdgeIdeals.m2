@@ -144,7 +144,7 @@ Graph = new Type of HyperGraph;
 
 graph = method(TypicalValue => Graph);
 
-graph (Ring, List) := Graph => (R, E) ->
+graph (PolynomialRing, List) := Graph => (R, E) ->
 (
      H := hyperGraph(R, E);
      if not isGraph(H) then error "Edges must be of size two.";
@@ -871,7 +871,7 @@ doc ///
 doc ///
 	Key
 		hyperGraph
-		(hyperGraph, Ring, List)
+		(hyperGraph, PolynomialRing, List)
 		(hyperGraph, MonomialIdeal)
 		(hyperGraph, Ideal)
 		(hyperGraph, List)
@@ -881,7 +881,7 @@ doc ///
 	Usage
 		H = hyperGraph(R,E) \n H = hyperGraph(I) \n H = hyperGraph(E) \n H = hyperGraph(G)
 	Inputs
-		R:Ring
+		R:PolynomialRing
 			whose variables correspond to vertices of the hypergraph.
 		E:List
 			contain a list of edges, which themselves are lists of vertices.
@@ -903,7 +903,7 @@ doc ///
 doc ///
 	Key
 		graph
-		(graph, Ring, List)
+		(graph, PolynomialRing, List)
 		(graph, MonomialIdeal)
 		(graph, Ideal)
 		(graph, List)
@@ -913,7 +913,7 @@ doc ///
 	Usage
 		G = graph(R,E) \n G = graph(I) \n G = graph(E) \\ G = graph(H)
 	Inputs
-		R:Ring
+		R:PolynomialRing
 			whose variables correspond to vertices of the hypergraph.
 		E:List
 			contain a list of edges, which themselves are lists of vertices.
@@ -1438,10 +1438,6 @@ doc ///
 		     the size of the smallest induced cycle
         Description
 	        Text
-<<<<<<< .mine
-		       Stuff @TO http://www.google.ca@ blah.
-///	
-=======
 		     This function returns the size of the smallest induced cycle of a graph.
 		     It is based upon Theorem 2.1 in the paper "Restricting linear syzygies:
 		     algebra and geometry" by Eisenbud, Green, Hulek, and Popsecu.  This theorem
@@ -1498,7 +1494,6 @@ doc ///
 		      	h = hyperGraph {a*b*c,a*d,c*e,b*d*e}
 			vertexCoverNumber(h)
 ///
->>>>>>> .r7285
  
 
 ---------------------------------------------------------
