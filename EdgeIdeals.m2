@@ -54,17 +54,10 @@ export {HyperGraph,
 	hyperGraphToSimplicialComplex,
 	incidenceMatrix,
 	independenceComplex,
-<<<<<<< .mine
-	cliqueComplex,
-	edgeIdeal,
-        coverIdeal,
-        isBipartite,
-=======
 	independenceNumber,
 	inducedGraph,
       	isBipartite,
 	isChordal,
->>>>>>> .r7285
 	isCMHyperGraph,
 	isConnected,
 	isEdge,
