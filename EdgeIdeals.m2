@@ -73,6 +73,9 @@ export {HyperGraph,
 	neighborSet,
 	numConnectedComponents,
 	numTriangles,
+     	randomGraph,
+	randomHyperGraph,
+	randomUniformHyperGraph,
 	simplicialComplexToHyperGraph,
 	smallestCycleSize,
 	spanningTree,
@@ -738,6 +741,52 @@ numTriangles Graph := G -> (
      number(ass (coverIdeal G)^2,i->codim i==3)
      )
 
+-----------------------------------------------------------
+-- randomGraph
+-- returns a graph with a given vertex set and randomly chosen
+-- edges with the user determining the number of edges
+-----------------------------------------------------------
+randomGraph = method();
+randomGraph (PolynomialRing,ZZ) := (R,num) -> (
+     graph randomUniformHyperGraph(R,2,num)
+     )
+
+-----------------------------------------------------------
+-- randomHyperGraph
+-- returns a hypergraph on a given vertex set and randomly
+-- chosen edges of given cardinality
+-- NOTE: currently conflicts with inclusion error 
+-----------------------------------------------------------
+
+randomHyperGraph = method();
+randomHyperGraph (PolynomialRing,List) := (R,li) -> (
+     if not all(li,i->instance(i,ZZ) and i > 0) then error "cardinalities of hyperedges must be positive integers";
+     verts:=flatten entries vars R;
+     if any(li,i->i>#verts) then error "cardinality of at least one hyperedge is too large";
+     cards:=sort li;
+     uniques:=unique cards;
+     numCards:=#uniques;
+     edgeList:={};
+     count:=0;
+     while count < numCards do (
+	  subs:=subsets(verts,uniques#count);
+	  edgeList=append(edgeList,take(random subs,number(cards,i->i==uniques#count)));
+     	  count=count+1;
+	  );
+     hyperGraph(R,flatten edgeList)
+     )	  
+
+-----------------------------------------------------------
+-- randomUniformHyperGraph
+-- returns a random hypergraph on a given vertex set
+-- user chooses cardinality of edges and the number of edges
+-----------------------------------------------------------
+
+randomUniformHyperGraph = method();
+randomUniformHyperGraph (PolynomialRing,ZZ,ZZ) := (R,card,num) -> (
+     randomHyperGraph(R,toList(num:card))
+     )
+
 
 
 --------------------------------------------------
@@ -1381,8 +1430,19 @@ doc ///
 ///
 
 
+------------------------------------------------------------
+-- DOCUMENTATION randomGraph
+------------------------------------------------------------
 
 
+------------------------------------------------------------
+-- DOCUMENTATION randomHyperGraph
+------------------------------------------------------------
+
+
+------------------------------------------------------------
+-- DOCUMENTATION randomUniformHyperGraph
+------------------------------------------------------------
 
 
 ---------------------------------------------------------
@@ -1784,6 +1844,18 @@ assert(isLeaf(G,e))
 assert(not isLeaf(H,0))
 assert(isLeaf(I,0))
 ///
+
+-------------------------------------
+-- Test randomGraph
+-------------------------------------
+
+-------------------------------------
+-- Test randomHyperGraph
+-------------------------------------
+
+-------------------------------------
+-- Test randomUniformHyperGraph
+-------------------------------------
 
 -------------------------------------
 -- Test simplicialComplexToHyperGraph
