@@ -237,7 +237,7 @@ allOddHoles Graph := G -> (
 -------------------------------------------------------------------
 -- antiHole
 -- return the graph of an anti-hole
--- AVT:  I think this should be anit-cycle
+-- AVT:  I think this should be anti-cycle
 ------------------------------------------------------------------
 
 antiHole = method();
@@ -1018,7 +1018,37 @@ doc ///
 		
 ///		      
 
+------------------------------------------------------------
+-- DOCUMENTATION allOddHoles
+------------------------------------------------------------
 
+doc ///
+	Key
+		allOddHoles
+		(allOddHoles, Graph)
+	Headline 
+		returns all odd holes in a graph
+	Usage
+		L = hasOddHole G
+	Inputs
+		G:Graph
+	Outputs 
+		L:List
+			returns all odd holes contained in {\tt G}.
+	Description
+	     Text
+	     	  The method is based on work of Francisco-Ha-Van Tuyl, looking at the associated primes
+		  of the square of the Alexander dual of the edge ideal. An odd hole is an odd induced
+		  cycle of length at least 5.
+	     Example
+	     	  R=QQ[x_1..x_6]
+		  G=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
+		  allOddHoles G --only the 5-cycle should appear
+		  H=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6,x_1*x_4}) --no odd holes
+		  allOddHoles H
+	SeeAlso
+	     hasOddHole
+///
 	      
 	      
 ------------------------------------------------------------
@@ -1037,10 +1067,42 @@ doc ///
 	        H:HyperGraph
 	Outputs
 	        i:ZZ
-		       the chromatic number of {\tt H}.
+		       the chromatic number of {\tt H}
         Description
 	        Text
 		 Returns the chromatic number.
+///		      
+
+------------------------------------------------------------
+-- DOCUMENTATION cliqueNumber
+------------------------------------------------------------
+
+doc ///
+        Key
+	        cliqueNumber
+		(cliqueNumber, Graph)
+	Headline
+	        computes the clique number of a graph
+	Usage
+	        c = chromaticNumber G
+	Inputs
+	        G:Graph
+	Outputs
+	        i:ZZ
+		       the clique number of {\tt G}
+        Description
+	        Text
+		     cliqueNumber returns the clique number of a graph, the size of the largest clique
+		     contained in the graph.
+		Example
+		     R=QQ[a..d]
+		     cliqueNumber completeGraph R
+		     G = graph({a*b,b*c,a*c,a*d})
+		     cliqueNumber G
+		 
+	SeeAlso
+	     getCliques
+	     getMaxCliques
 ///		      
 
 
@@ -1102,7 +1164,7 @@ doc ///
 			of vertices to make into a complete graph
 	Outputs
 		K:Graph
-			which is a complete graph on the vertices in {\tt L} or on the variables of {\tt R}.
+			which is a complete graph on the vertices in {\tt L} or on the variables of {\tt R}
 	Description
 		Example
 			R = QQ[a,b,c,d,e]	   
@@ -1183,12 +1245,12 @@ doc ///
 	Inputs
 		H:HyperGraph
 		N:ZZ
-			the index of a vertex.
+			the index of a vertex
 		V:RingElement
-			a vertex/variable of the HyperGraph.
+			a vertex/variable of the HyperGraph
 	Outputs 
 		D:ZZ
-			which is the degree of vertex {\tt V} (or vertex number {\tt N}). 
+			which is the degree of vertex {\tt V} (or vertex number {\tt N})
 	Description
 		Text
 			The degree of a vertex in a hypergraph is the number of edges that contain the vertex.
@@ -1270,6 +1332,40 @@ doc ///
 			of the edges of {\tt H}.
 ///
 
+
+------------------------------------------------------------
+-- DOCUMENTATION getCliques
+------------------------------------------------------------
+
+doc ///
+	Key
+		getCliques
+		(getCliques, Graph, ZZ)
+		(getCliques, Graph)
+	Headline 
+		returns cliques in a graph
+	Usage
+		c = getCliques(G,d) or c = getCliques G
+	Inputs
+		G:Graph
+		d:ZZ
+			representing the size of the cliques desired
+	Outputs 
+		c:List
+			of cliques of size {\tt d} or, if no {\tt d} is entered, all cliques.
+	SeeAlso
+	        cliqueNumber
+	Description
+		Example
+		     	R = QQ[a..d]
+			G = completeGraph R 
+     	       	    	getCliques(G,3)
+			getCliques(G,4)
+			getCliques G
+	       
+///
+
+
 ------------------------------------------------------------
 -- DOCUMENTATION getEdge
 ------------------------------------------------------------
@@ -1279,7 +1375,7 @@ doc ///
 		getEdge
 		(getEdge, HyperGraph, ZZ)
 	Headline 
-		gets the n-th edge in a HyperGraph.
+		gets the n-th edge in a HyperGraph
 	Usage
 		E = edges(H,N)
 	Inputs
@@ -1288,7 +1384,7 @@ doc ///
 			an index of an edge in {\tt H}
 	Outputs 
 		E:List
-			which is the {\tt N}-th edge of {\tt H}.
+			which is the {\tt N}-th edge of {\tt H}
 ///
 
 ------------------------------------------------------------
@@ -1306,15 +1402,77 @@ doc ///
 	Inputs
 		H:HyperGraph
 		E:List
-			of vertices (or monomials).
+			of vertices (or monomials)
 	Outputs 
 		N:ZZ
 			which is the index of {\tt E} as an edge of {\tt H}. If {\tt E} is not in {\tt H}
-			then -1 is returned.
+			then -1 is returned
 	SeeAlso
 		isEdge
 ///
 
+------------------------------------------------------------
+-- DOCUMENTATION getMaxCliques
+------------------------------------------------------------
+
+doc ///
+	Key
+		getMaxCliques
+		(getMaxCliques, Graph)
+	Headline 
+		returns maximal cliques in a graph
+	Usage
+		c = getMaxCliques G
+	Inputs
+		G:Graph
+	Outputs 
+		c:List
+			of cliques of maximal size contained in {\tt G}
+	Description
+	     	Text
+		     The function returns all cliques of maximal size in a graph as a list of lists.
+		Example
+		     	R = QQ[a..d]
+			G = completeGraph R 
+     	       	    	getMaxCliques G
+			H=graph({a*b,b*c,a*c,c*d,b*d})
+			getMaxCliques H
+	SeeAlso
+	        cliqueNumber
+		getCliques
+///
+
+------------------------------------------------------------
+-- DOCUMENTATION hasOddHole
+------------------------------------------------------------
+
+doc ///
+	Key
+		hasOddHole
+		(hasOddHole, Graph)
+	Headline 
+		tells whether a graph contains an odd hole.
+	Usage
+		B = hasOddHole G
+	Inputs
+		G:Graph
+	Outputs 
+		B:Boolean
+			returns {\tt true} if {\tt G} has an odd hole and {\tt false} otherwise
+	Description
+	     Text
+	     	  The method is based on work of Francisco-Ha-Van Tuyl, looking at the associated primes
+		  of the square of the Alexander dual of the edge ideal. An odd hole is an odd induced
+		  cycle of length at least 5.
+	     Example
+	     	  R=QQ[x_1..x_6]
+		  G=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
+		  hasOddHole G
+		  H=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6,x_1*x_4}) --no odd holes
+		  hasOddHole H
+	SeeAlso
+	     allOddHoles
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION independenceNumber
@@ -1394,7 +1552,7 @@ doc ///
 	        G:Graph
 	Outputs
 	        B:Boolean
-		       returns {\tt true} if {\tt G} is bipartite, {\tt false} otherwise.
+		       returns {\tt true} if {\tt G} is bipartite, {\tt false} otherwise
         Description
 	        Text
 ///		      
@@ -1424,15 +1582,107 @@ doc ///
 			a monomial representing an edge.
 	Outputs 
 		B:Boolean
-			which is true iff {\tt E} (or {\tt support M}) is an edge of {\tt H}.
+			which is true iff {\tt E} (or {\tt support M}) is an edge of {\tt H}
 	SeeAlso
 		getEdgeIndex
 ///
 
+------------------------------------------------------------
+-- DOCUMENTATION isPerfect
+------------------------------------------------------------
+
+doc ///
+	Key
+		isPerfect
+		(isPerfect, Graph)
+	Headline 
+		determines whether a graph is perfect
+	Usage
+		B = isPerfect G
+	Inputs
+		G:Graph
+	Outputs 
+		B:Boolean
+			which is {\tt true} if {\tt G} is perfect and {\tt false} otherwise
+        Description
+	     Text
+	     	  The algorithm uses the Strong Perfect Graph Theorem, which says that {\tt G} is
+		  perfect if and only if neither {\tt G} nor its complement contains an odd hole.
+		  @TO hasOddHole@ is used to determine whether these conditions hold.
+	     Example
+     	       	  R=QQ[x_1..x_7]
+		  G=complementGraph cycle R; --odd antihole with 7 vertices
+		  isPerfect G
+		  H=cycle(R,4)
+		  isPerfect H
+		  	     	  
+	SeeAlso
+		hasOddHole
+///
+
+
+------------------------------------------------------------
+-- DOCUMENTATION numTriangles
+------------------------------------------------------------
+
+doc ///
+	Key
+		numTriangles
+		(numTriangles, Graph)
+	Headline 
+		returns the number of triangles in a graph
+	Usage
+		d = numTriangles G
+	Inputs
+		G:Graph
+	Outputs 
+		d:ZZ
+			the number of triangles contained in {\tt G}
+	Description
+	     Text
+	     	  The method is based on work of Francisco-Ha-Van Tuyl, looking at the associated primes
+		  of the square of the Alexander dual of the edge ideal. The function counts the number
+		  of these associated primes of height 3.
+	     Example
+	     	  R=QQ[x_1..x_6]
+		  G=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
+		  numTriangles G
+		  H=completeGraph R;
+		  numTriangles H == binomial(6,3)
+	SeeAlso
+	     allOddHoles
+	     getCliques
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION randomGraph
 ------------------------------------------------------------
+
+doc ///
+	Key
+		randomGraph
+		(randomGraph,PolynomialRing, ZZ)
+	Headline 
+		returns a random graph
+	Usage
+		G = randomGraph(R,d)
+	Inputs
+		R:PolynomialRing
+		     which gives the vertex set of {\tt G}
+		d:ZZ
+		     the number of edges in {\tt G}
+	Outputs 
+		G:Graph
+			a graph with {\tt d} edges on vertex set determined by {\tt R}
+	Description
+	     Example
+	     	  R=QQ[x_1..x_9]
+		  randomGraph(R,4)
+     	       	  randomGraph(R,4)  
+	SeeAlso
+	     randomHyperGraph
+	     randomUniformHyperGraph
+///
 
 
 ------------------------------------------------------------
@@ -1443,6 +1693,34 @@ doc ///
 ------------------------------------------------------------
 -- DOCUMENTATION randomUniformHyperGraph
 ------------------------------------------------------------
+
+doc ///
+	Key
+		randomUniformHyperGraph
+		(randomUniformHyperGraph,PolynomialRing,ZZ,ZZ)
+	Headline 
+		returns a random uniform hypergraph
+	Usage
+		H = randomUniformHyperGraph(R,c,d)
+	Inputs
+		R:PolynomialRing
+		     which gives the vertex set of {\tt H}
+		c:ZZ
+		     the cardinality of the edge sets
+		d:ZZ
+		     the number of edges in {\tt H}
+	Outputs 
+		H:HyperGraph
+			a hypergraph with {\tt d} edges of cardinality {\tt c} on vertex set determined by {\tt R}
+	Description
+	     Example
+	     	  R=QQ[x_1..x_9]
+		  randomUniformHyperGraph(R,3,4)
+     	       	  randomUniformHyperGraph(R,4,2)  
+	SeeAlso
+	     randomGraph
+	     randomHyperGraph
+///
 
 
 ---------------------------------------------------------
@@ -1564,7 +1842,7 @@ doc ///
 		vertexCovers
 		(vertexCovers, HyperGraph)
 	Headline 
-		list the minimal vertex covers of a (hyper)graph.
+		list the minimal vertex covers of a (hyper)graph
 	Usage
 		c = vertexCovers(H) 
 	Inputs
@@ -1608,7 +1886,7 @@ doc ///
 		        the input
 	Outputs 
 		V:List
-			of the vertices of {\tt H}.
+			of the vertices of {\tt H}
         Description
 	        Text
 		        This function takes a graph or hypergraph, and returns the vertex set of the graph.
