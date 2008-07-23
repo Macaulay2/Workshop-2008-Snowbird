@@ -100,7 +100,7 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
      S := target phi;
      I := ideal presentation target phi;
      R := ring I;
-     J1 := trim ideal(0_S):J_0; 
+     J1 := trim(ideal(0_S):J_0); 
      -- need to check if J_0 is really the element we-- want - low degree. 
      if J1 != ideal(0_S) then(
 	  -- If J_0 is a ZD then we split the ring.
@@ -126,7 +126,7 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
 	  if targ == S then (
 	       return {newPhi*phi, join(fracs,fractions)})
 	  else (
-	       newI1 := ideal presentation targ;
+	       newI1 := trim ideal presentation targ;
 	       newJ1 := newPhi J;
 	       newI := minimalPresentation(newI1);
 	       S = ring newI;
@@ -139,6 +139,44 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
      	       );
      	  );
      )
+
+///
+restart
+loadPackage"IntegralClosure"
+R=ZZ/2[x,y,Weights=>{{8,9},{0,1}}]
+I=ideal(y^8+y^2*x^3+x^9) -- eliminates x and y at some point. 
+R=ZZ/2[x,y,Weights=>{{31,12},{0,1}}]
+I=ideal"y12+y11+y10x2+y8x9+x31" -- really long
+S=integralClosure(R/I)
+transpose gens ideal S
+
+M = flattenRing (R/I)
+J = nonNormalLocus M_0
+phi = M_1
+fractions = gens M_0
+indexVar = 0
+
+S = target phi
+I = ideal presentation target phi
+R = ring I
+J1 = trim(ideal(0_S):J_0)
+J1 != ideal(0_S) 
+(newPhi, fracs) = idealizerReal(J, J_0, Index => indexVar);
+targ = target newPhi
+targ == S 
+newI1 = trim ideal presentation targ
+newJ1 = newPhi J
+newI = minimalPresentation(newI1)
+S = ring newI
+B2 = S/newI
+FF = substitute(((newI1).cache.minimalPresentationMap).matrix, B2)
+F = map(B2,target newPhi, FF)
+J = radical(F newJ1)
+fractions = join(fracs,fractions), 
+phi = F*newPhi*phi
+indexVar = indexVar + # gens targ - # gens source newPhi 
+
+///
 
 idealizerReal = method(Options=>{Variable => global w, Index => 0})
 idealizerReal (Ideal, Thing) := o -> (J, f) -> (
@@ -162,6 +200,8 @@ idealizerReal (Ideal, Thing) := o -> (J, f) -> (
      	  degs = join(newdegs, (monoid R).Options.Degrees);
      	  MO := prepend(GRevLex => n, (monoid R).Options.MonomialOrder);
           kk := coefficientRing R;
+	  --newVars := reverse apply(n, i -> o.Variable_(o.Index+i));
+	  -- o.Variable_(o.Index)..o.Variable_(o.Index+n-1)
      	  A := (if any(degs, d -> d#0 <= 0) then (
 	       	    kk(monoid [o.Variable_(o.Index)..o.Variable_(o.Index+n-1), gens R,
 			      MonomialOrder=>MO])) -- removed MonomialSize => 16
@@ -309,7 +349,7 @@ icFractions(Ring) := Matrix => (R) -> (
 icFracP = method(Options=>{conductorElement => null, Limit => infinity, reportSteps => false})
 icFracP Ring := List => o -> (R) -> (
      -- 1 argument: a ring whose base field has characteristic p.
-     -- Returns: Fractions...
+     -- Returns: Fractions
      P := ideal presentation R;
      c := codim P;
      S := ring P;
@@ -745,10 +785,10 @@ document {
      Headline => "compute the integral closure of a reduced ring",
      Usage => "integralClosure R",
      Inputs => {
-	  "R" => {"that is reduced and presented as a quotient ring"},
-	  Variable => {"an unassigned symbol"},
+	  "R" => {" that is reduced and presented as a quotient ring"},
+	  Variable => {" an unassigned symbol"},
 	  },
-     Outputs => {{"that is the integral closure of ", TT "R", " in its total 
+     Outputs => {{ofClass Ring, " that is the integral closure of ", TT "R", " in its total 
 	       ring of fractions when ", TT "R", " is a domain.  When ", TT "R", 
 	       " is reduced, a list of rings is returned with the property that the 
 	       direct product of the rings is isomorphic to the integral closure 
@@ -829,10 +869,45 @@ document {
      the integral closure of a reduced ring."
      }
 
+document {
+     Key => {idealizerReal, (idealizerReal, Ideal, Thing)},
+     Headline => "Compute Hom(I,I) as quotient ring",
+     Usage => "idealizerReal(I, f)",
+     Inputs => {"I" => {ofClass Ideal},
+	  "f" => {{ofClass Thing}, " that is a non-zero divisor in the
+	  ring of ", TT "I"}},
+     Outputs => {{ofClass Sequence, " where the first item is ", 
+	       ofClass RingMap, " from the ring of ", TT "I", " to a
+	       presentation of ", TT "Hom(I,I) = 1/f(f*J:J)", " and
+	       the second item is ", ofClass List,
+	       " consisting of the fractions that are added to the ring of J
+	       to form ", TT "Hom(I,I)", "."}},
+	       "We use this in integralClosure to complete a key step
+	       in deJong's algorithm. Interested users might want to
+	       use this to investigate different choices for ", 
+	       TT "f", " in the algorithm."
+     }
+
+document {
+     Key => {nonNormalLocus, (nonNormalLocus, Ring)},
+     Headline => "an ideal containing the non normal locus of a ring",
+     Usage => "nonNormalLocus R",
+     Inputs => {"R" => {ofClass Ring}},
+     Outputs => {{ofClass Ideal, "an ideal containing the non-normal
+	  locus of ", TT "R"}},
+     	  "Primary use is as one step in deJong's algorithm for computing
+     	  the integral closure of a reduced ring. If the presenting
+	  ideal for the ring is homogeneous (e.g. the ring is graded)
+	  and it has fewer than 20 generators then the implementation
+	  checks to see if the singular locus is empty, if yes then
+	  the maximal ideal is returned. In all other cases it returns
+	  the radical of the first nonzero element of the jacobian ideal. "
+     }
+
 --- I don't love the third example in icMap
 document {
      Key => {icMap, (icMap,Ring)},
-    Headline => "natural map from an affine domain into its integral closure.",
+     Headline => "natural map from an affine domain into its integral closure.",
      Usage => "icMap R",
      Inputs => {
 	  "R" => {ofClass Ring, " that is an affine domain"}
@@ -861,37 +936,37 @@ document {
      }
     
 
---document {
- ---    Key => {ICfractions, (ICfractions,Ring)},
---     Headline => "Compute the fractions integral over a domain.",
---     Usage => "ICfractions R",
---     Inputs => {
---	  "R" => {ofClass Ring, " that is an affine domain"},
---	  },
- --    Outputs => {
---	  {ofClass Matrix, " whose entries are fractions that generate the integral 
---	       closure of ", TT "R", " over R."}
---	  },
- --    EXAMPLE {
---	  "R = QQ[x,y,z]/ideal(x^6-z^6-y^2*z^4);",
- --     	  "ICfractions R",
---	  "integralClosure(R,Variable => a)"
---	  },
- --    "Thus the new variables ", TT "w_7", " and ", TT "w_6", " correspond to the 
-  --   fractions respectively.  The program currently also returns the original 
-   --  variables as part of the matrix.  In this way the user can see if any are 
-    -- simplified out of the ring during the process of computing the integral
-    -- closure.",
-    -- PARA{},
-    -- "The fractions returned correspond to the variables returned by the function 
-    -- integralClosure.  The function integralClosure eliminates redundant fractions 
-    -- during its iteration.  If the user would like to see all fractions generated 
-    -- during the computation, use the optional argument ", TT "Strategy => Long", " as 
-    -- illustrated here.",
-    -- EXAMPLE {
---	  "ICfractions(R, Strategy => Long)"
---	  },
---     }
+document {
+     Key => {icFractions, (icFractions,Ring)},
+     Headline => "Compute the fractions integral over a domain.",
+     Usage => "icFractions R",
+     Inputs => {
+	  "R" => {ofClass Ring, " that is an affine domain"},
+	  },
+     Outputs => {
+  	  {ofClass Matrix, " whose entries are fractions that generate the integral 
+     	       closure of ", TT "R", " over R."}
+	       },
+    	  EXAMPLE {
+	       "R = QQ[x,y,z]/ideal(x^6-z^6-y^2*z^4);",
+--     	       "icFractions R",
+	       "integralClosure(R,Variable => a)"
+	       },
+     	  "Thus the new variables ", TT "w_7", " and ", TT "w_6", " correspond to the 
+     	  fractions respectively.  The program currently also returns the original 
+    	  variables as part of the matrix.  In this way the user can see if any are 
+     	  simplified out of the ring during the process of computing the integral
+     	  closure.",
+     	  PARA{},
+     	  "The fractions returned correspond to the variables returned by the function 
+     	  integralClosure.  The function integralClosure eliminates redundant fractions 
+     	  during its iteration.  If the user would like to see all fractions generated 
+     	  during the computation, use the optional argument ", TT "Strategy => Long", " as 
+     	  illustrated here.",
+--     	  EXAMPLE {
+--	       "icFractions(R, Strategy => Long)"
+--	       },
+     	  }
 
 --document {
 --     Key => [ICfractions,Strategy],
@@ -935,8 +1010,23 @@ document {
      }
 
 document {
-     Key => icFracP,
+     Key => {icFracP, (icFracP, Ring)},
      Headline => "compute the integral closure in prime characteristic",
+     Usage => "icFracP R, icFracP(R, conductorElement => D), icFracP(R, Limit => N), icFracP(R, reportSteps => Boolean)",
+     Inputs => {
+	"R" => {"that is reduced, equidimensional,
+           finitely and separably generated over a field of characteristic p"},
+	conductorElement => {"optionally provide a non-zerodivisor conductor element ",
+               TT "conductorElement => D", ";
+               the output is then the module generators of the integral closure.
+               A good choice of ", TT "D", " may speed up the calculations?"},
+	Limit => {"if value N is given, perform N loop steps only"},
+	reportSteps => {"if value true is given, report the conductor element and number of steps in the loop"},
+	},
+     Outputs => {{"The module generators of the integral closure of ", TT "R",
+               " in its total ring of fractions.  The generators are
+               given as elements in the total ring of fractions."}
+          },
      "Input is an equidimensional reduced ring in characteristic p
      that is finitely and separably generated over the base field.
      The output is a finite set of fractions that generate
@@ -961,29 +1051,7 @@ document {
      element and the number of steps it took for the loop to stabilize.
      The algorithm is based on the
      Leonard--Pellikaan--Singh--Swanson algorithm.",
-     SeeAlso => {"integralClosure", "isNormal"},
-     Caveat => "NOTE: mingens is not reliable, neither is kernel of the zero map!!!"
-     }
-
-
-document {
-     Key => (icFracP, Ring),
-     Headline => "compute the integral closure in prime characteristic",
-     Usage => "icFracP R, icFracP(R, conductorElement => D), icFracP(R, Limit => N), icFracP(R, reportSteps => Boolean)",
-     Inputs => {
-	"R" => {"that is reduced, equidimensional,
-           finitely and separably generated over a field of characteristic p"},
-	conductorElement => {"optionally provide a non-zerodivisor conductor element ",
-               TT "conductorElement => D", ";
-               the output is then the module generators of the integral closure.
-               A good choice of ", TT "D", " may speed up the calculations?"},
-	Limit => {"if value N is given, perform N loop steps only"},
-	reportSteps => {"if value true is given, report the conductor element and number of steps in the loop"},
-	},
-     Outputs => {{"The module generators of the integral closure of ", TT "R",
-               " in its total ring of fractions.  The generators are
-               given as elements in the total ring of fractions."}
-          },
+     PARA{},
      "A simple example.",
      EXAMPLE {
           "R = ZZ/5[x,y,z]/ideal(x^6-z^6-y^2*z^4);",
@@ -1031,7 +1099,8 @@ document {
      "With this extra bit of information, the user can now compute
      integral closures of principal ideals in ", TT "R", " via ",
      TO intClI, ".",
-     SeeAlso => {"intClI"}
+     SeeAlso => {"intClI", "integralClosure", "isNormal"},
+     Caveat => "NOTE: mingens is not reliable, neither is kernel of the zero map!!!"
 }
 
 document {
@@ -1135,7 +1204,7 @@ oldIdeal = ideal(b_1*x^2-y*z, x^6-b_1*y+x^3*z, -b_1^2+x^4*z+x*z^2)
 newIdeal = substitute(oldIdeal, b_1 => b_1/42 )
 assert(ideal J == newIdeal)
 use R
-assert(conductor(R.ICmap) == ideal(x^2,y))
+assert(conductor(R.icMap) == ideal(x^2,y))
 -- assert(ICfractions R == substitute(matrix {{y*z/x^2, x, y, z}},frac R))
 --assert(ICfractions R == substitute(matrix {{42 * y*z/x^2, x, y, z}},frac R))
 ///
@@ -1145,7 +1214,7 @@ TEST ///
 R = ZZ/101[symbol x..symbol z,Degrees=>{{1,2},{1,5},{1,6}}]/(z*y^2-x^5*z-x^8)
 time J = integralClosure (R,Variable=>symbol a) 
 use ring ideal J
-assert(ideal J == ideal(x^6+a_4*y+x^3*z-11*x*y^2,a_4*x^2-11*x^3*y+y*z,a_4^2-22*a_4*x*y-x^4*z+20*x^2*y^2-x*z^2))
+assert(ideal J == ideal(x^6+a_4*y+x^3*z-11*x*y^2,a_4*x^2-11*x^3*y+y*z,a_4^2-22*a_3*x*y-x^4*z+20*x^2*y^2-x*z^2))
 ///
 
 -- multigraded homogeneous test
@@ -1156,7 +1225,7 @@ use ring ideal J
 assert(ideal J == ideal(a_1*y-42*x^6-42*x^3*z,a_1^2-47*x^4*z-47*x*z^2,-12*a_1*x^2-z*y,-12*a_1*x*y-x^7-x^4
       *z,43*a_1^2*x^2-x^6*z-x^3*z^2,-x^8-x^5*z+z*y^2))
 use R
-assert(conductor(R.ICmap) == ideal(x^2,y))
+assert(conductor(R.icMap) == ideal(x^2,y))
 ///
 
 -- Reduced not a domain test
@@ -1178,7 +1247,7 @@ time J = integralClosure (Q, Variable => symbol a)
 use ring ideal J
 assert(ideal J == ideal (x^2-a_6*z, a_6*x-a_7*z, a_6^2-a_7*x, a_7^2-y^2-z^2))
 use Q
-assert(conductor(Q.ICmap) == ideal(z^3,x*z^2,x^3*z,x^4))
+assert(conductor(Q.icMap) == ideal(z^3,x*z^2,x^3*z,x^4))
 ///
 
 --Mike's inhomogenous test
@@ -1200,7 +1269,7 @@ time V = integralClosure (S, Variable => X)
 use ring ideal V
 assert(
      ideal V == 
-      ideal(a^2*b*c^2+b^2*c*d^2+a^2*d^2*e+a*b^2*e^2+c^2*d*e^2,
+       ideal(a^2*b*c^2+b^2*c*d^2+a^2*d^2*e+a*b^2*e^2+c^2*d*e^2,
 	   a*b^3*c+b*c^3*d+a^3*b*e+c*d^3*e+a*d*e^3,
 	   a^5+b^5+c^5+d^5-5*a*b*c*d*e+e^5,
 	   a*b*c^4-b^4*c*d-X_0*e-a^2*b^2*d*e+a*c^2*d^2*e+b^2*c^2*e^2-b*d^2*e^3,
@@ -1219,6 +1288,38 @@ assert(
 	     2*a^2*b^3*d^3*e^2-5*a*b*c^2*d^4*e^2+4*b^3*c^2*d^2*e^3-3*a*d^6*e^3+
 	     5*a^2*b*c*d^2*e^4-b^2*d^4*e^4-2*b*c^3*d*e^5-a^3*b*e^6+3*c*d^3*e^6-a*d*e^8)
 	)
+ -- they are similar, but not the same...This happened when I changed
+-- the order of the names of the new variables.    
+-- This change is odd, but does not solve other problems. 
+F = map(QQ[X_0, X_1, a,b,c,d,e, Degrees =>
+{{5},{5},{1},{1},{1},{1},{1}}, MonomialOrder =>{GRevLex => {5,5},
+GRevLex => {1,1,1,1,1}}], ring ideal V)
+J = F ideal V
+   ideal(X_0*e-a^3*b^2*c+b*c^2*d^3+b^5*e+d^5*e-2*a*b*c*d*e^2,
+	X_0*d+a*b^2*c^3+a*b*c*d^2*e-a^2*b*e^3-d*e^5,
+      X_0*c+b^5*c+a^2*b^3*e-a*b*c^2*d*e-a*d^3*e^2,
+      X_0*b-b*c^5+2*a*b^2*c*d*e-c^3*d^2*e+a^3*d*e^2-b*e^5,
+      X_0*a-b^3*c^2*d+c*d^2*e^3,
+      X_1*e-a*b*c^4+b^4*c*d+a^2*b^2*d*e-a*c^2*d^2*e-b^2*c^2*e^2+b*d^2*e^3,
+      X_1*d+a^4*b*c-a*b^4*e-2*b^2*c^2*d*e+a^2*c*d*e^2+b*d^3*e^2,
+      X_1*c-a^2*b^2*c*d-b^2*c^3*e-a^4*d*e+2*b*c*d^2*e^2+a*b*e^4,
+      X_1*b+a*b*c^2*d^2-b^3*c^2*e+a*d^4*e-a^2*b*c*e^2+b^2*d^2*e^2-c*d*e^4,
+      X_1*a-b*c*d^4+c^4*d*e,
+      X_0^2+b^5*c^5+b^4*c^3*d^2*e+b*c^2*d^3*e^4+b^5*e^5+d^5*e^5,
+      X_1*X_0+b^3*c^4*d^3-b^2*c^7*e+b^2*c^2*d^5*e-b*c^5*d^2*e^2-
+          a*b^2*c*d^3*e^3+b^4*c*d*e^4+a^2*b^2*d*e^5-a*c^2*d^2*e^5-b^2*c^2*e^6+b*d^2*e^7,
+      X_1^2+b*c^3*d^6+2*b^5*c*d^3*e+c*d^8*e-b^4*c^4*e^2+
+          a^3*c^3*d^2*e^2+2*a^2*b^3*d^3*e^2-5*a*b*c^2*d^4*e^2+4*b^3*c^2*d^2*e^3-
+	  3*a*d^6*e^3+5*a^2*b*c*d^2*e^4-b^2*d^4*e^4-2*b*c^3*d*e^5-
+	  a^3*b*e^6+3*c*d^3*e^6-a*d*e^8,
+      a^2*b*c^2+b^2*c*d^2+a^2*d^2*e+a*b^2*e^2+c^2*d*e^2,
+      a*b^3*c+b*c^3*d+a^3*b*e+c*d^3*e+a*d*e^3,
+      a^5+b^5+c^5+d^5-5*a*b*c*d*e+e^5,
+      a^3*b^2*c*d-b*c^2*d^4+a*b^2*c^3*e-b^5*d*e-d^6*e+3*a*b*c*d^2*e^2-a^2*b*e^4-d*e^6,
+      a*b*c^5-b^4*c^2*d-2*a^2*b^2*c*d*e+a*c^3*d^2*e-a^4*d*e^2+b*c*d^2*e^3+a*b*e^5,
+      a*b^2*c^4-b^5*c*d-a^2*b^3*d*e+2*a*b*c^2*d^2*e+a*d^4*e^2-a^2*b*c*e^3-c*d*e^5,
+      b^6*c+b*c^6+a^2*b^4*e-3*a*b^2*c^2*d*e+c^4*d^2*e-a^3*c*d*e^2-a*b*d^3*e^2+b*c*e^5,
+      a^4*b^2*c-a*b*c^2*d^3-a*b^5*e-b^3*c^2*d*e-a*d^5*e+2*a^2*b*c*d*e^2+c*d^2*e^4)
 ///
 
 -- Test of ICfractions

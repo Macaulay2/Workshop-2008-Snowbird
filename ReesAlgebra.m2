@@ -20,7 +20,7 @@
 newPackage(
 	"ReesAlgebra",
     	Version => "1.0", 
-    	Date => "June 29, ",
+    	Date => "June 29, 2008",
     	Authors => {{
 		  Name => "David Eisenbud",
 		  Email => "de@msri.org"},
@@ -160,12 +160,12 @@ symmetricKernel(Matrix) := Ideal => o -> (f) -> (
      kernel map(RTar, RSource, RTarNewVars*fRTar|RTarOldVars)
      )
 
--- PURPOSE: Front end code for the universal (or versal) embedding of the 
+-- PURPOSE: Computes the universal embedding of the 
 --          image of f, or of M or of J over a quotient ring.  
 -- INPUT : 'M' a matrix and 'I' an ideal defined over a polynomial ring.
 -- OUTPUT : a map that is a versal embedding of the image of M over the 
 --          ring of M mod I.  
--- COMMENT : The purpose is to compute a versal embedding to be used in 
+-- COMMENT : The purpose is to compute a universal embedding to be used in 
 --           symmetricKernel in order to compute a Rees Algebra in the most 
 --           general case possible at this time as defined in Eisenbud, Huneke 
 --           and Ulrich. 
@@ -554,15 +554,12 @@ distinguishedAndMult(Ideal,RingElement) := List => o -> (i,a) -> (
 	       --the P-primary component. The multiplicity is
 	       --computed as (degree Pcomponent)/(degree P)
        	  {(degree Pcomponent)/(degree P), kernel(map(S/P, R))})))
-
-end    
  
 beginDocumentation()
 
 document {
      Key => ReesAlgebra,
-     Headline => "compute Rees algebras and integral closure 
-     of ideals",
+     Headline => "compute Rees algebras",
      " The goal of this package is to provide commands to compute the 
      Rees algebra of a module as it is defined in the paper ", EM "What is 
      the Rees algebra of a module?", " by Craig Huneke, David Eisenbud and 
@@ -573,56 +570,36 @@ document {
      }
 
 document {
-     Key => symmetricKernel,
+     Key => {symmetricKernel,(symmetricKernel, Matrix)},
      Headline => "compute the defining ideal of the rees algebra for a 
      matrix",
-     Usage => "symmetricKernel(f, I)",
+     Usage => "symmetricKernel(f)",
      Inputs => {"f" => {ofClass Matrix}},
-     Outputs => {{ofClass Ideal, "defining the Rees ring of 
-	       the ", ofClass Matrix, TT "f"}},
+     Outputs => {{ofClass Ideal, "defining the Rees ring of ", ofClass Matrix, TT "f"}},
 	       
      PARA{}, "This function is the workhorse of all/most of the Rees algebra 
-     functions.  Most users will prefer to use one of the front 
-     end commands ", TO "reesAlgebra", ".",
+     functions in the package.  Most users will prefer to use one of the front 
+     end commands ", TO "reesAlgebra", " or ", TO "reesIdeal", " and others.",
      
      EXAMPLE {
 	  "R = QQ[a..e]",
 	  "J = monomialCurveIdeal(R, {1,2,3,4})",
-	  (
-	       stderr << "--warning: non-functional example code commented out" << endl;
-	       "symmetricKernel -- (gens J)"
-	       )
+	  "symmetricKernel (gens J)"
      },
-    
-    "Let the ideal returned be ", TT "I", " and the ring it lives in 
+    "Let ", TT "I", " be the ideal returned be and the ring it lives in 
     (also printed) ", TT "S", ", then ", TT "S/I", " is isomorphic to 
-    the Rees algebra ", TT "R[Jt]",  "We can get the same information 
-    using ", TT "reesAlgebra(J)", ", see ", TO "reesAlgebra", ".  Also 
+    the Rees algebra ", TT "R[Jt]",  "We can get the same information
+    above 
+    using ", TT "reesIdeal(J)", ", see ", TO "reesIdeal", ".  Also 
     note that ", TT "S", " is multigraded allowing Macaulay2 to correctly 
     see that the variables of R now live in degree 0 and the new variables 
     needed to describe ", TT "R[Jt]", "as a k-algebra are in degree 1.",
-    
     PARA{ TT "symmetricKernel", " can also be computed over a quotient 
-    ring by either initially defining the ring ", TT "R", " as a 
-    quotient ring, or by giving the quotient ideal as an optional argument."},
-    
+    ring.  "},     
     EXAMPLE { 
      	  "R = QQ[x,y,z]/ideal(x*y^2-z^9)",
 	  "J = ideal(x,y,z)",
-	  (
-	       stderr << "--warning: non-functional example code commented out" << endl;
-	       "symmetricKernel -- (gens J)"
-	       )
-	  },
-     " or ",
-     EXAMPLE {
-	  "R = QQ[x,y,z]",
-	  "I = ideal(x*y^2-z^9)",
-	  "J = ideal(x,y,z)",
-	  (
-	       stderr << "--warning: non-functional example code commented out" << endl;
-	       "symmetricKernel -- (gens J)"
-	       )
+	  "symmetricKernel(gens J)"
 	  },
      "These many ways of working with the function allows the system 
      to compute both the classic Rees algebra of an ideal over a ring 
@@ -630,17 +607,9 @@ document {
      module or ideal using a universal embedding as described in the paper 
      of Eisenbud, Huneke and Ulrich.  It also allows different ways of 
      setting up the quotient ring.",
-     SeeAlso => {reesAlgebra, universalEmbedding},
+     SeeAlso => {reesIdeal, reesAlgebra, universalEmbedding},
      }
 
-
-document {
-     Key => (symmetricKernel,Matrix,Ideal),
-     }
-
-document {
-     Key => (symmetricKernel,Module),
-	  }
 
 document {
      Key => [symmetricKernel, Variable],
@@ -650,15 +619,17 @@ document {
      is null."     
      }
 
+end
+
+--- needs work....
 document { 
-     Key => {universalEmbedding, (universalEmbedding,Matrix, Ideal)},
+     Key => {universalEmbedding, (universalEmbedding,Module)},
      Headline => "Compute the universal embedding",
      Usage =>  "universalEmbedding(M,I)", 
-     Inputs => {"M" => {ofClass Matrix, " in ", ofClass PolynomialRing}, 
-	  "I" => {ofClass Ideal, " in ", ofClass PolynomialRing}},
-     Outputs => {{ofClass Matrix, "defining the universal embedding 
-	       of the module given over a quotient ring defined by ", TT "I",
-	       " into a free module over the polynomial ring for ", TT "I",
+     Inputs => {"M" => {ofClass Module, " over ", ofClass Ring}}, 
+     Outputs => {{ofClass ModuleMap, "defining the universal embedding 
+	       of the module given over a quotient ring into a free
+	       module over the  polynomial ring for ", TT "I",
 	       " where ", TT "M", " is the lift of a presentation of the module to 
 	       the polynomial ring"}},
       PARA{}, "The main purpose of this function is to compute the embedding 
@@ -692,6 +663,19 @@ document {
      Key => reesIdeal,
      Headline => "compute the Rees ideal"
      }
+
+document {
+     Key => {(reesIdeal,Ideal), (reesIdeal, Module)}
+     Headline => "compute the Rees ideal"
+     }
+
+document {
+     Key => {(reesIdeal,Ideal, RingElement), (reesIdeal,Module, RingElement)}
+     Headline => "compute the Rees ideal"
+     }
+
+
+
 
 --put in "variable"
 
