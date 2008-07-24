@@ -611,9 +611,13 @@ isCMhyperGraph = method();
 ------------------------------------------------------------
 -- isConnected
 -- checks if a graph is connected
+-- (the graph is connected <=> A, the adjacency the matrix,
+-- and I, the identity matrix of size n, has the 
+-- property that (A+I)^{n-1} has no zero entries)
 ------------------------------------------------------------
 
 isConnected = method();
+isConnected HyperGraph := H -> numConnectedComponents H == 1
 
 
 ------------------------------------------------------------
@@ -730,6 +734,7 @@ neighborSet = method();
 ------------------------------------------------------------
 
 numConnectedComponents = method();
+numConnectedComponents HyperGraph:= H -> (rank HH_0 hyperGraphToSimplicialComplex H)+1
 
 -----------------------------------------------------------
 -- numTrianges
@@ -844,8 +849,25 @@ smallestCycleSize Graph := G -> (
 -----------------------------------------------------------
 
 spanningTree = method();
+spanningTree Graph:= G-> (
+     if (not isConnected G) then error "The graph must be connected";
+     eG := G#"edges";
+     numVert:=#G#"vertices";
+     eT := {eG_0};
+     count:=1;
+     while #eT < numVert-1 do (
+	  eTemp := append(eT,eG_count);
+	  while (smallestCycleSize (graph eTemp) > 0) do (
+	       count =count+1;
+	       eTemp = append(eT,eG_count);
+	       );
+	  count = count+1;
+	  eT = eTemp;
+	  );
+     spanTree = graph eT;
+     return (spanTree);
+     );
 
--- to write this function, we need to first check if the graph is connected
 
 ----------------------------------------------------
 -- vertexCoverNumber
@@ -1474,6 +1496,43 @@ doc ///
 	     allOddHoles
 ///
 
+
+
+------------------------------------------------------------
+-- DOCUMENTATION hyperGraphToSimplicialComplex
+------------------------------------------------------------
+
+doc ///
+	Key
+		hyperGraphToSimplicialComplex
+		(hyperGraphToSimplicialComplex, HyperGraph)
+	Headline 
+		turns a (hyper)graph into a simplicial complex
+	Usage
+		D = hyperGraphToSimplicialComplex H
+	Inputs
+		H:HyperGraph
+	Outputs 
+		D:SimplicialComplex
+			whose facets are given by the edges of H
+	Description
+	     Text
+	     	  This function chances the type of a (hyper)graph to a simplicial complex where
+		  the facets of the simplicial complex are given by the edge set of the (hyper)graph.
+		  This function is the reverse of @TO simplicialComplexToHyperGraph @.  This function enables the users
+		  to make use of the functions in the package @TO SimplicialComplexes @
+	     Example
+	     	  R=QQ[x_1..x_6]
+		  G=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
+		  DeltaG = hyperGraphToSimplicialComplex G
+		  hyperGraphDeltaG = simplicialComplexToHyperGraph DeltaG
+	          GPrime = graph(hyperGraphDeltaG)
+		  G === GPrime
+	SeeAlso
+	     simplicialComplexToHyperGraph     
+///
+
+
 ------------------------------------------------------------
 -- DOCUMENTATION independenceNumber
 ------------------------------------------------------------
@@ -1560,6 +1619,40 @@ doc ///
 
 
 
+------------------------------------------------------------
+-- DOCUMENTATION isConnected
+------------------------------------------------------------
+
+doc ///
+        Key
+	        isConnected
+		(isConnected, HyperGraph)
+	Headline
+	        determines if a (hyper)graph is connected
+	Usage
+	        b = isConnected H
+	Inputs
+	        H:Graph
+	Outputs
+	        B:Boolean
+		       returns {\tt true} if {\tt H} is connected, {\tt false} otherwise
+        Description
+	        Text
+		       This function checks if the (hyper)graph is connected.  It relies on the @TO numConnectedComponents @.
+		Example
+		       S = QQ[a..e]
+		       g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
+		       h = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
+		       isConnected g
+		       isConnected h
+	SeeAlso
+	        numConnectedComponents
+///		      
+
+
+
+
+
 
 ------------------------------------------------------------
 -- DOCUMENTATION isEdge
@@ -1618,6 +1711,40 @@ doc ///
 		  	     	  
 	SeeAlso
 		hasOddHole
+///
+
+
+
+------------------------------------------------------------
+-- DOCUMENTATION numConnectedComponents
+------------------------------------------------------------
+
+doc ///
+	Key
+		numConnectedComponents
+		(numConnectedComponents, HyperGraph)
+	Headline 
+		returns the number of connected components in a (hyper)graph
+	Usage
+		d = numConnectedComponents H
+	Inputs
+		H:HyperGraph
+	Outputs 
+		d:ZZ
+			the number of connected components of H
+	Description
+	     Text
+	     	  The function returns the number of connected components of a (hyper)graph.  To count the number of components,
+		  the algorithm turns H into a simplicial complex, and then computes the rank of the 0^{th} reduced
+		  homology group.  This number plus 1 gives us the number of connected components.
+	     Example
+	     	   S = QQ[a..e]
+		   g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
+		   h = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
+		   numConnectedComponents g
+		   numConnectedComponents h
+	SeeAlso
+	     isConnected
 ///
 
 
@@ -1747,11 +1874,13 @@ doc ///
  	        Text
 		        This function takes a simplicial complex and changes it type to a HyperGraph by
 			returning a hypergraph whose edges are defined by the facets of the simplicial
-			complex
+			complex.  This is the reverse of the function @TO hyperGraphToSimplicialComplex @
 		Example
 	                S = QQ[a..f]
 			Delta = simplicialComplex {a*b*c,b*c*d,c*d*e,d*e*f}
                         h = simplicialComplexToHyperGraph Delta
+        SeeAlso
+	        hyperGraphToSimplicialComplex
 ///
  
 
@@ -1792,8 +1921,51 @@ doc ///
 		     l =  graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9,x_9*x_1,x_1*x_4}
 		     smallestCycleSize l
 		Text
-		     Note that if g is tree a tree if and only if {\tt smallestCycleSize g = 0}
+		     Note that if g is a tree if and only if {\tt smallestCycleSize g = 0}
 ///
+
+
+
+
+
+
+------------------------------------------------------
+-- DOCUMENTATION spanningTree
+----------------------------------------------------------
+ 
+doc ///
+        Key
+	        spanningTree 
+		(spanningTree, Graph)
+	Headline
+	        returns a spanning tree of a connected graph
+	Usage
+	        t = spanningTree(G)
+	Inputs
+		G:Graph
+		     the input
+	Outputs
+		t:Graph
+		     the spanning tree of G
+        Description
+	        Text
+		     This function returns the a spanning tree of a connected graph.  It will
+		     not work on unconnected graphs.  The algorithm is very naive;  the first edge
+		     of the tree is the first edge of the graph.  The algorithm then successively
+		     adds the next edge in the graph, as long as no cycle is created.  The algorithm terminates once (n-1)
+		     edges have been added, where n is the number of edges.
+		Example      
+     	       	     T = QQ[x_1..x_9]
+		     g = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9,x_9*x_1} -- a 9-cycle
+		     spanningTree g
+		     h = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9} -- a tree (no cycles)
+		     spanningTree h === h
+///
+
+
+
+
+
 
 
 
@@ -2067,6 +2239,18 @@ assert not isPerfect G
 ///
 
 -----------------------------
+-- Test hyperGraphToSimplicialComplex
+----------------------------------
+
+TEST///
+R=QQ[x_1..x_6]
+G=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
+DeltaG = hyperGraphToSimplicialComplex G
+hyperGraphDeltaG = simplicialComplexToHyperGraph DeltaG
+GPrime = graph(hyperGraphDeltaG)
+assert(G === GPrime)
+///
+-----------------------------
 -- Test independenceNumber
 -----------------------------
 
@@ -2091,6 +2275,19 @@ assert(isBipartite c4 == true)
 assert(isBipartite c5 == false)
 ///
 
+
+
+
+-----------------------------<
+-- Test isConnected
+-----------------------------
+TEST///
+S = QQ[a..e]
+g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
+h = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
+assert(isConnected g) 
+assert(not isConnected h)
+///
 
 -----------------------------
 -- Test isEdge Test
@@ -2135,6 +2332,18 @@ assert(isLeaf(I,0))
 -- Test randomUniformHyperGraph
 -------------------------------------
 
+-----------------------------<
+-- Test numConnectedComponents
+-----------------------------
+TEST///
+S = QQ[a..e]
+g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
+h = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
+assert(numConnectedComponents == 1) 
+assert(numConnectedComponents == 2)
+///
+
+
 -------------------------------------
 -- Test simplicialComplexToHyperGraph
 -------------------------------------
@@ -2154,6 +2363,15 @@ TEST///
 T = QQ[x_1..x_9]
 g = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9,x_9*x_1} -- a 9-cycle
 assert(smallestCycleSize g == 9)
+///
+
+--------------------------------
+-- Test spanningTree
+------------------------------
+TEST///
+T = QQ[x_1..x_9]
+h = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9} -- a tree (no cycles)
+assert(spanningTree h === h)
 ///
 
 -----------------------------
@@ -2193,3 +2411,4 @@ restart
 installPackage ("EdgeIdeals", UserMode=>true)
 loadPackage "EdgeIdeals"
 viewHelp
+
