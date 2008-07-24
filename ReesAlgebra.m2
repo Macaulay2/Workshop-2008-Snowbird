@@ -9,8 +9,8 @@
 -- idealIntegralClosure
 -- distinguished -- distinguished subvarieties of  a variety 
 --                  (components of the support of the normal cone)
--- PROGRAMMERs : Rees algebra code written by David Eisenbud and edited and 
---               maintained by Amelia Taylor.  
+-- PROGRAMMERs : Rees algebra code written by David Eisenbud and
+--               Amelia Taylor with some assistance from Sorin Popescu. 
 -- UPDATE HISTORY : created 27 October 2006 
 -- 	     	    updated 29 June 2008
 --
@@ -159,13 +159,13 @@ reesIdeal(Ideal, RingElement) := Ideal => o -> (I,a) -> (
      reesIdeal(module I, a)
      )
 
-reesAlgebra = method (TypicalValue=>(Ring,RingMap),Options=>{Variable => w})
+reesAlgebra = method (TypicalValue=>Sequence,Options=>{Variable => w})
 -- accepts a Module, Ideal, or pair (depending on the method) and
 -- returns the quotient ring isomorphic to the Rees Algebra rather
 -- than just the defining ideal as in reesIdeal. 
 
-ressAlgebra(Ideal) := 
-reesAlgebra(Module) := o-> M -> (
+reesAlgebra Ideal := 
+reesAlgebra Module := o-> M -> (
      R:=ring M;
      reesIM := reesIdeal M;
      reesAM := (ring reesIM)/reesIM;
@@ -267,11 +267,13 @@ specialFiberIdeal(Module,RingElement):= o->(i,a)->(
 -- OUTPUT : The analytic spread of f/M/or J over over the ring R, or if 
 --          the option is given, R/I.
 analyticSpread = method()
-analyticSpread(Module) := ZZ => (M) -> dim specialFiberIdeal(M)
-analyticSpread(Ideal) := ZZ => (J) ->  dim specialFiberIdeal(J)
-analyticSpread(Module,RingElement) := ZZ => (M,a) -> dim specialFiberIdeal(M,a)
-analyticSpread(Ideal,RingElement) := ZZ => (J,a) ->  dim specialFiberIdeal(J,a)
 
+analyticSpread(Ideal) := 
+analyticSpread(Module) := ZZ => (M) -> dim specialFiberIdeal(M)
+
+analyticSpread(Ideal,RingElement) :=
+analyticSpread(Module,RingElement) := ZZ => (M,a) -> dim specialFiberIdeal(M,a)
+ 
 ----- distinguished and Mult still does not work!!!!!
    
 --We can use this to compute the distinguished subvarieties of
@@ -388,7 +390,6 @@ document {
      PARA{}, "This function is the workhorse of all/most of the Rees algebra 
      functions in the package.  Most users will prefer to use one of the front 
      end commands ", TO "reesAlgebra", " or ", TO "reesIdeal", " and others.",
-     
      EXAMPLE {
 	  "R = QQ[a..e]",
 	  "J = monomialCurveIdeal(R, {1,2,3,4})",
@@ -466,28 +467,51 @@ document {
 
 
 document {
-     Key => reesIdeal,
-     Headline => "compute the Rees ideal"
-     }
-
-document {
-     Key => {(reesIdeal,Ideal), (reesIdeal, Module)},
-     Headline => "compute the Rees ideal",
-     Usage =>  "reesAlgebra(M)",
-     Inputs => {"M"},
-     Outputs => {{" defining the Rees algebra of  
+     Key => {reesIdeal, (reesIdeal,Ideal), (reesIdeal, Module), 
+	  (reesIdeal,Ideal, RingElement), (reesIdeal,Module, RingElement)},
+     Headline => "compute the defining ideal of the Rees Algebra",
+     Usage =>  "reesIdeal(M)\n reesIdeal(I) \n reesIdeal(M,f) \n reesIdeal(I,f)",
+     Inputs => {"M" => Module => "Any module over a quotient ring", 
+	  "I" => Ideal => "Any ideal over a quotient ring",
+	  "f" => RingElement => "Any non-zerodivisor 
+	  mod the ideal or module"},
+     Outputs => {{ofClass Ideal, " defining the Rees algebra of  
 	       the ", ofClass Module, " ", TT "M"}},
-     "Stuff."
-     }
-
-document {
-     Key => {(reesIdeal,Ideal, RingElement), (reesIdeal,Module, RingElement)},
-     Headline => "compute the Rees ideal",
-     Usage =>  "reesAlgebra(M,a)",
-     Inputs => {"M","a"},
-     Outputs => {{" defining the Rees algebra of  
-	       the ", ofClass Module, " ", TT "M"}},
-     "Stuff."
+     PARA{},
+     "There are effectively two methods implemented in this package
+     for computing the definiting ideal of a Rees algebra of a module or
+     ideal over a quotient ring.  The first uses the code
+     symmetricKernel which is based on Eisenbud, Huneke, Ulrich, and for
+     ideals works as one might naively expect it to.  The second
+     implementation can be much faster, but requires a user provided
+     non-zerodivisor mod the ideal or module.  This algorithm saturates
+     the ideal of the new variables times a presentation of the module with
+     respect to the non-zerodivisor. We provide several examples below that
+     include some meaningful time comparisons. ",
+     EXAMPLE {
+     	  "kk = ZZ/101;",
+     	  "S=kk[x_0..x_4];",
+     	  "i=monomialCurveIdeal(S,{2,3,5,6})",
+     	  "time reesIdeal i;", -- 2.25 sec
+     	  "time reesIdeal(i,i_0);" --.3 sec
+     	  },
+     "Another example illustrates the power and usage of the code.  We
+     also show the output in this example.  While a bit messy, the
+     user can see how we handle the degrees in both cases.",
+     EXAMPLE { 
+	  "S=kk[a,b,c]",
+	  "m=matrix{{a,0},{b,a},{0,b}}",
+	  "i=minors(2,m)",
+	  "time reesIdeal i",
+	  "res i",
+	  "m=random(S^3,S^{4:-1})",
+	  "i=minors(3,m);",
+	  "time I=reesIdeal (i,i_0);", -- .05 sec
+	  "transpose gens I",
+	  "i=minors(2,m);",
+	  "time I=reesIdeal (i,i_0);" -- 22 sec
+	  },
+     SeeAlso => {symmetricKernel, reesAlgebra}
      }
 
 
@@ -499,7 +523,6 @@ document {
      the default variable is", TT  "w", "but the default value of the option 
      is null."     
      }
-end
 
 -- the output is a sequence pair and loadpackage is yelling at us. 
 document {
@@ -508,7 +531,7 @@ document {
      Headline => "determine if the image of a matrix is of linear type",
      Usage =>  "isLinearType(M)",
      Inputs =>  {"M", "a"},
-     Outputs => {{"true if the module is of linear 
+     Outputs => {{ofClass Sequence, "true if the module is of linear 
 	  type and false otherwise."}},
      "Stuff."
      }
