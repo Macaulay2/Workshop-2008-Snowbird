@@ -39,63 +39,6 @@ export{symmetricKernel, universalEmbedding,reesIdeal,reesAlgebra,
 isLinearType, normalCone, associatedGradedRing, multiplicity,
 specialFiberIdeal,analyticSpread, distinguished,distinguishedAndMult}
 
-
-///
---Examples for the ReesAlgebra package.                                                                                                                                                                                       
-restart
-loadPackage "ReesAlgebra"
-kk=ZZ/101
-
---Example 1: a monomial ideal in 4-space.
-S=kk[x_0..x_4]
-i=monomialCurveIdeal(S,{2,3,5,6})
-time reesIdeal i; -- 2.25 sec
-time reesIdeal(i,i_0); --.3 sec
-
---Example 2: determinantal ideals
-restart
-loadPackage "ReesAlgebra"
-load"newrg.m2"
-kk=ZZ/101
-S=kk[a,b,c]
-m=matrix"a,0;b,a;0,b"
-i=minors(2,m)
-time reesIdeal i
-res i
-
-m=random(S^3,S^{4:-1})
-i=minors(3,m);
-time I=reesIdeal (i,i_0); -- .05 sec
-transpose gens I
-i=minors(2,m);
-time I=reesIdeal (i,i_0); -- 22 sec
-
-T. Roemer,  "Homological Properties of Bigraded Modules"
-Römer, Tim(D-ESSN)
-Homological properties of bigraded algebras. (English summary) 
-Illinois J. Math. 45 (2001), no. 4, 1361--1376. 
- Thm 5.3
-shows that if i is and ideal in the polynomial ring,
-generated in degree d (and maybe i is 
-primary to the maximal ideal) then
-  reg(I^j) = jd + b for m>-=j0
-where j0 is the max degree in the "new variables" of
-a bigeneric initial ideal of reesIdeal(i)
-(bigeneric means we allow general changes of coords in
-the new vars alone and in the old vars alone.)
-
-Eisenbud and Ulrich have shown that there is a similar bound
-in terms of the regularity with respect to the variables y
-(graded with the degrees of the generators of i). This is proven
-only in the case of ideals generated in a single degree and
-primary to the maximal ideal. 
-
-Research Problem: what's the situation in general?
-
-
-///
-
-
 -- Comment : The definition of Rees algebra used in this package is 
 -- R(M) = Sym(M)/(intersection over g of L_g) where the intersection 
 -- ranges over all maps from M to free R-modules and L_g is the kernel 
@@ -124,20 +67,6 @@ Research Problem: what's the situation in general?
 --           for caution.
 
 --- Assumes we have a homogeneous (multi) map
-
-///
---- Our working example
-restart
-loadPackage "ReesAlgebra"
-S = ZZ/101[x_1,x_2, Degrees => {{1,1}, {1,-3}}]
-I = ideal(x_1^4*x_2^3)
-f = matrix{{x_1,x_2, 0, 0, 0}, {0, 0 , x_1^2, x_1*x_2, x_2^2}}
-F = map(S^{{-2, 1}, {2, 2}}, S^{{-3, 0},{ -3, 4},{0,0}, {0, 4}, {0,8}}, f)
-R = S/I
-M = (image F)**R
-symmetricKernel F
-degrees ring oo
-/// 
 
 w := global w;
 symmetricKernel = method(Options=>{Variable => global w})
@@ -196,19 +125,6 @@ universalEmbedding(Module) := Matrix => (M) -> (
 --           streamlined, skipping the unneccessary versal computation as in that 
 --           case the inclusion map is a versal map.
 
-///
-S = ZZ/101[x,y]
-M = module ideal(x,y)
-reesIdeal(M)
-use S
-M = module (ideal(x,y))^2
-reesIdeal(M)
-use S
-M = module (ideal (x,y))^3
-M
-reesIdeal(M)
-///
-
 reesIdeal = method(Options => {Variable => w})
 
 reesIdeal(Module) := Ideal => o -> M -> (
@@ -220,21 +136,6 @@ reesIdeal(Module) := Ideal => o -> M -> (
 reesIdeal(Ideal) := Ideal => o-> (J) -> (
 symmetricKernel(gens J, Variable => o.Variable)
      )
-
-
-///
-restart
-S=ZZ/101[x][y]
-loadPackage "ReesAlgebra"
-S = ZZ/101[x,y]
-M = module ideal(x,y)
-reesIdeal(M,S_0)
-reesIdeal(M)
-use S
-M = module (ideal(x,y))^2
-reesIdeal(M,S_0)
-reesIdeal(M)
-///
 
 ---- needs user-provided non-zerodivisor. 
 
@@ -254,28 +155,14 @@ reesIdeal (Module, RingElement) := Ideal => o -> (M,a) -> (
      saturate(I,a)
      )
 
-///
-restart
-
-loadPackage "ReesAlgebra"
-S = ZZ/101[x,y]
-M = module ideal(x,y)
-reesAlgebra(M,S_0)
-reesAlgebra(M)
-reesIdeal M
-
-M = module (ideal(x,y))^2
-reesAlgebra(M)
-M = module (ideal (x,y))^3
-reesAlgebra(M)
-///
-
 reesIdeal(Ideal, RingElement) := Ideal => o -> (I,a) -> (
      reesIdeal(module I, a)
      )
 
 reesAlgebra = method (TypicalValue=>(Ring,RingMap),Options=>{Variable => w})
---reesAlgebra = method (Options=>{Variable => w})
+-- accepts a Module, Ideal, or pair (depending on the method) and
+-- returns the quotient ring isomorphic to the Rees Algebra rather
+-- than just the defining ideal as in reesIdeal. 
 
 reesAlgebra(Module) := o-> M -> (
      R:=ring M;
@@ -339,44 +226,6 @@ isLinearType(Ideal, RingElement):= M->(
      J:=ideal(newVars*P);
      ((gens I)%J)==0)
 
-///
-restart
-loadPackage "ReesAlgebra"
-kk=ZZ/101
-R=kk[x,y]
-i=(ideal vars R)^2
-i = ideal(x^2, y^2)
-isLinearType i
-///
-
-     
-///
-restart
-loadPackage "ReesAlgebra"
-kk=ZZ/101
-R=kk[x,y]
-i=(ideal vars R)^2
-reesAlgebra i
-reesIdeal i
-specialFiberIdeal i
-assert (isLinearType i==false)
-isLinearType (ideal vars R)
-normalCone i
-
-restart
-loadPackage "ReesAlgebra"
-kk=ZZ/101
-R=kk[x,y]
-i = ideal(x^2,y^2)
-i = ideal(x+y^2)
-multiplicity i
-
-R = ZZ/101[x,y]/ideal(x^3-y^3)
-I = ideal(x^2,y^2)
-multiplicity I
-
-///
-
 normalCone = method(TypicalValue => Ring, Options => {Variable => w})
 normalCone(Ideal) := o -> I -> (
      RI := reesAlgebra(I);
@@ -436,17 +285,6 @@ specialFiberIdeal(Module,RingElement):= o->(i,a)->(
      Reesi:= reesIdeal(i, a, Variable=>o.Variable);
      trim (Reesi + substitute(ideal vars ring i, ring Reesi))
      )
-
-///
-restart
-loadPackage "ReesAlgebra"
-kk=ZZ/101
-R=kk[x,y]
-i=(ideal vars R)^2
-reesAlgebra i
-reesIdeal i
-specialFiberIdeal i
-///
 
 -- PURPOSE : Analytic spread of a module as defined in M2 by a matrix, 
 --           a module or ideal over a quotient ring R/I.
@@ -619,8 +457,6 @@ document {
      is null."     
      }
 
-end
-
 --- needs work....
 document { 
      Key => {universalEmbedding, (universalEmbedding,Module)},
@@ -665,23 +501,45 @@ document {
      }
 
 document {
-     Key => {(reesIdeal,Ideal), (reesIdeal, Module)}
-     Headline => "compute the Rees ideal"
+     Key => {(reesIdeal,Ideal), (reesIdeal, Module)},
+     Headline => "compute the Rees ideal",
+     Usage =>  "reesAlgebra(M)",
+     Inputs => {"M"},
+     Outputs => {{" defining the Rees algebra of  
+	       the ", ofClass Module, " ", TT "M"}},
+     "Stuff."
      }
 
 document {
-     Key => {(reesIdeal,Ideal, RingElement), (reesIdeal,Module, RingElement)}
-     Headline => "compute the Rees ideal"
+     Key => {(reesIdeal,Ideal, RingElement), (reesIdeal,Module, RingElement)},
+     Headline => "compute the Rees ideal",
+     Usage =>  "reesAlgebra(M,a)",
+     Inputs => {"M","a"},
+     Outputs => {{" defining the Rees algebra of  
+	       the ", ofClass Module, " ", TT "M"}},
+     "Stuff."
      }
 
 
-
-
---put in "variable"
-
+-- needs updating, like most of this documentation.
 document {
-     Key => reesAlgebra, 
-     Headline => "compute the Rees algebra"
+     Key => [reesIdeal, Variable],
+     Headline=> "symmetricKernel introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default variable is", TT  "w", "but the default value of the option 
+     is null."     
+     }
+
+-- the output is a sequence pair and loadpackage is yelling at us. 
+document {
+     Key => {reesAlgebra, (reesAlgebra, Module), (reesAlgebra, Ideal), 
+	  (reesAlgebra, Module, RingElement), (reesAlgebra, Ideal, RingElement)},
+     Headline => "determine if the image of a matrix is of linear type",
+     Usage =>  "isLinearType(M)",
+     Inputs =>  {"M", "a"},
+     Outputs => {{"true if the module is of linear 
+	  type and false otherwise."}},
+     "Stuff."
      }
 
 document {
@@ -692,145 +550,105 @@ document {
      }
 
 document {
-     Key => [reesAlgebra, Strategy],
-     Headline=> "rees introduces new variables and the option 
-     Variable allows the user to specify a variable name for this purpose, 
-     the default is", TT  "w"     
-     }
-
-
-document {
-     Key => (reesAlgebra,Module), 
-     Headline => "compute the Rees algebra of a module over a quotient ring",
-     Usage =>  "reesAlgebra(M)",
-     Inputs => {"M"},
-     Outputs => {{" defining the Rees algebra of  
-	       the ", ofClass Module, " ", TT "M"}},
-     "Stuff."
-     }
-
-document { 
-     Key => (reesAlgebra,Ideal),
-     Headline => "compute the Rees algebra of an ideal over a quotient ring",
-     Usage =>  "reesAlgebra(J)",
-     Inputs =>  {"J"},
-     Outputs => {{" defining the Rees algebra of 
-	       the ", ofClass Ideal, " ", TT "J"}},
-     "Stuff."
-     }
-
-
-document {
-     Key => isLinearType, 
-     Headline => "determine if a module is of linear type"
-     }
-
-document {
-     Key => (isLinearType,Module), 
+     Key => {isLinearType, (isLinearType, Module), (isLinearType, Ideal), 
+	  (isLinearType,Module, RingElement), (isLinearType, Ideal, RingElement)},
      Headline => "determine if the image of a matrix is of linear type",
      Usage =>  "isLinearType(M)",
-     Inputs =>  {"M"},
+     Inputs =>  {"M", "a"},
      Outputs => {{"true if the module is of linear 
 	  type and false otherwise."}},
      "Stuff."
      }
 
 document {
-     Key => (isLinearType,Ideal),
-     Headline => "determine if the image of a matrix is of linear type",
-     Usage =>  "isLinearType(J)",
-     Inputs =>  {"J"},
+     Key => {normalCone, (normalCone, Ideal), (normalCone, Ideal, RingElement)},
+     Headline => "",
+     Usage =>  "normalCone(J)",
+     Inputs =>  {"J" => Ideal => "input",
+	  "a" => RingElement => "also input"},
      Outputs => {{"true if the ideal is of linear 
 	  type and false otherwise."}},
      "Stuff."
      }
 
 document {
-     Key => normalCone,
-     Headline => ""
-     }
-document {
-     Key => associatedGradedRing, 
-     Headline => ""
-     }
-
-
-document {
-     Key => multiplicity, 
-     Headline => "compute the multiplicity of an ideal or module"
+     Key => [normalCone, Variable],
+     Headline=> "symmetricKernel introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default variable is", TT  "w", "but the default value of the option 
+     is null."     
      }
 
+
 document {
-     Key => (multiplicity,Ideal),
+     Key => {associatedGradedRing, (associatedGradedRing, Ideal),
+	  (associatedGradedRing, Ideal, RingElement)},
+     Headline => "",
+     Usage =>  "associatedGradedRing(J)",
+     Inputs =>  {"J" => Ideal => "input",
+	  "a" => RingElement => "otherinput"},
+     Outputs => {{"true if the ideal is of linear 
+	  type and false otherwise."}},
+     "Stuff."
+     }
+
+document {
+     Key => [associatedGradedRing, Variable],
+     Headline=> "symmetricKernel introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default variable is", TT  "w", "but the default value of the option 
+     is null."     
+     }
+
+document {
+     Key => {multiplicity, (multiplicity, Ideal), (multiplicity, Ideal, RingElement)},
      Headline => "compute the Hilbert-Samuel multiplicty of an ideal",
      Usage =>  "multiplicity I",
-     Inputs =>  {"I"},
+     Inputs =>  {"I" => Ideal => "input",
+	  "a" => RingElement => "other input"},
      Outputs => {{"  that is the normalized leading 
 	  coefficient of the associated graded ring of ", TT "R", 
 	  " with respect to ", TT "I"}},
      "Stuff."
      }
 
-document {
-     Key => specialFiber, 
-     Headline => "compute the special fiber"
-     }
-
-document {
-     Key => [specialFiber, Variable],
-     Headline=> "specialFiber introduces new variables and the option 
-     Variable allows the user to specify a variable name for this purpose, 
-     the default is", TT  "w"     
-     }
-
 document { 
-     Key => (specialFiber,Module), 
+     Key => {specialFiberIdeal, (specialFiberIdeal, Module), 
+	  (specialFiberIdeal, Ideal), (specialFiberIdeal, Module, RingElement), 
+	  (specialFiberIdeal, Ideal, RingElement)},
      Headline => "compute the special fiber of the image of a matrix over a", 
      "a quotient ring",
      Usage =>  "specialFiber(M)",
-     Inputs =>  {"M"},
+     Inputs =>  {"M","a"},
      Outputs => {{"defining the special fiber of ", TT "M"}},
      "Stuff."
      }
 
-document { 
-     Key => (specialFiber,Ideal),
-     Headline => "compute the special fiber of the image of a matrix over 
-     a quotient ring",
-     Usage =>  "specialFiber(J)",
-     Inputs =>  {"J"},
-     Outputs => {{"defining the special fiber of ", TT "J"}},
-     "Stuff."
-     }
 
 document {
-     Key => analyticSpread, 
-     Headline => "compute the analytic spread"
+     Key => [specialFiberIdeal, Variable],
+     Headline=> "symmetricKernel introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default variable is", TT  "w", "but the default value of the option 
+     is null."     
      }
 
+
 document {
-     Key => (analyticSpread,Module), 
+     Key => {analyticSpread, (analyticSpread,Module),(analyticSpread, Ideal), 
+	  (analyticSpread, Module, RingElement), 
+	  (analyticSpread, Ideal, RingElement)},  
      Headline => "compute the analytic spread of a module over a 
      quotient ring",
      Usage => "analyticSpread(M)",
-     Inputs => {"M"},
+     Inputs => {"M","a"},
      Outputs => {{"the dimension of the special fiber of ", TT "M"}},
                "Stuff."
      }	   
 
 document {
-     Key => (analyticSpread,Ideal),
-     Headline => "compute the analytic spread of an ideal over a 
-     quotient ring",
-     Usage => "analyticSpread(J)",
-     Inputs =>  {"J"},
-     Outputs => {{"the dimension of the 
-	       special fiber of the ideal ", TT "J"}},
-     "Stuff."
-     }
-
-document {
-     Key => {distinguished, (distinguished,Ideal)},
+     Key => {distinguished, (distinguished, Ideal), 
+	  (distinguished, Ideal, RingElement)},
      Headline => "computes the distinguished subvarieties of a scheme",
      Usage => "distinguished I" ,
      Inputs =>  {"I" => {ofClass Ideal, " in ", ofClass PolynomialRing}},
@@ -847,11 +665,13 @@ document {
      }
 
 document {
-     Key => {distinguishedAndMult, (distinguishedAndMult,Ideal)},
+     Key => {distinguishedAndMult, (distinguishedAndMult,Ideal),
+	  (distinguishedAndMult, Ideal, RingElement)},
      Headline => "compute the distinguished subvarieties of a variety along 
      with their multiplicities",
      Usage => "distinguishedAndMult I" ,
-     Inputs => {"I" => {ofClass Ideal, " in ", ofClass PolynomialRing}},
+     Inputs => {"I" => {ofClass Ideal, " in ", ofClass PolynomialRing}, 
+	  "a" => {ofClass RingElement, "stuff."}},
      Outputs => {{ofClass List, " of pairs where the first entry 
 	       is the multiplicity of the second entry which is one 
 	       of the ideals defining a component of the support of 
@@ -868,6 +688,167 @@ document {
 
 
 end    
+
+-- From M2 workshop
+///
+--Examples for the ReesAlgebra package.                                                                                                                                                                                       
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+
+--Example 1: a monomial ideal in 4-space.
+S=kk[x_0..x_4]
+i=monomialCurveIdeal(S,{2,3,5,6})
+time reesIdeal i; -- 2.25 sec
+time reesIdeal(i,i_0); --.3 sec
+
+--Example 2: determinantal ideals
+restart
+loadPackage "ReesAlgebra"
+load"newrg.m2"
+kk=ZZ/101
+S=kk[a,b,c]
+m=matrix"a,0;b,a;0,b"
+i=minors(2,m)
+time reesIdeal i
+res i
+
+m=random(S^3,S^{4:-1})
+i=minors(3,m);
+time I=reesIdeal (i,i_0); -- .05 sec
+transpose gens I
+i=minors(2,m);
+time I=reesIdeal (i,i_0); -- 22 sec
+
+T. Roemer,  "Homological Properties of Bigraded Modules"
+Römer, Tim(D-ESSN)
+Homological properties of bigraded algebras. (English summary) 
+Illinois J. Math. 45 (2001), no. 4, 1361--1376. 
+ Thm 5.3
+shows that if i is and ideal in the polynomial ring,
+generated in degree d (and maybe i is 
+primary to the maximal ideal) then
+  reg(I^j) = jd + b for m>-=j0
+where j0 is the max degree in the "new variables" of
+a bigeneric initial ideal of reesIdeal(i)
+(bigeneric means we allow general changes of coords in
+the new vars alone and in the old vars alone.)
+
+Eisenbud and Ulrich have shown that there is a similar bound
+in terms of the regularity with respect to the variables y
+(graded with the degrees of the generators of i). This is proven
+only in the case of ideals generated in a single degree and
+primary to the maximal ideal. 
+
+Research Problem: what's the situation in general?
+///
+
+
+///
+--- Our working example
+restart
+loadPackage "ReesAlgebra"
+S = ZZ/101[x_1,x_2, Degrees => {{1,1}, {1,-3}}]
+I = ideal(x_1^4*x_2^3)
+f = matrix{{x_1,x_2, 0, 0, 0}, {0, 0 , x_1^2, x_1*x_2, x_2^2}}
+F = map(S^{{-2, 1}, {2, 2}}, S^{{-3, 0},{ -3, 4},{0,0}, {0, 4}, {0,8}}, f)
+R = S/I
+M = (image F)**R
+symmetricKernel F
+degrees ring oo
+/// 
+
+///
+S = ZZ/101[x,y]
+M = module ideal(x,y)
+reesIdeal(M)
+use S
+M = module (ideal(x,y))^2
+reesIdeal(M)
+use S
+M = module (ideal (x,y))^3
+M
+reesIdeal(M)
+///
+
+///
+restart
+S=ZZ/101[x][y]
+loadPackage "ReesAlgebra"
+S = ZZ/101[x,y]
+M = module ideal(x,y)
+reesIdeal(M,S_0)
+reesIdeal(M)
+use S
+M = module (ideal(x,y))^2
+reesIdeal(M,S_0)
+reesIdeal(M)
+///
+
+///
+restart
+loadPackage "ReesAlgebra"
+S = ZZ/101[x,y]
+M = module ideal(x,y)
+reesAlgebra(M,S_0)
+reesAlgebra(M)
+reesIdeal M
+
+M = module (ideal(x,y))^2
+reesAlgebra(M)
+M = module (ideal (x,y))^3
+reesAlgebra(M)
+///
+///
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+R=kk[x,y]
+i=(ideal vars R)^2
+i = ideal(x^2, y^2)
+isLinearType i
+///
+
+     
+///
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+R=kk[x,y]
+i=(ideal vars R)^2
+reesAlgebra i
+reesIdeal i
+specialFiberIdeal i
+assert (isLinearType i==false)
+isLinearType (ideal vars R)
+normalCone i
+
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+R=kk[x,y]
+i = ideal(x^2,y^2)
+i = ideal(x+y^2)
+multiplicity i
+
+R = ZZ/101[x,y]/ideal(x^3-y^3)
+I = ideal(x^2,y^2)
+multiplicity I
+
+///
+
+///
+restart
+loadPackage "ReesAlgebra"
+kk=ZZ/101
+R=kk[x,y]
+i=(ideal vars R)^2
+reesAlgebra i
+reesIdeal i
+specialFiberIdeal i
+///
+
+---------------------
 
 restart
 loadPackage "ReesAlgebra"
