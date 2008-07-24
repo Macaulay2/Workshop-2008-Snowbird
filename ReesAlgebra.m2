@@ -164,6 +164,7 @@ reesAlgebra = method (TypicalValue=>(Ring,RingMap),Options=>{Variable => w})
 -- returns the quotient ring isomorphic to the Rees Algebra rather
 -- than just the defining ideal as in reesIdeal. 
 
+ressAlgebra(Ideal) := 
 reesAlgebra(Module) := o-> M -> (
      R:=ring M;
      reesIM := reesIdeal M;
@@ -172,14 +173,7 @@ reesAlgebra(Module) := o-> M -> (
      (reesAM,A)
      )
 
-reesAlgebra(Ideal) := o-> M -> (
-     R:=ring M;
-     reesIM := reesIdeal M;
-     reesAM := (ring reesIM)/reesIM;
-     A:= map(reesAM, R);
-     (reesAM,A)
-     )
-
+reesAlgebra(Ideal, RingElement) := 
 reesAlgebra(Module, RingElement) := o->(M,a)->(
      R:=ring M;
      reesIM := reesIdeal(M,a);
@@ -187,17 +181,10 @@ reesAlgebra(Module, RingElement) := o->(M,a)->(
      A:= map(reesAM, R);
      (reesAM,A)
      )
-reesAlgebra(Ideal, RingElement) := o->(M,a)->(
-     R:=ring M;
-     reesIM := reesIdeal(M,a);
-     reesAM := (ring reesIM)/reesIM;
-     A:= map(reesAM, R);
-     (reesAM,A)
-     )
-     
        
 isLinearType=method(TypicalValue =>Boolean)
 
+isLinearType(Ideal):=
 isLinearType(Module):= M->(
      I:=reesIdeal M;
      P:=substitute(presentation M, ring I);
@@ -205,27 +192,15 @@ isLinearType(Module):= M->(
      J:=ideal(newVars*P);
      ((gens I)%J)==0)
      
-isLinearType(Ideal):= M->(
-     I:=reesIdeal M;
-     P:=substitute(presentation module M, ring I);
-     newVars := matrix{apply(rank target P, i -> (ring I)_i)};
-     J:=ideal(newVars*P);
-     ((gens I)%J)==0)
-
+isLinearType(Ideal, RingElement):=
 isLinearType(Module, RingElement):= (M,a)->(
      I:=reesIdeal (M,a);
      P:=substitute(presentation M, ring I);
      newVars := matrix{apply(rank target P, i -> (ring I)_i)};
      J:=ideal(newVars*P);
-     ((gens I)%J)==0)
+     ((gens I)%J)==0
+     )
      
-isLinearType(Ideal, RingElement):= M->(
-     I:=reesIdeal (M,a);
-     P:=substitute(presentation module M, ring I);
-     newVars := matrix{apply(rank target P, i -> (ring I)_i)};
-     J:=ideal(newVars*P);
-     ((gens I)%J)==0)
-
 normalCone = method(TypicalValue => Ring, Options => {Variable => w})
 normalCone(Ideal) := o -> I -> (
      RI := reesAlgebra(I);
@@ -269,18 +244,13 @@ multiplicity(Ideal,RingElement) := ZZ => (I,a) ->  (
 
 specialFiberIdeal=method(TypicalValue=>Ideal, Options=>{Variable=>w})
 
-specialFiberIdeal(Ideal):= o->i->(
-     Reesi:= reesIdeal(i, Variable=>o.Variable);
-     trim (Reesi + substitute(ideal vars ring i, ring Reesi))
-     )
+specialFiberIdeal(Ideal):= 
 specialFiberIdeal(Module):= o->i->(
      Reesi:= reesIdeal(i, Variable=>o.Variable);
      trim (Reesi + substitute(ideal vars ring i, ring Reesi))
      )
-specialFiberIdeal(Ideal, RingElement):= o->(i,a)->(
-     Reesi:= reesIdeal(i,a, Variable=>o.Variable);
-     trim (Reesi + substitute(ideal vars ring i, ring Reesi))
-     )
+ 
+specialFiberIdeal(Ideal, RingElement):=
 specialFiberIdeal(Module,RingElement):= o->(i,a)->(
      Reesi:= reesIdeal(i, a, Variable=>o.Variable);
      trim (Reesi + substitute(ideal vars ring i, ring Reesi))
@@ -529,6 +499,7 @@ document {
      the default variable is", TT  "w", "but the default value of the option 
      is null."     
      }
+end
 
 -- the output is a sequence pair and loadpackage is yelling at us. 
 document {
