@@ -468,14 +468,14 @@ getEdge (HyperGraph, ZZ) := (H,N) -> H#"edges"#N;
 
 getEdgeIndex = method();
 getEdgeIndex (HyperGraph, List) := (H,E) -> ( 
-	if class class E === PolynomialRing then E = support E;
-	N :=  select(0..#(H#"edges")-1, N -> set H#"edges"#N === set E);
-  if #N === 0 then return -1; 
-  return first N;
+     if class class E === PolynomialRing then E = support E;
+     N :=  select(0..#(H#"edges")-1, N -> set H#"edges"#N === set E);
+     if #N === 0 then return -1; 
+     return first N;
 )
 
 getEdgeIndex (HyperGraph, RingElement) := (H,E) -> ( 
-	getEdgeIndex(H, support E)
+     getEdgeIndex(H, support E)
 )
 
 -----------------------------------------------------------
@@ -484,9 +484,9 @@ getEdgeIndex (HyperGraph, RingElement) := (H,E) -> (
 ----------------------------------------------------------
 
 getGoodLeaf = method();
-getGoodLeaf HyperGraph := H ->
-( return H#"edges"#(getGoodLeafIndex H);
-);
+getGoodLeaf HyperGraph := H -> ( 
+     return H#"edges"#(getGoodLeafIndex H);
+)
 
 
 ------------------------------------------------------------
@@ -1051,31 +1051,6 @@ doc ///
 		       g == h
 		       g == k
 ///
-
---document {
---     Key => symbol ==,
---     Headline => "equality",
---     Usage => "g==h",
---     Inputs => {
---                "g" => HyperGraph, 
---                "h" => HyperGraph
---          },
---     Outputs => {
---                Boolean => { "true if ", TT, "g", " and ", TT, "h", " are equal."}
---          },
---		       "This function determines if two HyperGraphs are mathematically equal.
---		       Two HyperGraphs are equal if they are defined over the same ring, have 
---                       the same variables and have the same set of edges. In particular, 
---                       the order of the edges and the order of variables within each edges 
---                       does not matter.",
---     EXAMPLE ///       R = QQ[a..f]
---		       g = hyperGraph {a*b*c,b*c*d,d*e*f}
---		       h = hyperGraph {b*c*d,a*b*c,f*e*d}
---		       k = hyperGraph {a*b,b*c*d,d*e*f}
---		       g == h
---		       g == k
---          ///
---     }
 	      
 ------------------------------------------------------------
 -- DOCUMENTATION adjacencyMatrix
@@ -1487,14 +1462,17 @@ doc ///
 	Key
 		getEdgeIndex
 		(getEdgeIndex, HyperGraph, List)
+		(getEdgeIndex, HyperGraph, RingElement)
 	Headline 
 		finds the index of an edge in a HyperGraph
 	Usage
-		N = getEdgeIndex(H,E)
+		N = getEdgeIndex(H,E) or N = getEdgeIndex(H,M)
 	Inputs
 		H:HyperGraph
 		E:List
-			of vertices (or monomials)
+			of vertices
+		M:RingElement
+			a monomial of vertices
 	Outputs 
 		N:ZZ
 			which is the index of {\tt E} as an edge of {\tt H}. If {\tt E} is not in {\tt H}
