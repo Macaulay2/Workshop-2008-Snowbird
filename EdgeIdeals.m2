@@ -521,7 +521,7 @@ getMaxCliques Graph := G -> (
 ----------------------------------------------------------------------------
 
 hasGoodLeaf = method();
-hasGoodLeaf HyperGraph := H -> any(0..#(H#"edges")-1, N -> isGoodLeaf(H,N));
+hasGoodLeaf HyperGraph := H -> any(0..#(H#"edges")-1, N -> isGoodLeaf(H,N))
 
 
 ------------------------------------------------------------------------------
@@ -655,7 +655,7 @@ isGoodLeaf = method();
 isGoodLeaf (HyperGraph, ZZ) := (H,N) -> ( 
      intersectEdges := (A,B) -> set H#"edges"#A * set H#"edges"#B;
      overlaps := apply(select(0..#(H#"edges")-1, M -> M =!= N), M -> intersectEdges(M,N));
-     overlaps = sort(overlaps);
+     overlaps = sort toList overlaps;
      --Check if the overlaps are totally ordered
      all(1..(#overlaps -1), I -> overlaps#(I-1) <= overlaps#I)
      );
@@ -1482,6 +1482,75 @@ doc ///
 ///
 
 ------------------------------------------------------------
+-- DOCUMENTATION getGoodLeaf
+------------------------------------------------------------
+
+doc ///
+	Key
+		getGoodLeaf
+		(getGoodLeaf, HyperGraph)
+	Headline 
+		returns an edge that is a good leaf
+	Usage
+		L = getGoodLeaf(H) 
+	Inputs
+		H:HyperGraph
+	Outputs 
+		L:List
+			of vertices that are an edge in H that form a good leaf.
+	Description
+		Text
+			A good leaf of hypergraph H is an edge L whose intersections
+			with all other edges form a totally ordered set. It follows that
+			L must have a free vertex. In the graph setting, a good leaf is 
+			an edge containing a vertex of degree one.
+		Example
+		     	R = QQ[a..g];
+			H = hyperGraph {a*b*c*d, b*c*d*e, c*d*f, d*g, e*f*g};
+			getGoodLeaf(H)
+	SeeAlso
+		getGoodLeafIndex
+		hasGoodLeaf
+		isGoodLeaf
+///
+
+------------------------------------------------------------
+-- DOCUMENTATION getGoodLeafIndex
+------------------------------------------------------------
+
+doc ///
+	Key
+		getGoodLeafIndex
+		(getGoodLeafIndex, HyperGraph)
+	Headline 
+		returns the index of an edge that is a good leaf
+	Usage
+		N = getGoodLeafIndex(H) 
+	Inputs
+		H:HyperGraph
+	Outputs 
+		N:ZZ
+			the index of an edge in H of a good leaf. 
+			Returns -1 if H does not have a good leaf.
+	Description
+		Text
+			A good leaf of hypergraph H is an edge L whose intersections
+			with all other edges form a totally ordered set. It follows that
+			L must have a free vertex. In the graph setting, a good leaf is 
+			an edge containing a vertex of degree one.
+		Example
+		     	R = QQ[a..g];
+			H = hyperGraph {b*c*d*e, a*b*c*d, c*d*f, d*g, e*f*g};
+			getGoodLeaf(H)
+			edges(H)
+			getGoodLeafIndex(H)
+	SeeAlso
+		getGoodLeaf
+		hasGoodLeaf
+		isGoodLeaf
+///
+
+------------------------------------------------------------
 -- DOCUMENTATION getMaxCliques
 ------------------------------------------------------------
 
@@ -1510,6 +1579,40 @@ doc ///
 	SeeAlso
 	        cliqueNumber
 		getCliques
+///
+
+------------------------------------------------------------
+-- DOCUMENTATION hasGoodLeaf
+------------------------------------------------------------
+
+doc ///
+	Key
+		hasGoodLeaf
+		(hasGoodLeaf, HyperGraph)
+	Headline 
+		determines if a HyperGraph contains a good leaf
+	Usage
+		B = hasGoodLeaf(H) 
+	Inputs
+		H:HyperGraph
+	Outputs 
+		B:Boolean
+			true if H contains an edge that is a good leaf.
+	Description
+		Text
+			A good leaf of hypergraph H is an edge L whose intersections
+			with all other edges form a totally ordered set. It follows that
+			L must have a free vertex. In the graph setting, a good leaf is 
+			an edge containing a vertex of degree one.
+		Example
+		     	R = QQ[a..g];
+			H = hyperGraph {b*c*d*e, a*b*c*d, c*d*f, d*g, e*f*g};
+			hasGoodLeaf(H)
+			getGoodLeaf(H)
+	SeeAlso
+		getGoodLeaf
+		getGoodLeafIndex
+		isGoodLeaf
 ///
 
 ------------------------------------------------------------
@@ -1726,6 +1829,43 @@ doc ///
 			which is true iff {\tt E} (or {\tt support M}) is an edge of {\tt H}
 	SeeAlso
 		getEdgeIndex
+///
+
+------------------------------------------------------------
+-- DOCUMENTATION isGoodLeaf
+------------------------------------------------------------
+
+doc ///
+	Key
+		isGoodLeaf
+		(isGoodLeaf, HyperGraph, ZZ)
+	Headline 
+		returns an edge that is a good leaf
+	Usage
+		B = getGoodLeaf(H,N) 
+	Inputs
+		H:HyperGraph
+		N:ZZ
+			index of an edge
+	Outputs 
+		B:Boolean
+			true if edge N of H is a good leaf.
+	Description
+		Text
+			A good leaf of hypergraph H is an edge L whose intersections
+			with all other edges form a totally ordered set. It follows that
+			L must have a free vertex. In the graph setting, a good leaf is 
+			an edge containing a vertex of degree one.
+		Example
+		     	R = QQ[a..g];
+			H = hyperGraph {a*b*c*d, b*c*d*e, c*d*f, d*g, e*f*g};
+			edges(H)
+			isGoodLeaf(H,0)
+			isGoodLeaf(H,1)
+	SeeAlso
+		getGoodLeaf
+		getGoodLeafIndex
+		hasGoodLeaf
 ///
 
 ------------------------------------------------------------
@@ -2268,7 +2408,6 @@ assert( degreeVertex(H,3) == 1)
 -- Test edgeIdeal
 -----------------------------
 
-
 TEST///
 R = QQ[a,b,c]
 i = monomialIdeal {a*b,b*c}
@@ -2280,6 +2419,7 @@ assert((edgeIdeal h) == i)
 -----------------------------
 -- Test getEdgeIndex 
 -----------------------------
+
 TEST///
 R = QQ[a,b,c]
 H = hyperGraph(monomialIdeal {a*b,b*c})
@@ -2291,7 +2431,26 @@ assert( getEdgeIndex(H,{a,c}) == -1)
 assert( getEdgeIndex(H,a*c) == -1)
 ///
 
+-----------------------------
+-- Test getGoodLeaf 
+-- Test getGoodLeafIndex 
+-- Test hasGoodLeaf 
+-- Test isGoodLeaf 
+-----------------------------
 
+TEST///
+R = QQ[a..g]
+H = hyperGraph {a*b*c*d,b*c*d*e,c*d*f,d*g,e*f*g}
+G = hyperGraph {b*c*d*e,d*g,e*f*g,a*b*c*d}
+C = graph {a*b,b*c,c*d,d*e,e*a} -- 5-cycle
+assert( getGoodLeaf(H) === {a,b,c,d})
+assert( getGoodLeafIndex(H) === getEdgeIndex(H, {a,b,c,d}))
+assert( getGoodLeaf(G) === {a,b,c,d})
+assert( hasGoodLeaf G )
+assert( isGoodLeaf(getEdgeIndex(H,{a,b,c,d})) )
+assert( not isGoodLeaf(H, getEdgeIndex(H,{b,c,d,e})) )
+assert( not hasGoodLeaf G )
+///
 
 -----------------------------
 -- Test hasOddHole
@@ -2361,6 +2520,7 @@ assert(not isConnected h)
 -----------------------------
 -- Test isEdge Test
 -----------------------------
+
 TEST///
 R = QQ[a,b,c]
 H = hyperGraph(monomialIdeal {a*b,b*c})
@@ -2371,6 +2531,7 @@ assert( isEdge(H,b*c) )
 assert( not isEdge(H,{a,c}) )
 assert( not isEdge(H,a*c) )
 ///
+
 -----------------------------
 -- Test isLeaf
 -----------------------------
@@ -2401,15 +2562,15 @@ assert(isLeaf(I,0))
 -- Test randomUniformHyperGraph
 -------------------------------------
 
------------------------------<
+-----------------------------
 -- Test numConnectedComponents
 -----------------------------
 TEST///
 S = QQ[a..e]
 g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
 h = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
-assert(numConnectedComponents == 1) 
-assert(numConnectedComponents == 2)
+assert(numConnectedComponents g == 1) 
+assert(numConnectedComponents h == 2)
 ///
 
 
