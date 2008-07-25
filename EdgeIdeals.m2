@@ -199,6 +199,18 @@ hyperGraph (Graph) := HyperGraph => (G) ->
 
 
 --------------------------------------------------------------
+-- Mathematical equality 
+-- return true if two graphs are equal (defined over same ring,
+-- have same edge sets in some order).
+--------------------------------------------------------------
+
+HyperGraph == HyperGraph := (G,H) -> (
+     G#"ring" == H#"ring" and
+     set(G#"vertices") === set(H#"vertices") and
+     set(apply(G#"edges", set)) === set(apply(H#"edges",set))
+     ) 
+
+--------------------------------------------------------------
 -- adjacencyMatrix
 -- return the adjacency matrix of a graph
 --------------------------------------------------------------
@@ -1006,6 +1018,64 @@ doc ///
 -- DOCUMENTATION FOR FUNCTIONS
 --**********************************************************
 
+	      
+------------------------------------------------------------
+-- DOCUMENTATION equality  ==
+------------------------------------------------------------
+
+doc ///
+        Key
+		(symbol ==, HyperGraph, HyperGraph)
+	Headline
+	        equality 
+	Usage
+	        g == h
+	Inputs
+	        g:HyperGraph
+	        h:HyperGraph
+	Outputs
+	        b:Boolean
+		       true if g and h are equal
+        Description
+	        Text
+		       This function determines if two HyperGraphs are mathematically equal.
+		       Two HyperGraphs are equal if they are defined over the same ring, have 
+                       the same variables and have the same set of edges. In particular, 
+                       the order of the edges and the order of variables within each edges 
+                       does not matter.
+		Example
+                       R = QQ[a..f];
+		       g = hyperGraph {{a,b,c},{b,c,d},{d,e,f}};
+		       h = hyperGraph {{b,c,d},{a,b,c},{f,e,d}};
+		       k = hyperGraph {{a,b},{b,c,d},{d,e,f}};
+		       g == h
+		       g == k
+///
+
+--document {
+--     Key => symbol ==,
+--     Headline => "equality",
+--     Usage => "g==h",
+--     Inputs => {
+--                "g" => HyperGraph, 
+--                "h" => HyperGraph
+--          },
+--     Outputs => {
+--                Boolean => { "true if ", TT, "g", " and ", TT, "h", " are equal."}
+--          },
+--		       "This function determines if two HyperGraphs are mathematically equal.
+--		       Two HyperGraphs are equal if they are defined over the same ring, have 
+--                       the same variables and have the same set of edges. In particular, 
+--                       the order of the edges and the order of variables within each edges 
+--                       does not matter.",
+--     EXAMPLE ///       R = QQ[a..f]
+--		       g = hyperGraph {a*b*c,b*c*d,d*e*f}
+--		       h = hyperGraph {b*c*d,a*b*c,f*e*d}
+--		       k = hyperGraph {a*b,b*c*d,d*e*f}
+--		       g == h
+--		       g == k
+--          ///
+--     }
 	      
 ------------------------------------------------------------
 -- DOCUMENTATION adjacencyMatrix
@@ -2125,7 +2195,28 @@ assert(#(edges H) === 2)
 assert(#(vertices H) === 3)
 ///
 
+-----------------------------
+-- Test Equality ==
+-----------------------------
 
+TEST///
+R = QQ[a,b,c,d]
+G1 = hyperGraph(R, {{a,b},{b,c}})
+G2 = hyperGraph(R, {{a,b},{b,c}})
+G3 = hyperGraph(R, {{a,b},{c,b}})
+G4 = hyperGraph(R, {{b,c}, {b,a}})
+G5 = hyperGraph(R, {{b,c}, {a,c}})
+
+S = QQ[a,b,c]
+G6 = hyperGraph(S, {{a,b}, {b,c}})
+
+assert(G1 == G1) 
+assert(G1 == G2)
+assert(G1 == G3)
+assert(G1 == G4)
+assert(G1 != G5)
+assert(G1 != G6)
+///
 
 -----------------------------
 -- Test adjacencyMatrix
