@@ -31,7 +31,7 @@ export {HyperGraph,
 	adjacencyMatrix,
 	allOddHoles,
 	allEvenHoles,
-	antiHole,
+	antiCycle,
 	chromaticNumber,
 	cliqueComplex,
 	cliqueNumber,
@@ -247,12 +247,26 @@ allOddHoles Graph := G -> (
 
 
 -------------------------------------------------------------------
--- antiHole
--- return the graph of an anti-hole
--- AVT:  I think this should be anti-cycle
+-- antiCycle
+-- return the complement of a cycle.
 ------------------------------------------------------------------
 
-antiHole = method();
+antiCycle = method(TypicalValue=>Graph);
+antiCycle (Ring) := Graph =>(R) -> antiCycle(generators R)
+
+antiCycle (Ring, ZZ) := Graph =>(R, N) -> antiCycle(apply(N, i->R_i))
+
+antiCycle (List) := Graph =>(L)-> (
+     if #L < 3 then error "Cannot construct anticycles of length less than three";
+     antiCycleEdgeSet := subsets(L,2) - set append(apply(#L-1, i-> {L#i,L#(i+1)}), {(first L),(last L)});
+     graph(ring L#0,toList antiCycleEdgeSet)
+     )     	   
+
+
+
+    
+
+
 
 ---------------------------------------------------------------
 -- chromaticNumber
@@ -1119,6 +1133,45 @@ doc ///
 	      
 	      
 ------------------------------------------------------------
+-- DOCUMENTATION antiCycle
+------------------------------------------------------------
+
+doc ///
+	Key
+		antiCycle
+		(antiCycle, Ring)
+		(antiCycle, Ring, ZZ)
+		(antiCycle, List)
+	Headline
+		returns a graph of an anticycle.
+	Usage
+		C = antiCycle R or C = antiCycle(R,N) or C = antiCycle L
+	Inputs
+		R:Ring
+		N:ZZ
+			length of anticycle
+		L:List
+			of vertices to make into the complement of a cycle in the order provided
+	Outputs
+		C:Graph
+			which is a anticycle on the vertices in {\tt L} or on the variables of {\tt R}.
+	Description
+	        Text
+		        This function is the reverse of the function @TO cycle @ by returning
+			the graph which is the complement of a cycle.
+		Example
+			R = QQ[a,b,c,d,e]	   
+			antiCycle R
+			antiCycle(R,4)
+			antiCycle {e,c,d,b}
+			complementGraph antiCycle R == cycle R
+        SeeAlso	    
+	        cycle
+///	
+
+
+	      
+------------------------------------------------------------
 -- DOCUMENTATION chromaticNumber
 ------------------------------------------------------------
 
@@ -1294,6 +1347,8 @@ doc ///
 			cycle R
 			cycle(R,3)
 			cycle {e,c,d,b}
+	SeeAlso
+	        antiCycle
 ///	
 
 
@@ -2346,8 +2401,19 @@ c4 = graph {a*b,b*c,c*d,d*a} -- 4-cycle plus an isolated vertex!!!!
 adjacencyMatrix c4
 m = matrix {{0,1,0,1},{1,0,1,0},{0,1,0,1},{1,0,1,0}}
 assert(adjacencyMatrix c4 == m)
-
 ///
+
+----------------------------
+-- Test antiCycle
+---------------------------
+
+TEST///
+S= QQ[a..d]
+g = graph {a*c,b*d}
+assert(antiCycle(S) == g)
+assert(complementGraph antiCycle(S) == cycle(S))
+///
+
 ------------------------
 -- Test chromaticNumber
 ------------------------ 
@@ -2641,4 +2707,3 @@ restart
 installPackage ("EdgeIdeals", UserMode=>true)
 loadPackage "EdgeIdeals"
 viewHelp
-
