@@ -384,6 +384,20 @@ completeMultiPartite (Ring, List) := Graph =>(R, L) -> (
 ----------------------------------------------------------------------
 
 connectedComponents = method();
+connectedComponents HyperGraph := H -> (
+     V := select(H#"vertices", v-> any(H#"edges", e -> member(v,e)));
+     while #V > 0 list (
+	C := {V#0};
+	i := 0;
+	while i < #C do (
+	    N := select(neighbors(H, C#i), v-> not member(v,C));
+	    C = join(C,N);
+	    i = i+1;
+        );
+	V = select(V, v -> not member(v,C));
+	C
+     )
+     )
 
 
 
@@ -659,7 +673,7 @@ isChordal = method(); -- based upon Froberg's characterization of chordal graphs
 -- checks if a (hyper)graph is Cohen-Macaulay
 ------------------------------------------------------------
 
-isCMhyperGraph = method();
+isCMHyperGraph = method();
 
 
 
@@ -725,17 +739,17 @@ isLeaf (HyperGraph, ZZ) := (H,N) -> (
      overlaps := apply(select(0..(#(H#"edges")-1), M -> M =!= N), M -> intersectEdges(M,N));
      overlapUnion := sum toList overlaps;
      any(overlaps, branch -> isSubset(overlapUnion,branch))
-     );     
+     )
 
 isLeaf (Graph, ZZ) := (G,N) -> ( 
      any(G#"edges"#N, V -> degreeVertex(G,V) === 1)
      ---Note N refers to an edge index
-     );
+     )
 
-isLeaf (Graph, RingElement) := (G,V) -> ( 
-     isLeaf(G,index V)
-     ---Note V refers to a vertex
-);
+isLeaf (HyperGraph, RingElement) := (H,V) -> ( 
+     E := select(0..#(H#"edges")-1, I -> member(V, H#"edges"#I));
+     #E == 1 and isLeaf(H, E#0)
+     )
 
 
 ------------------------------------------------------------
@@ -755,7 +769,7 @@ isPerfect Graph := G -> (
 -- checks if (hyper)graph is Sequentially Cohen-Macaulay
 -------------------------------------------------------------
 
-isSCMhyperGraph = method();
+isSCMHyperGraph = method();
 
 
 -------------------------------------------------------------
@@ -774,6 +788,13 @@ isTree Graph := G -> (smallestCycleSize G == 0);
 ------------------------------------------------------------------
 
 lineGraph = method();
+
+lineGraph HyperGraph := H -> (
+    R := QQ[x_0..x_(#edges(H)-1)];
+    E := apply(H#"edges", set);
+    L := select(subsets(numgens R, 2), e -> #(E#(e#0) * E#(e#1)) > 0);
+    graph(R, apply(L,e->apply(e, i-> x_i)))
+    )
 
 
 -----------------------------------------------------------
@@ -1105,7 +1126,7 @@ doc ///
 		       g == h
 		       g == k
 ///
-	      
+
 ------------------------------------------------------------
 -- DOCUMENTATION adjacencyMatrix
 ------------------------------------------------------------
@@ -1127,7 +1148,7 @@ doc ///
 	        Text
 		       This function returns the adjacency matrix of the inputed graph.  The (i,j)^{th} position
 		       of the matrix is 1 if there is an edge between the i^{th} vertex and j^{th} vertex,
-		       and 0 otherwises.  The rows and columns are indexed by the variables of the ring and uses the 
+		       and 0 otherwise.  The rows and columns are indexed by the variables of the ring and uses the 
 		       ordering of the variables for determining the order of the rows and columns.
 		Example
                        S = QQ[a..f]
@@ -1136,7 +1157,9 @@ doc ///
 		       T = QQ[f,e,d,c,b,a]
 		       g = graph {a*b,a*c,b*c,c*d,d*e,e*f,f*a,a*d}
 		       t = adjacencyMatrix g -- although the same graph, matrix is different since variables have different ordering
-		
+	SeeAlso
+	    incidenceMatrix
+	    vertices
 ///		      
 
 ------------------------------------------------------------
@@ -1369,6 +1392,36 @@ doc ///
 			completeMultiPartite(R,2,3)
 			completeMultiPartite(R,{2,4})
 			completeMultiPartite(R,{{a,b,c,x},{y,z}})
+///	
+
+------------------------------------------------------------
+-- DOCUMENTATION connectedComponents
+------------------------------------------------------------
+
+doc ///
+	Key
+		connectedComponents
+		(connectedComponents, HyperGraph)
+	Headline
+		the connected components of a hypergraph
+	Usage
+		L = connectedComponents H
+	Inputs
+		H:HyperGraph
+	Outputs
+		L:List
+			of lists of vertices. Each list of vertices is a connected component of H.
+	Description
+		Text
+			The connected components of a hypergraph are sets of vertices in which
+			each vertex is connected to each other by a path. Each connected component
+			is disjoint and vertices that are not contained in any edge do not appear in
+			any connected component.
+		Example
+			R = QQ[a..l];
+			H = hyperGraph { a*b*c, c*d,d*e*f, h*i, i*j, l};
+			L = connectedComponents H
+			apply(L, C -> inducedGraph(H,C))
 ///	
 
  
@@ -1818,6 +1871,44 @@ doc ///
 
 
 ------------------------------------------------------------
+-- DOCUMENTATION incidenceMatrix
+------------------------------------------------------------
+
+doc ///
+        Key
+	        incidenceMatrix
+		(incidenceMatrix, HyperGraph)
+	Headline
+	        returns the incidence matrix of a hypergraph
+	Usage
+	        M = incidenceMatrix H
+	Inputs
+	        H:HyperGraph
+	Outputs
+	        M:Matrix
+		       the incidence matrix of the hypergraph
+        Description
+	        Text
+			This function returns the incidence matrix of the inputed hypergraph. 
+			The rows of the matrix are indexed by the variables of the hypergraph 
+			and the columns are indexed by the edges. The (i,j)^{th} entry in the 
+			matrix is 1 if vertex i is contained in edge j, and is 0 otherwise.
+			The order of the rows and columns are determined by the internal order of
+			the vertices and edges. See @TO edges@ and @TO vertices@.
+		Example
+                       S = QQ[a..f];
+		       g = hyperGraph {a*b*c*d,c*e,e*f}
+		       incidenceMatrix g	  
+		       T = QQ[f,e,d,c,b,a];
+		       h = hyperGraph {a*b*c*d,c*e,e*f}
+		       incidenceMatrix h -- although the same graph, matrix is different since variables have different ordering
+	SeeAlso
+		adjacencyMatrix
+		edges	
+		vertices	
+///		      
+
+------------------------------------------------------------
 -- DOCUMENTATION independenceNumber
 ------------------------------------------------------------
 
@@ -2025,6 +2116,58 @@ doc ///
 ///		      
 
 ------------------------------------------------------------
+-- DOCUMENTATION isLeaf
+------------------------------------------------------------
+
+doc ///
+	Key
+		isLeaf
+		(isLeaf, Graph, ZZ )
+		(isLeaf, HyperGraph, ZZ)
+		(isLeaf, HyperGraph, RingElement )
+	Headline 
+		determines if an edge (or vertex) is a leaf of a (hyper)graph
+	Usage
+		B = isLeaf(G,N) or B = isLeaf(H,N) or B = isLeaf(H,V)
+	Inputs
+		G:Graph
+		H:HyperGraph
+		N:ZZ
+			an index of an edge 
+		V:RingElement
+			a vertex 
+	Outputs 
+		B:Boolean
+			true if edge N is a leaf or if vertex V has degree 1
+        Description
+	     Text
+		  An edge in a graph is a leaf if it contains a vertex of degree one.
+		  An edge E in a hypergraph is a leaf if there is another edge B with the
+	          property that for all edges F (other than E), the intersection of F with E 
+		  is contained in the interesection of B with E.
+
+		  A vertex of a graph is a leaf if it has degree one.
+		  A vertex of a hypergraph is a leaf if it is contained in precisely one
+		  edge which is itself is leaf.
+	     Example
+     	       	  R = QQ[a..f];
+		  G = graph {a*b,b*c,c*a,b*d};
+		  isLeaf(G, d)
+		  isLeaf(G, getEdgeIndex(G, {b,d}))
+		  isLeaf(G, a)
+		  isLeaf(G, getEdgeIndex(G, {a,b}))
+		  H = hyperGraph {a*b*c,b*d,c*e,b*c*f};
+		  K = hyperGraph {a*b*c,b*d,c*e};
+		  isLeaf(H, a)
+		  isLeaf(H, getEdgeIndex(H, {a,b,c}))
+		  isLeaf(K, a)
+		  isLeaf(K, getEdgeIndex(K, {a,b,c}))
+	SeeAlso	
+	    isTree
+	    isGoodLeaf
+///
+
+------------------------------------------------------------
 -- DOCUMENTATION isPerfect
 ------------------------------------------------------------
 
@@ -2058,6 +2201,37 @@ doc ///
 ///
 
 
+
+------------------------------------------------------------
+-- DOCUMENTATION lineGraph
+------------------------------------------------------------
+
+doc ///
+	Key
+		lineGraph
+		(lineGraph, HyperGraph)
+	Headline 
+		gives the line graph of a (hyper)graph
+	Usage
+		L = lineGraph H
+	Inputs
+		H:HyperGraph
+	Outputs 
+		L:Graph
+			the line graph of H
+        Description
+	     Text
+	     	  The the line graph L of a hypergraph H has a vertex for edge in H. 
+		  Two vertices in L are adjacent if their edges in H share a vertex.
+		  The order of the vertices in L are determined by the implict order 
+		  on the edges of H. See @TO edges@.
+	     Example
+     	       	  R = QQ[a..e]
+		  G = graph {a*b,a*c,a*d,d*e}
+		  lineGraph G
+	SeeAlso
+	     edges
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION neighbors
@@ -2601,6 +2775,21 @@ assert(completeMultiPartite(R, {{b},{a,c,d}}) == graph {b*a,b*c,b*d})
 ///
 
 -----------------------------
+-- Test connectedComponents
+-----------------------------
+
+TEST///
+R = QQ[a..k]	   
+H = hyperGraph {a*b, c*d*e,e*k, b*f, g, f*i}
+assert(# connectedComponents(H) == 3 )
+R = QQ[a,b,c,d]
+G = hyperGraph {a*b*c}
+H = hyperGraph {a,b,c}
+assert(# connectedComponents(G) == 1 )
+assert(# connectedComponents(H) == 3 )
+///
+
+-----------------------------
 -- Test coverIdeal
 -----------------------------
 
@@ -2704,6 +2893,17 @@ hyperGraphDeltaG = simplicialComplexToHyperGraph DeltaG
 GPrime = graph(hyperGraphDeltaG)
 assert(G === GPrime)
 ///
+
+-----------------------------
+-- Test incidenceMatrix
+-----------------------------
+
+TEST///
+R = QQ[a..f]
+H = hyperGraph {a*b*c*d,c*d*e,f} 
+assert(incidenceMatrix H == matrix {{1,0,0},{1,0,0},{1,1,0},{1,1,0},{0,1,0},{0,0,1}})
+///
+
 -----------------------------
 -- Test independenceNumber
 -----------------------------
@@ -2777,8 +2977,19 @@ assert(isLeaf(I,0))
 ///
 
 -----------------------------
+-- Test lineGraph
+-----------------------------
+
+TEST///
+R = QQ[a..e]
+G = graph {a*b,a*c,a*d,d*e} 
+assert(adjacencyMatrix lineGraph G == matrix {{0,1,1,0},{1,0,1,0},{1,1,0,1},{0,0,1,0}})
+///
+
+-----------------------------
 -- Test neighbors
 -----------------------------
+
 TEST///
 S = QQ[a..f]
 G = graph {a*b,a*c,a*d,d*e,d*f} 
