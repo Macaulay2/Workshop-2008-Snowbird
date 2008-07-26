@@ -70,7 +70,7 @@ export {HyperGraph,
 	isSCMHyperGraph,
 	isTree,
 	lineGraph,
-	neighborSet,
+	neighbors,
 	numConnectedComponents,
 	numTriangles,
      	randomGraph,
@@ -354,6 +354,28 @@ completeGraph (List) := Graph =>(L)-> (
 
 completeMultiPartite = method();
 
+completeMultiPartite (Ring, ZZ, ZZ) := Graph =>(R,N,M) -> 
+     completeMultiPartite(R, toList apply(N, i->M))
+
+completeMultiPartite (Ring, List) := Graph =>(R, L) -> (
+     if all(L, l -> class l === ZZ) then (
+	if sum L > #gens(R) then 
+	    error "Too few variables in ring to make complete multipartite graph";	
+	N := 0;
+	L = for i from 0 to #L-1 list (
+	    E := toList apply(L#i, j -> R_(j+N));
+	    N = N+L#i;
+	    E
+	    );
+     );
+     if all(L, l -> class l === List) then (
+	K := flatten for i from 0 to #L-2 list
+	    flatten for j from i+1 to #L-1 list
+		flatten for x in L#i list
+		    for y in L#j list {x,y};
+	return graph(R, K);
+     ) else error "completeMultipartite must be passed a list of partition sizes or a list of partitions.";
+     )
 
 
 -----------------------------------------------------------------------
@@ -568,6 +590,13 @@ hyperGraphToSimplicialComplex HyperGraph := H -> (
 
 incidenceMatrix = method();
 
+incidenceMatrix HyperGraph := H -> (
+     v:= H#"vertices";
+     e := H#"edges";
+     m := toList apply(0..#v-1,i-> toList apply(0..#e-1,j-> if member(v_i,e_j) then 1 else 0));  
+     return (matrix m)
+     )
+
 
 -------------------------------------------------------------------------------
 -- independenceComplex
@@ -748,11 +777,22 @@ lineGraph = method();
 
 
 -----------------------------------------------------------
--- neighborSet
+-- neighbors
 -- returns all the neighbors of a vertex or a set
 -----------------------------------------------------------
 
-neighborSet = method();
+neighbors = method();
+
+neighbors (HyperGraph, ZZ) :=  (H, N) -> neighbors(H, H#"ring"_N)
+
+neighbors (HyperGraph, RingElement) := (H,V) -> (
+     unique select(flatten select(H#"edges", E-> member(V,E)), U-> U =!= V)
+     )
+
+neighbors (HyperGraph, List) := (H,L) -> (
+     if any(L, N-> class N === ZZ) then L = apply(L, N-> H#"ring"_N);
+     unique select(flatten apply(L, V-> neighbors(H,V)), U -> not member(U, L))
+     )
 
 ------------------------------------------------------------
 -- numConnectedComponents
@@ -1253,15 +1293,15 @@ doc ///
 	        Text
 		       complementGraph behaves differently on graphs and hypergraphs
 		Example
-		       R = QQ[a,b,c,d,e]	   
-		       c5 = graph {a*b,b*c,c*d,d*e,e*a} -- graph of the 5-cycle
+		       R = QQ[a,b,c,d,e];
+		       c5 = graph {a*b,b*c,c*d,d*e,e*a}; -- graph of the 5-cycle
 		       complementGraph c5 -- the graph complement of the 5-cycle
 		       c5hypergraph = hyperGraph c5 -- the 5-cycle, but viewed as a hypergraph
 		       complementGraph c5hypergraph
 	Caveat
 	        Notice that {\tt complementGraph} works differently on graphs versus hypergraphs.
 ///	
-	      
+
 ------------------------------------------------------------
 -- DOCUMENTATION completeGraph
 ------------------------------------------------------------
@@ -1275,7 +1315,7 @@ doc ///
 	Headline
 		returns a complete graph.
 	Usage
-		K = cycle R \n K = cycle(R,N) \n K = cycle L
+		K = completeGraph R \n K = completeGraph(R,N) \n K = completeGraph L
 	Inputs
 		R:Ring
 		N:ZZ
@@ -1287,10 +1327,48 @@ doc ///
 			which is a complete graph on the vertices in {\tt L} or on the variables of {\tt R}
 	Description
 		Example
-			R = QQ[a,b,c,d,e]	   
+			R = QQ[a,b,c,d,e];
 			completeGraph R
 			completeGraph(R,3)
 			completeGraph {a,c,e}
+///	
+
+------------------------------------------------------------
+-- DOCUMENTATION completeMulitPartite
+------------------------------------------------------------
+
+doc ///
+	Key
+		completeMultiPartite
+		(completeMultiPartite, Ring, ZZ,ZZ)
+		(completeMultiPartite, Ring, List)
+	Headline
+		returns a complete multipartite graph.
+	Usage
+		K = completeMultiPartite(R,N,M) \n K = completeMultiPartite(R,L)
+	Inputs
+		R:Ring
+		N:ZZ
+			number of partitions
+		M:ZZ
+			size of each partition
+		L:List
+			of integers giving the size of each partition, or a list of paritions which are lists of variables
+	Outputs
+		K:Graph
+			which is the complete multipartite graph on the given partitions
+	Description
+		Text
+			A complete multipartite graph is a graph with a partition of the vertices
+			such that every pair of vertices, not both from the same partition, 
+			is an edge of the graph. The partitions can be specified by their number 
+			and size, by a list of sizes, or by an explicit partition of the variables. 
+			Not all varibles of the ring need to be used.
+		Example
+			R = QQ[a,b,c,x,y,z];
+			completeMultiPartite(R,2,3)
+			completeMultiPartite(R,{2,4})
+			completeMultiPartite(R,{{a,b,c,x},{y,z}})
 ///	
 
  
@@ -1818,8 +1896,6 @@ doc ///
 	Outputs
 	        B:Boolean
 		       returns {\tt true} if {\tt G} is bipartite, {\tt false} otherwise
-        Description
-	        Text
 ///		      
 
 
@@ -1924,6 +2000,31 @@ doc ///
 ///
 
 ------------------------------------------------------------
+-- DOCUMENTATION isGraph
+------------------------------------------------------------
+
+doc ///
+        Key
+	        isGraph
+		(isGraph, HyperGraph)
+	Headline
+	        determines if a hypergraph is a graph 
+	Usage
+	        B = isGraph H
+	Inputs
+	        H:HyperGraph
+	Outputs
+	        B:Boolean
+		       {\tt true} if all edges in {\tt H} have size two
+        Description
+	        Example
+		    QQ[a,b,c,d];
+		    isGraph(hyperGraph {a*b,b*c,c*d})
+		    isGraph(hyperGraph {a*b,b*c*d})
+		    isGraph(hyperGraph {a*b,b*c,d})
+///		      
+
+------------------------------------------------------------
 -- DOCUMENTATION isPerfect
 ------------------------------------------------------------
 
@@ -1957,6 +2058,45 @@ doc ///
 ///
 
 
+
+------------------------------------------------------------
+-- DOCUMENTATION neighbors
+------------------------------------------------------------
+
+doc ///
+	Key
+		neighbors
+		(neighbors, HyperGraph, RingElement)
+		(neighbors, HyperGraph, ZZ)
+		(neighbors, HyperGraph, List)
+	Headline 
+		gives the neighbors of a vertex or list of vertices
+	Usage
+		N = neighbors(H,V) or N = neighbors(H,I) or N = neighbors(H,L)
+	Inputs
+		H:HyperGraph
+		V:RingElement
+			a vertex
+		I:ZZ
+			the index of a vertex
+		L:List
+			a list of vertices or indices of vertices
+	Outputs 
+		N:List
+			of neighbors to the given vertex or vertices.
+        Description
+	    Text
+		The vertices adjacent to vertex V are called the neighbors of V. The neighbors
+		of a list of vertices L are those vertices which are not in L and are adjacent 
+		to a vertex in L.
+	    Example
+     	       	R=QQ[a..f];
+		G=graph {a*b, a*c, a*d, d*e, d*f};
+		neighbors(G,a)
+		neighbors(G,0)
+		neighbors(G,{a,d})
+		neighbors(G,{0,3})
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION numConnectedComponents
@@ -2436,9 +2576,29 @@ TEST///
 R = QQ[a,b,c,d,e]	   
 c5 = graph {a*b,b*c,c*d,d*e,e*a} 
 c5c = graph {a*c,a*d,b*d,b*e,c*e}
-assert(complementGraph c5 === c5c)
+assert(complementGraph c5 == c5c)
 ///
 
+-----------------------------
+-- Test completeGraph
+-----------------------------
+
+TEST///
+R = QQ[a,b,c,d]	   
+assert(completeGraph(R) == graph {a*b,a*c,a*d,b*c,b*d,c*d})
+assert(completeGraph(R, 3) == graph {a*b,a*c,b*c})
+///
+
+-----------------------------
+-- Test completeMultiPartite
+-----------------------------
+
+TEST///
+R = QQ[a,b,c,d]	   
+assert(completeMultiPartite(R, 2,2) == graph {a*d,a*c,b*c,b*d})
+assert(completeMultiPartite(R, {1,3}) == graph {a*b,a*c,a*d})
+assert(completeMultiPartite(R, {{b},{a,c,d}}) == graph {b*a,b*c,b*d})
+///
 
 -----------------------------
 -- Test coverIdeal
@@ -2513,9 +2673,9 @@ assert( getGoodLeaf(H) === {a,b,c,d})
 assert( getGoodLeafIndex(H) === getEdgeIndex(H, {a,b,c,d}))
 assert( getGoodLeaf(G) === {a,b,c,d})
 assert( hasGoodLeaf G )
-assert( isGoodLeaf(getEdgeIndex(H,{a,b,c,d})) )
+assert( isGoodLeaf(H, getEdgeIndex(H,{a,b,c,d})) )
 assert( not isGoodLeaf(H, getEdgeIndex(H,{b,c,d,e})) )
-assert( not hasGoodLeaf G )
+assert( not hasGoodLeaf C )
 ///
 
 -----------------------------
@@ -2616,17 +2776,18 @@ assert(not isLeaf(H,0))
 assert(isLeaf(I,0))
 ///
 
--------------------------------------
--- Test randomGraph
--------------------------------------
+-----------------------------
+-- Test neighbors
+-----------------------------
+TEST///
+S = QQ[a..f]
+G = graph {a*b,a*c,a*d,d*e,d*f} 
+assert(apply(gens S, V -> #neighbors(G, V)) == {3,1,1,3,1,1})
+assert(apply(numgens S, N -> #neighbors(G, N)) == {3,1,1,3,1,1})
+assert(neighbors(G, {a,c}) == {b,d})
+assert(neighbors(G, {e,f}) == {d})
+///
 
--------------------------------------
--- Test randomHyperGraph
--------------------------------------
-
--------------------------------------
--- Test randomUniformHyperGraph
--------------------------------------
 
 -----------------------------
 -- Test numConnectedComponents
@@ -2639,6 +2800,18 @@ assert(numConnectedComponents g == 1)
 assert(numConnectedComponents h == 2)
 ///
 
+
+-------------------------------------
+-- Test randomGraph
+-------------------------------------
+
+-------------------------------------
+-- Test randomHyperGraph
+-------------------------------------
+
+-------------------------------------
+-- Test randomUniformHyperGraph
+-------------------------------------
 
 -------------------------------------
 -- Test simplicialComplexToHyperGraph
