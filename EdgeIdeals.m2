@@ -60,15 +60,15 @@ export {HyperGraph,
 	inducedGraph,
       	isBipartite,
 	isChordal,
-	isCMHyperGraph,
+	isCM,
 	isConnected,
 	isEdge,
+	isForest,
 	isGoodLeaf,
 	isGraph,
 	isLeaf,
 	isPerfect,
-	isSCMHyperGraph,
-	isTree,
+	isSCM,
 	lineGraph,
 	neighbors,
 	numConnectedComponents,
@@ -669,13 +669,19 @@ isChordal = method(); -- based upon Froberg's characterization of chordal graphs
 
 
 -------------------------------------------------------------
--- isCMhyperGraph
+-- isCM
 -- checks if a (hyper)graph is Cohen-Macaulay
 ------------------------------------------------------------
 
-isCMHyperGraph = method();
+isCM = method();
 
-
+isCM HyperGraph := H -> (
+    R := H#"ring";
+    M := R^1 / edgeIdeal H;
+    Q := R^1 / ideal gens R;
+    D := dim M;
+    Ext^D(Q,M) !=0 and Ext^(D-1)(Q,M) == 0
+    )
 
 ------------------------------------------------------------
 -- isConnected
@@ -702,6 +708,25 @@ isEdge (HyperGraph, List) := (H,E) -> (
 isEdge (HyperGraph, RingElement) := (H,E) -> (
 		isEdge(H, support E)
 	)
+
+-------------------------------------------------------------
+-- isForest
+-- checks if a (hyper)graph is a tree
+------------------------------------------------------------
+
+isForest = method();
+isForest Graph := G -> (smallestCycleSize G == 0);
+
+isForest HyperGraph := H -> (
+    E := toList(0..#(H#"edges") -1);
+    while #E =!= 0 do (
+	L := select(E, i-> isGoodLeaf(H,i));
+	if #L === 0 then return false;
+        H = hyperGraph(H#"ring", drop(H#"edges", {first L, first L}));
+	E = toList(0..#(H#"edges") -1);
+    );
+    true
+    )
 
 -------------------------------------------------------------
 -- isGoodLeaf
@@ -765,21 +790,12 @@ isPerfect Graph := G -> (
      )
 
 ------------------------------------------------------------
--- isSCMhyperGraph
+-- isSCM
 -- checks if (hyper)graph is Sequentially Cohen-Macaulay
 -------------------------------------------------------------
 
-isSCMHyperGraph = method();
+isSCM= method();
 
-
--------------------------------------------------------------
--- isTree
--- checks if a graph is a tree
--- NOTE:  should write a function for simplicial trees
-------------------------------------------------------------
-
-isTree = method();
-isTree Graph := G -> (smallestCycleSize G == 0);
 
 ------------------------------------------------------------------
 -- lineGraph
@@ -1989,8 +2005,36 @@ doc ///
 		       returns {\tt true} if {\tt G} is bipartite, {\tt false} otherwise
 ///		      
 
+------------------------------------------------------------
+-- DOCUMENTATION isCM
+------------------------------------------------------------
 
-
+doc ///
+        Key
+	        isCM
+		(isCM, HyperGraph)
+	Headline
+	        determines if a (hyper)graph is Cohen-Macaulay
+	Usage
+	        B = isCM H
+	Inputs
+	        H:HyperGraph
+	Outputs
+	        B:Boolean
+		       true if the @TO edgeIdeal@ of H is Cohen-Macaulay
+	Description
+		Example
+		    R = QQ[a..e];
+		    C = cycle R;
+		    UnmixedTree = graph {a*b, b*c, c*d};
+		    MixedTree = graph {a*b, a*c, a*d};
+		    isCM C
+		    isCM UnmixedTree
+		    isCM MixedTree
+	SeeAlso
+		isSCM
+		edgeIdeal
+///		      
 
 ------------------------------------------------------------
 -- DOCUMENTATION isConnected
@@ -2051,6 +2095,30 @@ doc ///
 			which is true iff {\tt E} (or {\tt support M}) is an edge of {\tt H}
 	SeeAlso
 		getEdgeIndex
+///
+
+------------------------------------------------------------
+-- DOCUMENTATION isForest
+------------------------------------------------------------
+
+doc ///
+	Key
+		isForest
+		(isForest, Graph)
+		(isForest, HyperGraph)
+	Headline 
+		determines whether a (hyper)graph is a tree
+	Usage
+		B = isForest G or B = isForest H
+	Inputs
+		G:Graph
+		H:HyperGraph
+	Outputs 
+		B:Boolean
+			true if G (or H) is a tree
+        Description
+	     Text
+	     Example
 ///
 
 ------------------------------------------------------------
@@ -2163,7 +2231,7 @@ doc ///
 		  isLeaf(K, a)
 		  isLeaf(K, getEdgeIndex(K, {a,b,c}))
 	SeeAlso	
-	    isTree
+	    isForest
 	    isGoodLeaf
 ///
 
@@ -2199,8 +2267,6 @@ doc ///
 	SeeAlso
 		hasOddHole
 ///
-
-
 
 ------------------------------------------------------------
 -- DOCUMENTATION lineGraph
@@ -2929,12 +2995,24 @@ assert(isBipartite c4 == true)
 assert(isBipartite c5 == false)
 ///
 
+-----------------------------
+-- Test isCM
+-----------------------------
 
+TEST///
+R = QQ[a..e];
+C = cycle R;
+UnmixedTree = graph {a*b, b*c, c*d};
+MixedTree = graph {a*b, a*c, a*d};
+assert isCM C
+assert isCM UnmixedTree
+assert not isCM MixedTree
+///		      
 
-
------------------------------<
+-----------------------------
 -- Test isConnected
 -----------------------------
+
 TEST///
 S = QQ[a..e]
 g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
@@ -2944,7 +3022,7 @@ assert(not isConnected h)
 ///
 
 -----------------------------
--- Test isEdge Test
+-- Test isEdge 
 -----------------------------
 
 TEST///
@@ -2956,6 +3034,24 @@ assert( isEdge(H,{c,b}) )
 assert( isEdge(H,b*c) )
 assert( not isEdge(H,{a,c}) )
 assert( not isEdge(H,a*c) )
+///
+
+-----------------------------
+-- Test isForest 
+-----------------------------
+
+TEST///
+R = QQ[a..h]
+H = hyperGraph {a*b*h, b*c*d, d*e*f, f*g*h, b*d*h*f}
+K = hyperGraph {a*b*h, b*c*d, d*e*f, b*d*h*f}
+G = graph {a*b,b*c,b*d,d*e, f*g, g*h}
+J = graph {a*b,b*c,b*d,d*e, f*g, g*h, e*a}
+assert( not isForest H )
+assert( isForest K )
+assert( isForest G )
+assert( not isForest J )
+assert( isForest hyperGraph G )
+assert( not isForest hyperGraph J )
 ///
 
 -----------------------------
