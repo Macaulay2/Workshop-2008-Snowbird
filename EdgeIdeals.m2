@@ -132,7 +132,7 @@ hyperGraph (Ideal) := HyperGraph => (I) ->
 
 hyperGraph (List) := HyperGraph => (E) -> 
 ( 
-     M := null; 	
+     M := null; 
      if all(E, e-> class e === List) then M = monomialIdeal apply(E, product);
      if all(E, e-> class class e === PolynomialRing) then M = monomialIdeal E;
      if M === null then error "Edge must be represented by a list or a monomial.";
@@ -343,7 +343,7 @@ completeGraph (List) := Graph =>(L)-> (
      E := for i from 0 to #L -2 list
      for j from i+1 to #L-1 list
      L#i * L# j;
-     graph(R, flatten E)
+     graph(ring first L, flatten E)  
      )     
 
 
@@ -666,7 +666,17 @@ isBipartite Graph := G -> (chromaticNumber G == 2); -- checks if chromatic numbe
 -------------------------------------------------------------
 
 isChordal = method(); -- based upon Froberg's characterization of chordal graphs
-
+isChordal Graph := G -> (
+     I := edgeIdeal complementGraph G;
+     graphR := G#"ring";
+     if I == ideal(0_graphR) then return (true);
+     D := min flatten degrees I;
+     B := coker gens I;
+     R = regularity(B);
+     if D-1 =!= R then return (false);
+     return(true);
+     )
+----------  this function will break! if G is a complete graph.  We need to fix it!
 
 -------------------------------------------------------------
 -- isCM
@@ -1272,6 +1282,43 @@ doc ///
 		 Returns the chromatic number.
 ///		      
 
+
+
+------------------------------------------------------------
+-- DOCUMENTATION cliqueComplex
+------------------------------------------------------------
+
+doc ///
+        Key
+	        cliqueComplex
+		(cliqueComplex, Graph)
+	Headline
+	        returns the clique complex of a graph
+	Usage
+	        D = cliqueComplex G
+	Inputs
+	        G:Graph
+	Outputs
+	        D:SimplicialComplex
+		       the clique complex of a {\tt G}
+        Description
+	        Text
+		     This function returns the clique complex of a graph {\tt G}.  This is the simplicial
+		     complex whose faces correspond to the cliques in the graph.  That is,
+		     F = {x_{i_1},...,x_{i_s}} is a face of the clique complex of G if and only
+		     if the induced graph on {x_{i_1},...,x_{i_s}} is a clique of G.
+		Example
+		     R=QQ[w,x,y,z]
+		     e = graph {w*x,w*y,x*y,y*z}  -- clique on {w,x,y} and {y,z}
+		     cliqueComplex e  -- max facets {w,x,y} and {y,z}
+	SeeAlso
+	     cliqueNumber
+	     getCliques
+	     getMaxCliques
+///		      
+
+
+
 ------------------------------------------------------------
 -- DOCUMENTATION cliqueNumber
 ------------------------------------------------------------
@@ -1283,7 +1330,7 @@ doc ///
 	Headline
 	        computes the clique number of a graph
 	Usage
-	        c = chromaticNumber G
+	        c = cliqueNumber G
 	Inputs
 	        G:Graph
 	Outputs
@@ -1292,16 +1339,19 @@ doc ///
         Description
 	        Text
 		     cliqueNumber returns the clique number of a graph, the size of the largest clique
-		     contained in the graph.
+		     contained in the graph.  This number is also related to the dimension of 
+		     the clique complex of the graph.
 		Example
 		     R=QQ[a..d]
 		     cliqueNumber completeGraph R
 		     G = graph({a*b,b*c,a*c,a*d})
 		     cliqueNumber G
-		 
+		     dim cliqueComplex G + 1 == cliqueNumber G
 	SeeAlso
+	     cliqueComplex
 	     getCliques
 	     getMaxCliques
+	     
 ///		      
 
 
@@ -1925,6 +1975,53 @@ doc ///
 ///		      
 
 ------------------------------------------------------------
+-- DOCUMENTATION independenceComplex
+------------------------------------------------------------
+
+
+doc ///
+        Key
+	        independenceComplex
+		(independenceComplex, HyperGraph)
+	Headline
+	        returns the independence complex of a (hyper)graph 
+	Usage
+	        D = independenceComplex H
+	Inputs
+	        H:HyperGraph
+	Outputs
+	        D:SimplicialComplex
+		       the independence complex associated to the (hyper)graph
+        Description
+	        Text
+		       This function associates to a (hyper)graph a simplicial complex whose faces correspond
+		       to the independent sets of the (hyper)graph.  See, for example, the paper 
+		       of A. Van Tuyl and R. Villarreal 
+		       "Shellable graphs and sequentially Cohen-Macaulay bipartite graphs"
+		       Journal of Combinatorial Theory, Series A 115 (2008) 799-814.
+	        Example
+		       S = QQ[a..e]
+		       g = graph {a*b,b*c,c*d,d*e,e*a} -- the 5-cycle
+		       independenceComplex g 
+		       h = hyperGraph {a*b*c,b*c*d,d*e}
+		       independenceComplex h
+                Text
+		       Equivalently, the independence complex is the simplicial complex associated
+		       to the edge ideal of the (hyper)graph H via the Stanley-Reisner correspondence.
+		Example
+		       S = QQ[a..e]
+		       g = graph {a*b,b*c,a*c,d*e,a*e}
+		       Delta1 = independenceComplex g 
+		       Delta2 = simplicialComplex edgeIdeal g
+                       Delta1 == Delta2
+	SeeAlso
+	         independenceNumber       	  
+///	
+	      
+
+
+
+------------------------------------------------------------
 -- DOCUMENTATION independenceNumber
 ------------------------------------------------------------
 
@@ -1944,6 +2041,19 @@ doc ///
 		       the independence number (the number of independent vertices) in {\tt G}
         Description
 	        Text
+		       This function returns the maximum number of independent vertices in a graph.  This number
+		       can be found by computing the dimension of the simplicial complex whose faces are the independent
+		       sets (see @TO independenceComplex @) and adding 1 to this number.
+                Example
+		       R = QQ[a..e]
+		       c4 = graph {a*b,b*c,c*d,d*a} -- 4-cycle plus an isolated vertex!!!!
+		       c5 = graph {a*b,b*c,c*d,d*e,e*a} -- 5-cycle
+		       independenceNumber c4 
+		       independenceNumber c5 
+		       dim independenceComplex c4 + 1 == independenceNumber c4
+		       
+        SeeAlso
+	        independenceComplex
 ///	
 	      
 
@@ -2004,6 +2114,42 @@ doc ///
 	        B:Boolean
 		       returns {\tt true} if {\tt G} is bipartite, {\tt false} otherwise
 ///		      
+
+
+
+------------------------------------------------------------
+-- DOCUMENTATION isChordal
+------------------------------------------------------------
+
+doc ///
+        Key
+	        isChordal
+		(isChordal, Graph)
+	Headline
+	        determines if a graph is chordal
+	Usage
+	        B = isChordal G
+	Inputs
+	        G:Graph
+	Outputs
+	        B:Boolean
+		       true if the graph is chordal
+	Description
+	        Text
+		       A graph is chordal if the graph has no induced cycles of length 4 or more (triangles are allowed).
+		       To check if a graph is chordal, we make use of a characterization of Fr\"oberg
+		       (see "On Stanley-Reisner rings,"  Topics in algebra, Part 2 (Warsaw, 1988),  57-70, 
+		       Banach Center Publ., 26, Part 2, PWN, Warsaw, 1990.) which says that a graph G is
+		       chordal if and only if the edge ideal of G^c has a linear resolution.
+		       {\bf Note:}  Currently, the function is BROKEN for complete graphs!!! 
+		Example
+		    R = QQ[a..e];
+		    C = cycle R;
+		    isChordal C
+		    D = graph {a*b,b*c,c*d,a*c};
+		    isChordal D
+ ///		      
+
 
 ------------------------------------------------------------
 -- DOCUMENTATION isCM
@@ -2806,7 +2952,18 @@ assert(chromaticNumber c4 == 2)
 assert(chromaticNumber c5 == 3)
 ///
 
+--------------------------
+-- Test cliqueComplex and cliqueNumber
+-------------------------------
 
+TEST///
+R=QQ[w,x,y,z]
+e = graph {w*x,w*y,x*y,y*z}  -- clique on {w,x,y} and {y,z}
+Delta1 = cliqueComplex e  -- max facets {w,x,y} and {y,z}
+Delta2 = simplicialComplex {w*x*y,y*z}
+assert(Delta1 == Delta2)
+assert(cliqueNumber e -1 == dim Delta1)
+///
 
 -----------------------------
 -- Test complementGraph
@@ -2970,6 +3127,18 @@ H = hyperGraph {a*b*c*d,c*d*e,f}
 assert(incidenceMatrix H == matrix {{1,0,0},{1,0,0},{1,1,0},{1,1,0},{0,1,0},{0,0,1}})
 ///
 
+-----------------------------------
+-- Test independenceComplex
+-----------------------------------
+
+TEST///
+R = QQ[a..e]
+c5 = graph {a*b,b*c,c*d,d*e,e*a}
+D = simplicialComplex monomialIdeal (a*b,b*c,c*d,d*e,e*a)
+assert(D == independenceComplex c5)
+///
+
+
 -----------------------------
 -- Test independenceNumber
 -----------------------------
@@ -2993,6 +3162,19 @@ c4 = graph {a*b,b*c,c*d,d*a} -- 4-cycle
 c5 = graph {a*b,b*c,c*d,d*e,e*a} -- 5-cycle
 assert(isBipartite c4 == true)
 assert(isBipartite c5 == false)
+///
+
+
+-----------------------------------
+-- Test isChordal
+----------------------------------
+
+TEST///
+R = QQ[a..e];
+C = cycle R;
+assert(isChordal C == false);
+D = graph {a*b,b*c,c*d,a*c};
+assert(isChordal D == true);
 ///
 
 -----------------------------
@@ -3187,3 +3369,4 @@ restart
 installPackage ("EdgeIdeals", UserMode=>true)
 loadPackage "EdgeIdeals"
 viewHelp
+
