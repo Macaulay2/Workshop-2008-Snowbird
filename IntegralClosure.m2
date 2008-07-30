@@ -350,43 +350,44 @@ icFracP = method(Options=>{conductorElement => null, Limit => infinity, reportSt
 icFracP Ring := List => o -> (R) -> (
      -- 1 argument: a ring whose base field has characteristic p.
      -- Returns: Fractions
-     if ring ideal presentation R === ZZ then {
-	  S := R;
-	  P := ideal(0_S);
-	  c := codim P;
-	  }
-     else{
-     	  P = ideal presentation R;
-     	  c = codim P;
-     	  S = ring P;
-	  };
-     if o.conductorElement === null then (
-	  J := promote(jacobian P,R);
-	  n := 1;
-	  det1 := ideal(0_R);
-	  while det1 == ideal(0_R) do (
-	       det1 = minors(c, J, Limit => n);
-	       n = n+1
-	       );
-	  D := det1_0;
-	  D = (mingens(ideal(D)))_(0,0);
-	  ) else D = o.conductorElement;
-     p := char(R);
-     K := ideal(1_R);
-     U := ideal(0_R);
-     F := apply(generators R, i-> i^p);
-     n = 1;
-     while (U != K) do (
-	  U = K;
-	  L := U*ideal(D^(p-1));
-	  f := map(R/L,R,F);
-	  K = intersect(kernel f, U);
-	  if (o.Limit < infinity) then (
-	       if (n >= o.Limit) then U = K;
-	       );
-          n = n+1;
+     if ring ideal presentation R === ZZ then (
+	  D := 1_R;
+	  U := ideal(D);
+	  if o.reportSteps == true then print ("Number of steps: " | toString 0 | ",  Conductor Element: " | toString 1_R);
+	  )     
+     else(
+	  if o.conductorElement === null then (
+     	       P = ideal presentation R;
+     	       c = codim P;
+     	       S = ring P;
+	       J := promote(jacobian P,R);
+	       n := 1;
+	       det1 := ideal(0_R);
+	       while det1 == ideal(0_R) do (
+		    det1 = minors(c, J, Limit => n);
+		    n = n+1
+		    );
+	       D = det1_0;
+	       D = (mingens(ideal(D)))_(0,0);
+	       ) 
+     	  else D = o.conductorElement;
+     	  p := char(R);
+     	  K := ideal(1_R);
+     	  U = ideal(0_R);
+     	  F := apply(generators R, i-> i^p);
+     	  n = 1;
+     	  while (U != K) do (
+	       U = K;
+	       L := U*ideal(D^(p-1));
+	       f := map(R/L,R,F);
+	       K = intersect(kernel f, U);
+	       if (o.Limit < infinity) then (
+	       	    if (n >= o.Limit) then U = K;
+	       	    );
+               n = n+1;
+     	       );
+     	  if o.reportSteps == true then print ("Number of steps: " | toString n | ",  Conductor Element: " | toString D);
      	  );
-     if o.reportSteps == true then print ("Number of steps: " | toString n | ",  Conductor Element: " | toString D);
      U = mingens U;
      if numColumns U == 0 then {1_R}
      else apply(numColumns U, i-> U_(0,i)/D)
