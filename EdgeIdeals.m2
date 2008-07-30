@@ -4,7 +4,7 @@ newPackage("EdgeIdeals",
            Version => "0.1",
            Date => "July 1, 2008",
            Authors => {
-		       {Name => "Christopher Francisco", 
+		       {Name => "Chris Francisco", 
                         Email => "chris@math.okstate.edu",
                         HomePage => "http://www.math.okstate.edu/~chris/"
                        },
@@ -81,7 +81,8 @@ export {HyperGraph,
 	spanningTree,
 	vertexCoverNumber,
 	vertexCovers,
-	vertices
+	vertices,
+	Gins
         };
 
 ----------------------------------------------------------------------------------------
@@ -133,7 +134,10 @@ hyperGraph (Ideal) := HyperGraph => (I) ->
 hyperGraph (List) := HyperGraph => (E) -> 
 ( 
      M := null; 
-     if all(E, e-> class e === List) then M = monomialIdeal apply(E, product);
+     if all(E, e-> class e === List) then (
+	  if E == {} or E == {{}} then error "Use alternate construction with PolynomialRing to input empty hyperGraph" else
+     	  M = monomialIdeal apply(E, product);
+	  );
      if all(E, e-> class class e === PolynomialRing) then M = monomialIdeal E;
      if M === null then error "Edge must be represented by a list or a monomial.";
      if #E =!= numgens M then error "Edges satisfy an inclusion relation."; 
@@ -172,6 +176,7 @@ graph (Ideal) := Graph => (I) ->
 
 graph List := Graph => E -> 
 (
+     if E == {} or E == {{}} then error "Use alternate construction with PolynomialRing to input empty graph";
      H := hyperGraph(E);
      if not isGraph(H) then error "Edges must be of size two.";
      new Graph from H
@@ -232,7 +237,23 @@ adjacencyMatrix Graph := G -> (
 -----------------------------------------------------------
 
 allEvenHoles = method();
-
+allEvenHoles Graph := G -> (
+     R:=G#"ring";
+     S:=(coefficientRing R)[append(flatten entries vars R,newVar)];
+     edges:=G#"edges";
+     numEdges:=#edges;
+     count:=0;
+     evenCycles:={};
+     while count < numEdges do (
+	  newEdges:={{first(edges#count),newVar},{newVar,(edges#count)#1}};
+     	  tempEdges:=apply(join(drop(edges,{count,count}),newEdges),i->apply(i,j->substitute(j,S)));
+	  tempGraph:=graph(S,tempEdges);
+	  evenCycles=append(evenCycles,select(allOddHoles tempGraph,i->member(newVar,i)));
+	  count=count+1;
+	  );
+     use R;
+     apply(unique apply(flatten evenCycles,i->select(i,j->(j != newVar))),k->apply(k,l->substitute(l,R)))
+     )
 
 --------------------------------------------------------------
 -- allOddHoles
@@ -242,7 +263,7 @@ allEvenHoles = method();
 allOddHoles = method();
 allOddHoles Graph := G -> (
      coverI:=coverIdeal G;
-     select(ass coverI^2,i->codim i > 3)
+     apply(select(ass coverI^2,i->codim i > 3),j->flatten entries gens j)
      )
 
 
@@ -317,12 +338,12 @@ complementGraph Graph := G -> (
      alledges := set(subsets(v,2));
      gedges := set G#"edges";
      gcedges := alledges - gedges;  -- edges of the complement
-     return(graph toList gcedges);
+     return(graph(G#"ring",toList gcedges));
      )
 
 complementGraph HyperGraph := H -> (
      hcedge := apply(H#"edges",e-> toList (set(H#"vertices") - set e));  -- create edge set of hypergraph
-     return (hyperGraph toList hcedge);
+     return (hyperGraph(H#"ring",toList hcedge));
      )
 
 
@@ -464,7 +485,9 @@ deleteEdges (Graph,List) := (H,E) -> (graph deleteEdges (hyperGraph(H),E))
 ----------------------------------------------------------------------
 
 edgeIdeal = method();
-edgeIdeal HyperGraph := H -> (monomialIdeal apply(H#"edges",product)) 
+edgeIdeal HyperGraph := H -> (
+     if H#"edges" == {} or H#"edges" == {{}} then return monomialIdeal(0_(H#"ring"));
+     monomialIdeal apply(H#"edges",product)) 
 
 
 ------------------------------------------------------------
@@ -686,12 +709,16 @@ isChordal Graph := G -> (
 isCM = method();
 
 isCM HyperGraph := H -> (
-    R := H#"ring";
-    M := R^1 / edgeIdeal H;
-    Q := R^1 / ideal gens R;
-    D := dim M;
-    Ext^D(Q,M) !=0 and Ext^(D-1)(Q,M) == 0
-    )
+     I:=edgeIdeal H;
+     codim I == pdim coker gens I
+     )
+
+--    R := H#"ring";
+--    M := R^1 / edgeIdeal H;
+--    Q := R^1 / ideal gens R;
+--    D := dim M;
+--    Ext^D(Q,M) !=0 and Ext^(D-1)(Q,M) == 0
+--    )
 
 ------------------------------------------------------------
 -- isConnected
@@ -759,7 +786,7 @@ isGoodLeaf (HyperGraph, ZZ) := (H,N) -> (
 
 isGraph = method();
 isGraph HyperGraph := Boolean => (H) -> (
-		all(H#"edges", e-> #e === 2 )
+		H#"edges" == {{}} or H#"edges" == {} or all(H#"edges", e-> #e === 2 )
 	)
 
 
@@ -804,8 +831,26 @@ isPerfect Graph := G -> (
 -- checks if (hyper)graph is Sequentially Cohen-Macaulay
 -------------------------------------------------------------
 
-isSCM= method();
+needsPackage "GenericInitialIdeal"
 
+isSCM= method(Options=>{Gins=>false});
+isSCM HyperGraph := opts -> H -> (
+     J:=dual edgeIdeal H;
+     if opts#Gins then (
+	  g:=gin J;
+	  return (#(flatten entries mingens g) == #(flatten entries mingens J));
+	  );
+     degs:=sort unique apply(flatten entries gens J,i->first degree i);
+     numDegs:=#degs;
+     count:=0;
+     while count < numDegs do (
+	  Jdeg:=monomialIdeal super basis(degs#count,J);
+	  if regularity Jdeg != degs#count then return false;
+	  count=count+1;
+	  );
+     return true;
+     )
+     
 
 ------------------------------------------------------------------
 -- lineGraph
@@ -1189,6 +1234,44 @@ doc ///
 ///		      
 
 ------------------------------------------------------------
+-- DOCUMENTATION allEvenHoles
+------------------------------------------------------------
+
+doc ///
+	Key
+		allEvenHoles
+		(allEvenHoles, Graph)
+	Headline 
+		returns all odd holes in a graph
+	Usage
+		L = allEvenHoles G
+	Inputs
+		G:Graph
+	Outputs 
+		L:List
+			returns all even holes contained in {\tt G}.
+	Description
+	     Text
+	     	  The method is based on work of Francisco-Ha-Van Tuyl, looking at the associated primes
+		  of the square of the Alexander dual of the edge ideal. An even hole is an even induced
+		  cycle (necessarily of length at least four). The algorithm for allEvenHoles uses an 
+		  observation of Mermin. Fix an edge, and split this edge into two different edges, 
+		  introducing a new vertex. Find all the odd holes in that graph. Do that for each edge 
+		  in the graph, one at a time, and pick out all the odd holes containing the additional 
+		  vertex. Dropping this vertex from each of the odd holes gives all the even holes in 
+		  the original graph.
+	     Example
+	     	  R=QQ[a..f]
+		  G=cycle(R,6);
+		  allEvenHoles G 
+		  H=graph(monomialIdeal(a*b,b*c,c*d,d*e,e*f,a*f,a*d)) --6-cycle with a chord
+		  allEvenHoles H --two 4-cycles
+	SeeAlso
+	     allOddHoles
+	     hasOddHole
+///
+
+------------------------------------------------------------
 -- DOCUMENTATION allOddHoles
 ------------------------------------------------------------
 
@@ -1199,7 +1282,7 @@ doc ///
 	Headline 
 		returns all odd holes in a graph
 	Usage
-		L = hasOddHole G
+		L = allOddHoles G
 	Inputs
 		G:Graph
 	Outputs 
@@ -1217,6 +1300,7 @@ doc ///
 		  H=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6,x_1*x_4}) --no odd holes
 		  allOddHoles H
 	SeeAlso
+	     allEvenHoles
 	     hasOddHole
 ///
 	      
@@ -1484,8 +1568,8 @@ doc ///
 			is disjoint and vertices that are not contained in any edge do not appear in
 			any connected component.
 		Example
-			R = QQ[a..l];
-			H = hyperGraph { a*b*c, c*d,d*e*f, h*i, i*j, l};
+			R = QQ[a..l]
+			H = hyperGraph {a*b*c, c*d,d*e*f, h*i, i*j, l}
 			L = connectedComponents H
 			apply(L, C -> inducedGraph(H,C))
 ///	
@@ -2167,8 +2251,11 @@ doc ///
 	        H:HyperGraph
 	Outputs
 	        B:Boolean
-		       true if the @TO edgeIdeal@ of H is Cohen-Macaulay
+		       true if the @TO edgeIdeal@ of {\tt H} is Cohen-Macaulay
 	Description
+	     	Text
+		     This uses the edge ideal notion of Cohen-Macaulayness; a hypergraph is called C-M if
+		     and only if its edge ideal is C-M.
 		Example
 		    R = QQ[a..e];
 		    C = cycle R;
@@ -2413,6 +2500,50 @@ doc ///
 	SeeAlso
 		hasOddHole
 ///
+
+------------------------------------------------------------
+-- DOCUMENTATION isSCM
+------------------------------------------------------------
+
+doc ///
+        Key
+	        isSCM
+		(isSCM, HyperGraph)
+	Headline
+	        determines if a (hyper)graph is sequentially Cohen-Macaulay
+	Usage
+	        B = isSCM H
+	Inputs
+	        H:HyperGraph
+	Outputs
+	        B:Boolean
+		       true if the @TO edgeIdeal@ of {\tt H} is sequentially Cohen-Macaulay
+	Description
+	     	Text
+		     This uses the edge ideal notion of sequential Cohen-Macaulayness; a 
+		     hypergraph is called SCM if and only if its edge ideal is SCM. The 
+		     algorithm is based on work of Herzog and Hibi, using the Alexander 
+		     dual. {\tt H} is SCM if and only if the Alexander dual of the edge ideal 
+		     of {\tt H} is componentwise linear.
+		     
+		     There is an optional argument called @TO Gins@ for {\tt isSCM}. The 
+		     default value is {\tt false}, meaning that {\tt isSCM} takes the 
+		     Alexander dual of the edge ideal of {\tt H} and checks in all relevant 
+		     degrees to see if the ideal in that degree has a linear resolution. In 
+		     characteristic zero with the reverse-lex order, one can test for 
+		     componentwise linearity using gins, which may be faster in some cases. This
+		     approach is based on work of Aramova-Herzog-Hibi and Conca. 
+		Example
+		    R = QQ[a..f];
+     	       	    G = cycle(R,4)
+		    isSCM G
+		    H = graph(monomialIdeal(a*b,b*c,c*d,a*d,a*e)); --4-cycle with whisker
+		    isSCM H
+		    isSCM(H,Gins=>true) --use Gins technique
+	SeeAlso
+		isCM
+		edgeIdeal
+///		      
 
 ------------------------------------------------------------
 -- DOCUMENTATION lineGraph
@@ -2839,6 +2970,48 @@ doc ///
 			vertices(h) -- the vertex d is treated as an isolated vertex
 ///
 
+----------------------------
+--Options documentation-----
+----------------------------
+
+------------------------------------------------------------
+-- DOCUMENTATION Gins
+------------------------------------------------------------
+
+doc ///
+        Key
+	        Gins
+	Headline
+	        optional argument for isSCM
+	Description
+	     	Text
+     	       	    Directs @TO isSCM@ to use generic initial ideals to determine whether the
+		    Alexander dual of the edge ideal of a hypergraph is componentwise linear.
+	SeeAlso
+		isSCM
+///
+
+doc ///
+     	  Key
+	       [isSCM, Gins]
+	  Headline
+	       use gins inside isSCM
+	  Usage
+	       B = isSCM(H,Gins=>true)
+	  Inputs
+	       H:HyperGraph
+	       	    the hypergraph being considered
+     	  Outputs
+	       B:Boolean
+	       	    whether {\tt H} is SCM or not
+	  Description
+	       Text
+	       	    The default value for {\tt Gins} is {\tt false} since using generic
+		    initial ideals makes the @TO isSCM@ algorithm probabilistic.
+	  SeeAlso
+	       isSCM
+///	       
+	       
 
 -----------------------------
 -- Constructor Tests --------
