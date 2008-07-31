@@ -1064,6 +1064,43 @@ vertices HyperGraph := H -> H#"vertices";
 ---------------------------------------------------------
 
 --*******************************************************
+-- DOCUMENTATION FOR PACKAGE
+--*******************************************************
+
+doc ///
+       Key 
+       	       EdgeIdeals
+       Headline
+       	       A package for working with the edge ideals of (hyper)graphs
+       Description
+      	       Text
+               	    Edge ideals is a package to work with the edge ideals of (hyper)graphs.
+		    
+		    An edge ideal is a square-free monomial ideal where the generators of the monomial ideal correspond to the edges
+		    of the (hyper)graph.  An edge ideal complements the Stanley-Reisner correspondence 
+		    (see @TO SimplicialComplexes @) by providing an alternative combinatorial interpretation of the 
+		    monomial generators.  
+		    
+		    This package exploits the correspondence between square-free monomial ideals and the combinatorial
+		    objects, by using commutative algebra routines to derive information about (hyper)graphs.
+		    For some of the mathematical background on this material, see Chapter 6 of the textbook 
+		    {\it Monomial Algebras} by R. Villarreal and the survey paper
+		    of T. Ha and A. Van Tuyl ("Resolutions of square-free monomial ideals via facet ideals: a survey," 
+		    Contemporary Mathematics. 448 (2007) 91-117). 
+		    
+		    
+		    {\bf Note:}  When we use the term "edge ideal of a hypergraph", we are actually referring to the edge ideal
+		    of a clutter, a hypergraph where no edge is a subset of another edge.    If $H$ is a hypergraph that is not a 
+		    clutter, then when we form its edge ideal
+		    in a similar fashion, some information will be lost because not all of the edges of the hypergraph will
+		    correspond to minimal generators.   The edge ideal of a hypergraph is similar to the facet ideal of a simplicial complex,
+		    as defined by S. Faridi in  "The facet ideal of a simplicial complex," 
+		    Manuscripta Mathematica 109, 159-174 (2002). 
+///
+ 
+
+
+--*******************************************************
 -- DOCUMENTATION FOR TYPES
 --*******************************************************
 
@@ -1363,7 +1400,16 @@ doc ///
 		       the chromatic number of {\tt H}
         Description
 	        Text
-		 Returns the chromatic number.
+		     Returns the chromatic number, the smallest number of colors needed to color a graph.  This method
+		     is based upon a result of Francisco-Ha-Van Tuyl which relates the chromatic number to an ideal membership problem.
+		Example
+		     S = QQ[a..f]
+		     c4 = cycle(S,4) -- 4-cycle; chromatic number = 2
+		     c5 = cycle(S,5) -- 5-cycle; chromatic number = 3
+		     k6 = completeGraph S  -- complete graph on 6 vertices; chormatic number = 6
+		     chromaticNumber c4
+		     chromaticNumber c5
+		     chromaticNumber k6
 ///		      
 
 
@@ -1387,14 +1433,16 @@ doc ///
 		       the clique complex of a {\tt G}
         Description
 	        Text
-		     This function returns the clique complex of a graph {\tt G}.  This is the simplicial
+		     This function returns the clique complex of a graph $G$.  This is the simplicial
 		     complex whose faces correspond to the cliques in the graph.  That is,
-		     F = {x_{i_1},...,x_{i_s}} is a face of the clique complex of G if and only
-		     if the induced graph on {x_{i_1},...,x_{i_s}} is a clique of G.
+		     $F = \{x_{i_1},...,x_{i_s}\}$ is a face of the clique complex of $G$ if and only
+		     if the induced graph on $\{x_{i_1},...,x_{i_s}\}$ is a clique of $G$.
 		Example
 		     R=QQ[w,x,y,z]
 		     e = graph {w*x,w*y,x*y,y*z}  -- clique on {w,x,y} and {y,z}
 		     cliqueComplex e  -- max facets {w,x,y} and {y,z}
+		     g = completeGraph R
+		     cliqueComplex g
 	SeeAlso
 	     cliqueNumber
 	     getCliques
@@ -1464,7 +1512,11 @@ doc ///
 		       edge of H in the vertex set
         Description
 	        Text
-		       complementGraph behaves differently on graphs and hypergraphs
+		       The function complementGraph finds the complement of a graph and hypergraph.  Note
+		       that function behaves differently depending upon the type.  When applied to a graph,
+		       complementGraph returns the graph whose edge set is the set of edges not in G.
+		       When applied to a hypergraph, the edge set is found by taking the complement of 
+		       each edge of H in the vertex set.
 		Example
 		       R = QQ[a,b,c,d,e];
 		       c5 = graph {a*b,b*c,c*d,d*e,e*a}; -- graph of the 5-cycle
@@ -1499,6 +1551,10 @@ doc ///
 		K:Graph
 			which is a complete graph on the vertices in {\tt L} or on the variables of {\tt R}
 	Description
+		Text
+		        This function returns a special graph, the complete graph.  The input specifies a set of vertices that 
+			will have the property that every vertex is adjacent to every other vertex.  Non-specified vertices are
+			treated as isolated vertices.
 		Example
 			R = QQ[a,b,c,d,e];
 			completeGraph R
@@ -1542,6 +1598,15 @@ doc ///
 			completeMultiPartite(R,2,3)
 			completeMultiPartite(R,{2,4})
 			completeMultiPartite(R,{{a,b,c,x},{y,z}})
+		Text
+		        When N is the number of variables and M = 1, we recover the complete graph.
+		Example
+		        R = QQ[a,b,c,d,e]
+			t1 = completeMultiPartite(R,5,1)
+			t2 = completeGraph R
+			t1 == t2
+        SeeAlso
+     	        completeGraph 
 ///	
 
 ------------------------------------------------------------
@@ -1572,6 +1637,9 @@ doc ///
 			H = hyperGraph {a*b*c, c*d,d*e*f, h*i, i*j, l}
 			L = connectedComponents H
 			apply(L, C -> inducedGraph(H,C))
+        SeeAlso
+	     isConnected
+	     numConnectedComponents
 ///	
 
  
@@ -1597,6 +1665,17 @@ doc ///
 	        Text
 		 Returns the monomial ideal generated by the minimal vertex covers.  This is also the Alexander Dual 
 		 of the edge ideal of the hypergraph {\tt H}.
+		Example
+		 S= QQ[a,b,c,d,e,f]
+		 k6 = completeGraph S  -- complete graph on 6 vertices
+		 coverIdeal k6 -- each generator corresponds to a minimal vertex of k6
+                 h = hyperGraph {a*b*c,c*d,d*e*f}
+		 coverIdeal h
+		 dual coverIdeal h == edgeIdeal h
+	SeeAlso
+	        edgeIdeal
+		vertexCoverNumber
+		vertexCovers
 ///		      
 
 ------------------------------------------------------------
@@ -1623,11 +1702,17 @@ doc ///
 		C:Graph
 			which is a cycle on the vertices in {\tt L} or on the variables of {\tt R}.
 	Description
+		Text
+		        Give a list of vertices (perhaps in some specified order), this function returns the graph of the
+			cycle on those vertices, using the order given or the internal ordering of the
+			@TO vertices @.  Unspecified vertices are treated as isolated vertices.
 		Example
 			R = QQ[a,b,c,d,e]	   
 			cycle R
 			cycle(R,3)
 			cycle {e,c,d,b}
+			R = QQ[a,c,d,b,e] -- variables given different order
+			cycle R
 	SeeAlso
 	        antiCycle
 ///	
@@ -2296,7 +2381,8 @@ doc ///
 		       isConnected g
 		       isConnected h
 	SeeAlso
-	        numConnectedComponents
+	        connectedComponents
+		numConnectedComponents
 ///		      
 
 
@@ -2644,6 +2730,7 @@ doc ///
 		   numConnectedComponents g
 		   numConnectedComponents h
 	SeeAlso
+	     connectedComponents
 	     isConnected
 ///
 
@@ -2902,6 +2989,9 @@ doc ///
 			vertexCoverNumber g
 		      	h = hyperGraph {a*b*c,a*d,c*e,b*d*e}
 			vertexCoverNumber(h)
+        SeeAlso
+	        coverIdeal
+		vertexCovers
 ///
  
 
@@ -2938,6 +3028,9 @@ doc ///
 			S = QQ[a..e]
 			h = hyperGraph {a*b*c,a*d,c*e,b*d*e}
 			vertexCovers(h)
+        SeeAlso
+	        coverIdeal
+		vertexCoverNumber
 ///
  
  
