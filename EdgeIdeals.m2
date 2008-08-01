@@ -473,10 +473,11 @@ deleteEdges = method();
 deleteEdges (HyperGraph,List) := (H,E) -> (
      if (isSubset(set E,set H#"edges") =!= true) then error "Second argument must be a subset of the edges, entered as a list";
      newedges:=set(H#"edges")-set(E);
-     return (hyperGraph toList newedges)
+     if toList newedges == {} then return (hyperGraph monomialIdeal(0_(H#"ring")));
+     return (hyperGraph toList newedges);
      )
 
-deleteEdges (Graph,List) := (H,E) -> (graph deleteEdges (hyperGraph(H),E))
+--deleteEdges (Graph,List) := (H,E) -> (graph deleteEdges (hyperGraph(H),E))
 
 
 ----------------------------------------------------------------------
@@ -659,10 +660,8 @@ independenceNumber Graph:= G -> (
 -- inducedGraph
 -- given a set of vertices, return induced graph on those vertices
 --------------------------------------------------------------------------------
+
 inducedGraph = method();
-
-inducedGraph (Graph,List) := (G,S) -> graph inducedGraph(hyperGraph(G), S)
-
 inducedGraph (HyperGraph,List) := (H,S) -> (
      if (isSubset(set S, set H#"vertices") =!= true) then error "Second argument must be a subset of the vertices";
      ie := select(H#"edges",e -> isSubset(set e,set S));
@@ -1159,6 +1158,60 @@ doc ///
 			which is to be converted to a HyperGraph.
 	Outputs 
 		H:HyperGraph
+        Description
+	        Text	 
+		        The function {\tt hyperGraph} is a constructor for @TO HyperGraph @.  The user
+			can input a hypergraph in a number of different ways, which we describe below.
+			The information decribing the hypergraph is stored in a hash table.
+			
+			For the first possiblity, the user inputs a polynomial ring, which specifices the vertices
+			of graph, and a list of the edges of the graph.  The edges are represented as lists.
+		Example
+		        R = QQ[a..f]
+			E = {{a,b,c},{b,c,d},{c,d,e},{e,d,f}}
+			h = hyperGraph (R,E)
+		Text
+		        Altenatively, if the polynomial ring has already been defined, it suffices to simply enter
+			the list of the edges.
+		Example
+		        S = QQ[z_1..z_8]
+			E1 = {{z_1,z_2,z_3},{z_2,z_4,z_5,z_6},{z_4,z_7,z_8},{z_5,z_7,z_8}}
+			E2 = {{z_2,z_3,z_4},{z_4,z_8},{z_7,z_6,z_8},{z_1,z_2}}
+			h1 = hyperGraph E1
+			h2 = hyperGraph E2      
+		Text
+		        The list of edges could also be entered as a list of square-free monomials.
+		Example
+		        T = QQ[w,x,y,z]
+			e = {w*x*y,w*x*z,w*y*z,x*y*z}
+			h = hyperGraph e           
+		Text
+		        Another option for defining an hypergraph is to use an @TO ideal @ or @TO monomialIdeal @.
+		Example
+		        C = QQ[p_1..p_6]
+			i = monomialIdeal (p_1*p_2*p_3,p_3*p_4*p_5,p_3*p_6)
+			hyperGraph i
+			j = ideal (p_1*p_2,p_3*p_4*p_5,p_6)
+			hyperGraph j
+		Text
+		        Since a graph is specific type of hypergraph, we can change the type
+			of a graph to hypergraph.
+		Example
+		        D = QQ[r_1..r_5]
+			g = graph {r_1*r_2,r_2*r_4,r_3*r_5,r_5*r_4,r_1*r_5}	
+		        h = hyperGraph g
+		Text
+		        Some special care is needed it construct the empty hypergraph, that is, the hypergraph with no
+			edges.  In this case, the input cannot be a list (since the constructor does not
+		        know which ring to use).  To define the empty graph, use a polynomial ring and (monomial) ideal.
+		Example
+		        E = QQ[m,n,o,p]
+			i = monomialIdeal(0_E)  -- the zero element of E (do not use 0)
+			hyperGraph i
+			j = ideal (0_E)
+			hyperGraph j
+        SeeAlso
+       	        graph
 ///
 
 
@@ -1184,13 +1237,67 @@ doc ///
 		E:List
 			contain a list of edges, which themselves are lists of vertices.
 		I:MonomialIdeal
-			which must be square-free and whose generators become the edges of the hypergraph.
+			which must be square-free, quadratic, and whose generators become the edges of the graph.
 		J:Ideal
-			which must be square-free monomial and whose generators become the edges of the hypergraph.
+			which must be square-free, quadratic,  monomial and whose generators become the edges of the graph.
 		H:HyperGraph
 			which is to be converted to a graph. The edges in {\tt H} must be of size two.
 	Outputs 
 		G:Graph
+        Description
+	        Text	 
+		        The function {\tt graph} is a constructor for @TO Graph @, a type of @TO HyperGraph @.  The user
+			can input a graph in a number of different ways, which we describe below.  The information
+			describing the graph is stored in a hash table.
+			
+			For the first possiblity, the user inputs a polynomial ring, which specifices the vertices
+			of graph, and a list of the edges of the graph.  The edges are represented as lists.
+		Example
+		        R = QQ[a..f]
+			E = {{a,b},{b,c},{c,f},{d,a},{e,c},{b,d}}
+			g = graph (R,E) 
+		Text
+		        Altenatively, if the polynomial ring has already been defined, it suffices to simply enter
+			the list of the edges.
+		Example
+		        S = QQ[z_1..z_8]
+			E1 = {{z_1,z_2},{z_2,z_3},{z_3,z_4},{z_4,z_5},{z_5,z_6},{z_6,z_7},{z_7,z_8},{z_8,z_1}}
+			E2 = {{z_1,z_3},{z_3,z_4},{z_5,z_2},{z_2,z_4},{z_7,z_8}}
+			g1 = graph E1
+			g2 = graph E2      
+		Text
+		        The list of edges could also be entered as a list of square-free quadratic monomials.
+		Example
+		        T = QQ[w,x,y,z]
+			e = {w*x,w*y,w*z,x*y,x*z,y*z}
+			g = graph e           
+		Text
+		        Another option for defining an graph is to use an @TO ideal @ or @TO monomialIdeal @.
+		Example
+		        C = QQ[p_1..p_6]
+			i = monomialIdeal (p_1*p_2,p_2*p_3,p_3*p_4,p_3*p_5,p_3*p_6)
+			graph i
+			j = ideal (p_1*p_2,p_1*p_3,p_1*p_4,p_1*p_5,p_1*p_6)
+			graph j
+		Text
+		        If a hypergraph has been defined that is also a graph, one can change the type of the hypergraph 
+			into a graph.
+		Example
+		        D = QQ[r_1..r_5]
+			h = hyperGraph {r_1*r_2,r_2*r_4,r_3*r_5,r_5*r_4,r_1*r_5}	
+		        g = graph h
+		Text
+		        Some special care is needed it construct the empty graph, that is, the graph with no
+			edges.  In this case, the input cannot be a list (since the constructor does not
+		        know which ring to use).  To define the empty graph, use a polynomial ring and (monomial) ideal.
+		Example
+		        E = QQ[m,n,o,p]
+			i = monomialIdeal(0_E)  -- the zero element of E (do not use 0)
+			graph i
+			j = ideal (0_E)
+			graph j
+        SeeAlso
+       	        hyperGraph
 ///
 
 
@@ -1653,7 +1760,7 @@ doc ///
 	        coverIdeal
 		(coverIdeal, HyperGraph)
 	Headline
-	        creates the cover ideal of the hypergraph
+	        creates the cover ideal of a (hyper)graph
 	Usage
 	        i = coverIdeal H
 	Inputs
@@ -1742,7 +1849,19 @@ doc ///
 	Description
 		Text
 			The degree of a vertex in a hypergraph is the number of edges that contain the vertex.
+			The degree is also the number of elements in the neighbor set of a vertex.
+	        Example
+		        S = QQ[a,b,c,d,e]
+			k5 = completeGraph S
+			dv = degreeVertex(k5,a)
+			n = neighbors(k5,a)
+			#n == dv
+			degreeVertex(k5,2)
+			h = hyperGraph {a*b*c,c*d,a*d*e,b*e,c*e}
+			degreeVertex(h,a)
+			degreeVertex(h,2) -- degree of c
 	SeeAlso
+		neighbors
 		vertices
 ///
 
@@ -1755,25 +1874,30 @@ doc ///
 doc ///
         Key
 	        deleteEdges 
-		(deleteEdges, Graph, List)
 		(deleteEdges, HyperGraph, List)
 	Headline
-	        returns the graph or hypergraph with specified edges removed
+	        returns the (hyper)graph with specified edges removed
 	Usage
-	        h = deleteEdges (H,S) \n g = deleteEdges (E,S)
+	        h = deleteEdges (H,S) 
 	Inputs
 		H:HyperGraph
-		G:Graph
 		S:List
 		     which is a subset of the edges of the graph or hypergraph
 	Outputs
 		h:HyperGraph
 		       the hypergraph with edges in S removed
-		g:Graph
-		       the graph with edges in S removed
-        Description
+	Description
 	        Text
-		       Stuff
+		       This function enables the user to remove specified edges from a graph to form
+		       a subgraph.
+		Example
+		       S=QQ[a,b,c,d,e]
+		       g=cycle S
+		       T = {{a,b},{d,e}}
+		       gprime = deleteEdges (g,T)
+		       h = hyperGraph {a*b*c,c*d*e,a*e}
+		       T = edges h
+                       hprime = deleteEdges (h,T)
 ///	
 
 
@@ -1785,17 +1909,47 @@ doc ///
 
 doc ///
         Key
-	        edgeIdeal
-		(edgeIdeal, HyperGraph)
+	     edgeIdeal
+	     (edgeIdeal, HyperGraph)
 	Headline
-	        creates the edge ideal of the hypergraph
+	     creates the edge ideal of a (hyper)graph
 	Usage
-	        i = edgeIdeal H
+	     i = edgeIdeal H
 	Inputs
-	        H:HyperGraph
+	     H:HyperGraph
 	Outputs
-	        i:MonomialIdeal
-		        the edge ideal of H
+	     i:MonomialIdeal
+	          the edge ideal of H
+	Description
+	     Text
+	     	  The edge ideal of a (hyper)graph is a square-free monomial ideal where the 
+		  generators correspond to the edges of a (hyper)graph.  Along with @TO coverIdeal @,
+		  the function edgeIdeal enables us to translate many graph theoretic properties into 
+		  algebraic properties.
+		  
+		  When the input is a finite simple graph, that is, a graph with no loops or multiple
+		  edges, then the edge ideal is a quadratic square-free monomial ideal generated by
+		  terms of the form $x_ix_j$ whenever $\{x_i,x_j\}$ is an edge of the graph.
+	     Example
+	     	  S = QQ[a..e]
+		  c5 = cycle S
+		  edgeIdeal c5
+		  graph flatten entries gens edgeIdeal c5 == c5 
+		  k5 = completeGraph S
+		  edgeIdeal k5             
+     	     Text
+	          When the input is a hypergraph, the edge ideal is a square-free monomial ideal
+		  generated by monomials of the form $x_{i_1}x_{i_2}...x_{i_s}$ whenever
+		  $\{x_{i_1},...,x_{i_s}\}$ is an edge of the hypergraph.  Because all of our
+		  hypergraphs are clutters, that is, no edge is allowed to be a subset of another edge,
+		  we have a bijection between the generators of the egde ideal of hypergraph and the edges
+		  of the hypergraph.
+	     Example
+	     	  S = QQ[z_1..z_8]
+		  h = hyperGraph {{z_1,z_2,z_3},{z_2,z_3,z_4,z_5},{z_4,z_5,z_6},{z_6,z_7,z_8}}
+		  edgeIdeal h
+        SeeAlso
+	     coverIdeal
 ///		      
 
 
@@ -1810,7 +1964,7 @@ doc ///
 		edges
 		(edges, HyperGraph)
 	Headline 
-		gets the edges of a HyperGraph.
+		gets the edges of a (hyper)graph.
 	Usage
 		E = edges(H)
 	Inputs
@@ -1818,6 +1972,19 @@ doc ///
 	Outputs 
 		E:List
 			of the edges of {\tt H}.
+	Description
+	        Text
+		      This function takes a (hyper)graph, and returns the edges set of the (hyper)graph.
+	        Example
+		       S = QQ[a..d]
+		       g = graph {a*b,b*c,c*d,d*a} -- the four cycle
+     	       	       edges (g)
+		       h = hyperGraph{a*b*c}
+     	       	       edges h	 
+		       k4 = completeGraph S
+		       edges k4
+	SeeAlso
+	        vertices
 ///
 
 
@@ -1844,6 +2011,11 @@ doc ///
 	SeeAlso
 	        cliqueNumber
 	Description
+		Text
+		     	A clique on a subset of the vertices is a subgraph where every vertex in the subgraph
+			is adjacent to every other vertex in the graph.  This function returns all cliques
+			of a specified size, and if no size is given, it returns all cliques.  Note that 
+			all the edges of the graph are considered cliques of size two.
 		Example
 		     	R = QQ[a..d]
 			G = completeGraph R 
@@ -1863,9 +2035,9 @@ doc ///
 		getEdge
 		(getEdge, HyperGraph, ZZ)
 	Headline 
-		gets the n-th edge in a HyperGraph
+		gets the n-th edge in a (hyper)graph
 	Usage
-		E = edges(H,N)
+		E = getEdge(H,N)
 	Inputs
 		H:HyperGraph
 		N:ZZ
@@ -1873,6 +2045,19 @@ doc ///
 	Outputs 
 		E:List
 			which is the {\tt N}-th edge of {\tt H}
+	Description
+	        Text
+		        This function returns the n^{th} edge of the (hyper)graph.
+		Example
+		        S = QQ[a..f]
+			g = cycle S
+			edges g
+			getEdge (g,3)  -- counting starts from 0, so the 4th element in the above list
+			h = hyperGraph {a*b*c*d,d*e,a*f*c,a*d*f}
+     	       	    	getEdge (h,0) -- first edge
+	SeeAlso
+	        edges
+		getEdgeIndex
 ///
 
 ------------------------------------------------------------
@@ -1898,7 +2083,19 @@ doc ///
 		N:ZZ
 			which is the index of {\tt E} as an edge of {\tt H}. If {\tt E} is not in {\tt H}
 			then -1 is returned
+	Description
+	        Text
+		        This function returns the index of the edge of they (hyper)graph, where the ordering
+			is determined by the internal ordering of the edges.
+		Example
+		     	S = QQ[z_1..z_8]
+			h = hyperGraph {z_2*z_3*z_4,z_6*z_8,z_7*z_5,z_1*z_6*z_7,z_2*z_4*z_8}
+			edges h
+			getEdgeIndex (h,{z_2,z_4,z_8})  -- although entered last, edge is internally stored in 4th spot (counting begins at 0)
+			getEdge(h,3)
+			getEdgeIndex (h,{z_1,z_2}) -- not in the edge list
 	SeeAlso
+		getEdge
 		isEdge
 ///
 
@@ -1921,10 +2118,11 @@ doc ///
 			of vertices that are an edge in H that form a good leaf.
 	Description
 		Text
-			A good leaf of hypergraph H is an edge L whose intersections
+			A good leaf of a hypergraph H is an edge L whose intersections
 			with all other edges form a totally ordered set. It follows that
 			L must have a free vertex. In the graph setting, a good leaf is 
-			an edge containing a vertex of degree one.
+			an edge containing a vertex of degree one.  The notion of a good
+			leaf was introduced by X. Zheng in her PhD thesis (2004).
 		Example
 		     	R = QQ[a..g];
 			H = hyperGraph {a*b*c*d, b*c*d*e, c*d*f, d*g, e*f*g};
@@ -1959,6 +2157,8 @@ doc ///
 			with all other edges form a totally ordered set. It follows that
 			L must have a free vertex. In the graph setting, a good leaf is 
 			an edge containing a vertex of degree one.
+			The notion of a good
+			leaf was introduced by X. Zheng in her PhD thesis (2004).
 		Example
 		     	R = QQ[a..g];
 			H = hyperGraph {b*c*d*e, a*b*c*d, c*d*f, d*g, e*f*g};
@@ -2024,7 +2224,8 @@ doc ///
 			A good leaf of hypergraph H is an edge L whose intersections
 			with all other edges form a totally ordered set. It follows that
 			L must have a free vertex. In the graph setting, a good leaf is 
-			an edge containing a vertex of degree one.
+			an edge containing a vertex of degree one.  The notion of a good
+			leaf was introduced by X. Zheng in her PhD thesis (2004).
 		Example
 		     	R = QQ[a..g];
 			H = hyperGraph {b*c*d*e, a*b*c*d, c*d*f, d*g, e*f*g};
@@ -2089,7 +2290,7 @@ doc ///
 			whose facets are given by the edges of H
 	Description
 	     Text
-	     	  This function chances the type of a (hyper)graph to a simplicial complex where
+	     	  This function changes the type of a (hyper)graph to a simplicial complex where
 		  the facets of the simplicial complex are given by the edge set of the (hyper)graph.
 		  This function is the reverse of @TO simplicialComplexToHyperGraph @.  This function enables the users
 		  to make use of the functions in the package @TO SimplicialComplexes @
@@ -2234,24 +2435,23 @@ doc ///
 doc ///
 	Key
 		inducedGraph
-		(inducedGraph, Graph, List)
 		(inducedGraph, HyperGraph, List)
 	Headline
-		returns the induced subgraph of a graph or hypergraph.
+		returns the induced subgraph of a (hyper)graph.
 	Usage
-		h = inducedGraph H \n g = inducedGraph G
+		h = inducedGraph H 
 	Inputs
 		H:HyperGraph
-		G:Graph
 		L:List
 			of vertices (i.e. variables in the ring of {\tt H} or {\tt G})
 	Outputs
 		h:HyperGraph
 			the induced subgraph of {\tt H} whose edges are contained in {\tt L}
-		g:Graph
-			the induced subgraph of {\tt G} whose edges are contained in {\tt L}
 	Description
 		Text
+			This function returns the induced subgraph of a (hyper)graph on a specified set of vertices.  The function 
+			enables the user to create subgraphs of the original (hyper)graph. 
+			
 			The ring of the induced subgraph contains only variables in {\tt L}.
 			The current ring must be changed before working with the induced subgraph.
 		Example
@@ -2261,7 +2461,9 @@ doc ///
 			H2 = inducedGraph(G,{a,b,d,e})
 			use H1#"ring"
 			inducedGraph(H1,{c,d,e})
-///	
+        SeeAlso
+	        deleteEdges
+///   
 
 
 
@@ -2282,6 +2484,21 @@ doc ///
 	Outputs
 	        B:Boolean
 		       returns {\tt true} if {\tt G} is bipartite, {\tt false} otherwise
+        Description
+	        Text
+		       The function {\tt isBipartite} determines if a given graph is bipartite.  A graph is 
+		       said to be bipartite if the vertices can be partitioned into two sets W and Y such
+		       that every edge has one vertex in W and the other in Y.  Since a graph is bipartite
+		       if and only if its chromatic number is 2, we can check if a graph is bipartite by 
+		       computing its chromatic number.
+                Example
+		       S = QQ[a..e]
+		       t = graph {a*b,b*c,c*d,a*e} -- a tree (and thus, bipartite)
+		       c5 = cycle S -- 5-cycle (not bipartite)
+		       isBipartite t
+		       isBipartite c5
+	SeeAlso
+	        chromaticNumber
 ///		      
 
 
@@ -2310,13 +2527,14 @@ doc ///
 		       (see "On Stanley-Reisner rings,"  Topics in algebra, Part 2 (Warsaw, 1988),  57-70, 
 		       Banach Center Publ., 26, Part 2, PWN, Warsaw, 1990.) which says that a graph G is
 		       chordal if and only if the edge ideal of G^c has a linear resolution.
-		       {\bf Note:}  Currently, the function is BROKEN for complete graphs!!! 
 		Example
-		    R = QQ[a..e];
-		    C = cycle R;
+		    S = QQ[a..e];
+		    C = cycle S;
 		    isChordal C
 		    D = graph {a*b,b*c,c*d,a*c};
 		    isChordal D
+                    E = completeGraph S; 
+		    isChordal E
  ///		      
 
 
@@ -2400,7 +2618,7 @@ doc ///
 		(isEdge, HyperGraph, List)
 		(isEdge, HyperGraph, RingElement)
 	Headline 
-		determines if an edge is in a HyperGraph
+		determines if an edge is in a (hyper)graph
 	Usage
 		B = isEdge(H,E) \n B = isEdge(H,M)
 	Inputs
@@ -2412,6 +2630,17 @@ doc ///
 	Outputs 
 		B:Boolean
 			which is true iff {\tt E} (or {\tt support M}) is an edge of {\tt H}
+	Description
+	        Text
+		        This function checks if a given edge, represented either as a list or monomial, belongs
+			to a given (hyper)graph.
+	        Example
+		        S = QQ[z_1..z_8]
+			h = hyperGraph {z_2*z_3*z_4,z_6*z_8,z_7*z_5,z_1*z_6*z_7,z_2*z_4*z_8}
+			edges h
+			isEdge (h,{z_2,z_4,z_8})  
+			isEdge (h,z_2*z_3*z_4)
+			isEdge (h,{z_1,z_2}) 
 	SeeAlso
 		getEdgeIndex
 ///
@@ -2426,7 +2655,7 @@ doc ///
 		(isForest, Graph)
 		(isForest, HyperGraph)
 	Headline 
-		determines whether a (hyper)graph is a tree
+		determines whether a (hyper)graph is a forest
 	Usage
 		B = isForest G or B = isForest H
 	Inputs
@@ -2434,10 +2663,20 @@ doc ///
 		H:HyperGraph
 	Outputs 
 		B:Boolean
-			true if G (or H) is a tree
+			true if G (or H) is a forest
         Description
 	     Text
+	        This function determins if a graph or hypergraph is a forest.  A graph is a forest if 
+		if the graph has no induced cycles.  We say that a hypergraph is forest if each
+		connected component is a forest in the sense of S. Faridi.  See the paper
+		"The facet ideal of a simplicial complex," Manuscripta Mathematica 109, 159-174 (2002).
 	     Example
+	        S = QQ[a..e]
+		t = graph {a*b,a*c,a*e}
+		isForest t
+		T = QQ[a..f]
+		h = hyperGraph {a*b*c,c*d*e,b*d*f}
+		isForest h
 ///
 
 ------------------------------------------------------------
@@ -2464,7 +2703,8 @@ doc ///
 			A good leaf of hypergraph H is an edge L whose intersections
 			with all other edges form a totally ordered set. It follows that
 			L must have a free vertex. In the graph setting, a good leaf is 
-			an edge containing a vertex of degree one.
+			an edge containing a vertex of degree one.  The notion of a good
+			leaf was introduced by X. Zheng in her PhD thesis (2004).
 		Example
 		     	R = QQ[a..g];
 			H = hyperGraph {a*b*c*d, b*c*d*e, c*d*f, d*g, e*f*g};
@@ -2650,7 +2890,7 @@ doc ///
 			the line graph of H
         Description
 	     Text
-	     	  The the line graph L of a hypergraph H has a vertex for edge in H. 
+	     	  The line graph L of a hypergraph H has a vertex for each edge in H. 
 		  Two vertices in L are adjacent if their edges in H share a vertex.
 		  The order of the vertices in L are determined by the implict order 
 		  on the edges of H. See @TO edges@.
@@ -2699,6 +2939,8 @@ doc ///
 		neighbors(G,0)
 		neighbors(G,{a,d})
 		neighbors(G,{0,3})
+        SeeAlso
+	     degreeVertex
 ///
 
 ------------------------------------------------------------
@@ -3061,6 +3303,8 @@ doc ///
 			vertices(g)
 			h = hyperGraph{a*b*c}
 			vertices(h) -- the vertex d is treated as an isolated vertex
+        SeeAlso 
+	        edges
 ///
 
 ----------------------------
