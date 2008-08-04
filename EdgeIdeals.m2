@@ -693,7 +693,7 @@ isChordal Graph := G -> (
      if I == ideal(0_graphR) then return (true);
      D := min flatten degrees I;
      B := coker gens I;
-     R = regularity(B);
+     R := regularity(B);
      if D-1 =!= R then return (false);
      return(true);
      )
