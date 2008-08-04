@@ -74,7 +74,6 @@ export {HyperGraph,
 	numConnectedComponents,
 	numTriangles,
      	randomGraph,
-	randomHyperGraph,
 	randomUniformHyperGraph,
 	simplicialComplexToHyperGraph,
 	smallestCycleSize,
@@ -699,6 +698,7 @@ isChordal Graph := G -> (
      return(true);
      )
 ----------  this function will break! if G is a complete graph.  We need to fix it!
+--CAF: Looks OK to me on Aug. 4. I'll add a test.
 
 -------------------------------------------------------------
 -- isCM
@@ -914,31 +914,6 @@ randomGraph (PolynomialRing,ZZ) := (R,num) -> (
      )
 
 -----------------------------------------------------------
--- randomHyperGraph
--- returns a hypergraph on a given vertex set and randomly
--- chosen edges of given cardinality
--- NOTE: currently conflicts with inclusion error 
------------------------------------------------------------
-
-randomHyperGraph = method();
-randomHyperGraph (PolynomialRing,List) := (R,li) -> (
-     if not all(li,i->instance(i,ZZ) and i > 0) then error "cardinalities of hyperedges must be positive integers";
-     verts:=flatten entries vars R;
-     if any(li,i->i>#verts) then error "cardinality of at least one hyperedge is too large";
-     cards:=sort li;
-     uniques:=unique cards;
-     numCards:=#uniques;
-     edgeList:={};
-     count:=0;
-     while count < numCards do (
-	  subs:=subsets(verts,uniques#count);
-	  edgeList=append(edgeList,take(random subs,number(cards,i->i==uniques#count)));
-     	  count=count+1;
-	  );
-     hyperGraph(R,flatten edgeList)
-     )	  
-
------------------------------------------------------------
 -- randomUniformHyperGraph
 -- returns a random hypergraph on a given vertex set
 -- user chooses cardinality of edges and the number of edges
@@ -946,10 +921,12 @@ randomHyperGraph (PolynomialRing,List) := (R,li) -> (
 
 randomUniformHyperGraph = method();
 randomUniformHyperGraph (PolynomialRing,ZZ,ZZ) := (R,card,num) -> (
-     randomHyperGraph(R,toList(num:card))
+     if card <= 0 then error "cardinalities of hypergraphs must be positive integers";
+     if num < 0 then error "number of edges must be nonnegative";
+     if num > binomial(numgens R,card) then error "can't make that many edges";
+     edges:=take(random subsets(flatten entries vars R,card),num);
+     hyperGraph(R,edges)
      )
-
-
 
 --------------------------------------------------
 -- simplicialComplexToHyperGraph
@@ -961,9 +938,6 @@ simplicialComplexToHyperGraph = method()
 simplicialComplexToHyperGraph SimplicialComplex := D -> (
 	  hyperGraph flatten entries facets D
 	  )
-
-
-
 
 ------------------------------------------------------
 -- smallestCycleSize
@@ -1073,7 +1047,7 @@ doc ///
        	       A package for working with the edge ideals of (hyper)graphs
        Description
       	       Text
-               	    Edge ideals is a package to work with the edge ideals of (hyper)graphs.
+               	    {\em EdgeIdeals} is a package to work with the edge ideals of (hyper)graphs.
 		    
 		    An edge ideal is a square-free monomial ideal where the generators of the monomial ideal correspond to the edges
 		    of the (hyper)graph.  An edge ideal complements the Stanley-Reisner correspondence 
@@ -1088,12 +1062,13 @@ doc ///
 		    Contemporary Mathematics. 448 (2007) 91-117). 
 		    
 		    
-		    {\bf Note:}  When we use the term "edge ideal of a hypergraph", we are actually referring to the edge ideal
-		    of a clutter, a hypergraph where no edge is a subset of another edge.    If $H$ is a hypergraph that is not a 
-		    clutter, then when we form its edge ideal
-		    in a similar fashion, some information will be lost because not all of the edges of the hypergraph will
-		    correspond to minimal generators.   The edge ideal of a hypergraph is similar to the facet ideal of a simplicial complex,
-		    as defined by S. Faridi in  "The facet ideal of a simplicial complex," 
+		    {\bf Note:}  When we use the term "edge ideal of a hypergraph", we are actually referring to 
+		    the edge ideal of a clutter, a hypergraph where no edge is a subset of another edge. 
+		    If $H$ is a hypergraph that is not a clutter, then when we form its edge ideal
+		    in a similar fashion, some information will be lost because not all of the edges of the 
+		    hypergraph will correspond to minimal generators, so we require that the edges of hypergraphs 
+		    do not satisfy any inclusion relations.   The edge ideal of a hypergraph is similar to the facet 
+		    ideal of a simplicial complex, as defined by S. Faridi in  "The facet ideal of a simplicial complex," 
 		    Manuscripta Mathematica 109, 159-174 (2002). 
 ///
  
@@ -1162,7 +1137,10 @@ doc ///
 	        Text	 
 		        The function {\tt hyperGraph} is a constructor for @TO HyperGraph @.  The user
 			can input a hypergraph in a number of different ways, which we describe below.
-			The information decribing the hypergraph is stored in a hash table.
+			The information decribing the hypergraph is stored in a hash table. We require that
+			there be no inclusion relations between the edges of a hypergraph; that is, that it
+			be a clutter. The reason is that this package is designed for edge ideals, which would
+			lose any information about edges that are supersets of other edges.			
 			
 			For the first possiblity, the user inputs a polynomial ring, which specifices the vertices
 			of graph, and a list of the edges of the graph.  The edges are represented as lists.
@@ -1699,7 +1677,7 @@ doc ///
 			such that every pair of vertices, not both from the same partition, 
 			is an edge of the graph. The partitions can be specified by their number 
 			and size, by a list of sizes, or by an explicit partition of the variables. 
-			Not all varibles of the ring need to be used.
+			Not all variables of the ring need to be used.
 		Example
 			R = QQ[a,b,c,x,y,z];
 			completeMultiPartite(R,2,3)
@@ -1770,7 +1748,7 @@ doc ///
 		       the cover ideal of H
         Description
 	        Text
-		 Returns the monomial ideal generated by the minimal vertex covers.  This is also the Alexander Dual 
+		 Returns the monomial ideal generated by the minimal vertex covers.  This is also the Alexander dual 
 		 of the edge ideal of the hypergraph {\tt H}.
 		Example
 		 S= QQ[a,b,c,d,e,f]
@@ -2012,7 +1990,7 @@ doc ///
 	        cliqueNumber
 	Description
 		Text
-		     	A clique on a subset of the vertices is a subgraph where every vertex in the subgraph
+		     	A clique on a subset of the vertices is a subgraph in which every vertex in the subgraph
 			is adjacent to every other vertex in the graph.  This function returns all cliques
 			of a specified size, and if no size is given, it returns all cliques.  Note that 
 			all the edges of the graph are considered cliques of size two.
@@ -2085,7 +2063,7 @@ doc ///
 			then -1 is returned
 	Description
 	        Text
-		        This function returns the index of the edge of they (hyper)graph, where the ordering
+		        This function returns the index of the edge of the (hyper)graph, where the ordering
 			is determined by the internal ordering of the edges.
 		Example
 		     	S = QQ[z_1..z_8]
@@ -2118,9 +2096,9 @@ doc ///
 			of vertices that are an edge in H that form a good leaf.
 	Description
 		Text
-			A good leaf of a hypergraph H is an edge L whose intersections
+			A good leaf of a hypergraph {\tt H} is an edge {\tt L} whose intersections
 			with all other edges form a totally ordered set. It follows that
-			L must have a free vertex. In the graph setting, a good leaf is 
+			{\tt L} must have a free vertex. In the graph setting, a good leaf is 
 			an edge containing a vertex of degree one.  The notion of a good
 			leaf was introduced by X. Zheng in her PhD thesis (2004).
 		Example
@@ -2153,9 +2131,9 @@ doc ///
 			Returns -1 if H does not have a good leaf.
 	Description
 		Text
-			A good leaf of hypergraph H is an edge L whose intersections
+			A good leaf of hypergraph {\tt H} is an edge {\tt L} whose intersections
 			with all other edges form a totally ordered set. It follows that
-			L must have a free vertex. In the graph setting, a good leaf is 
+			{\tt L} must have a free vertex. In the graph setting, a good leaf is 
 			an edge containing a vertex of degree one.
 			The notion of a good
 			leaf was introduced by X. Zheng in her PhD thesis (2004).
@@ -2221,9 +2199,9 @@ doc ///
 			true if H contains an edge that is a good leaf.
 	Description
 		Text
-			A good leaf of hypergraph H is an edge L whose intersections
+			A good leaf of hypergraph {\tt H} is an edge {\tt L} whose intersections
 			with all other edges form a totally ordered set. It follows that
-			L must have a free vertex. In the graph setting, a good leaf is 
+			{\tt L} must have a free vertex. In the graph setting, a good leaf is 
 			an edge containing a vertex of degree one.  The notion of a good
 			leaf was introduced by X. Zheng in her PhD thesis (2004).
 		Example
@@ -2367,7 +2345,7 @@ doc ///
 		       This function associates to a (hyper)graph a simplicial complex whose faces correspond
 		       to the independent sets of the (hyper)graph.  See, for example, the paper 
 		       of A. Van Tuyl and R. Villarreal 
-		       "Shellable graphs and sequentially Cohen-Macaulay bipartite graphs"
+		       "Shellable graphs and sequentially Cohen-Macaulay bipartite graphs,"
 		       Journal of Combinatorial Theory, Series A 115 (2008) 799-814.
 	        Example
 		       S = QQ[a..e]
@@ -2700,9 +2678,9 @@ doc ///
 			true if edge N of H is a good leaf.
 	Description
 		Text
-			A good leaf of hypergraph H is an edge L whose intersections
+			A good leaf of hypergraph {\tt H} is an edge {\tt L} whose intersections
 			with all other edges form a totally ordered set. It follows that
-			L must have a free vertex. In the graph setting, a good leaf is 
+			{\tt L} must have a free vertex. In the graph setting, a good leaf is 
 			an edge containing a vertex of degree one.  The notion of a good
 			leaf was introduced by X. Zheng in her PhD thesis (2004).
 		Example
@@ -2769,9 +2747,9 @@ doc ///
         Description
 	     Text
 		  An edge in a graph is a leaf if it contains a vertex of degree one.
-		  An edge E in a hypergraph is a leaf if there is another edge B with the
-	          property that for all edges F (other than E), the intersection of F with E 
-		  is contained in the interesection of B with E.
+		  An edge {\tt E} in a hypergraph is a leaf if there is another edge {\tt B} with the
+	          property that for all edges {\tt F} (other than {\tt E}), the intersection of {\tt F} 
+		  with {\tt E} is contained in the interesection of {\tt B} with {\tt E}.
 
 		  A vertex of a graph is a leaf if it has degree one.
 		  A vertex of a hypergraph is a leaf if it is contained in precisely one
@@ -2858,7 +2836,9 @@ doc ///
 		     degrees to see if the ideal in that degree has a linear resolution. In 
 		     characteristic zero with the reverse-lex order, one can test for 
 		     componentwise linearity using gins, which may be faster in some cases. This
-		     approach is based on work of Aramova-Herzog-Hibi and Conca. 
+		     approach is based on work of Aramova-Herzog-Hibi and Conca. We make no attempt
+		     to check the characteristic of the field or the monomial order, so use caution
+		     when using this method. 
 		Example
 		    R = QQ[a..f];
      	       	    G = cycle(R,4)
@@ -2890,10 +2870,10 @@ doc ///
 			the line graph of H
         Description
 	     Text
-	     	  The line graph L of a hypergraph H has a vertex for each edge in H. 
-		  Two vertices in L are adjacent if their edges in H share a vertex.
-		  The order of the vertices in L are determined by the implict order 
-		  on the edges of H. See @TO edges@.
+	     	  The line graph {\tt L} of a hypergraph {\tt H} has a vertex for each edge in {\tt H}. 
+		  Two vertices in {\tt L} are adjacent if their edges in {\tt H} share a vertex.
+		  The order of the vertices in {\tt L} are determined by the implict order 
+		  on the edges of {\tt H}. See @TO edges@.
 	     Example
      	       	  R = QQ[a..e]
 		  G = graph {a*b,a*c,a*d,d*e}
@@ -2929,9 +2909,9 @@ doc ///
 			of neighbors to the given vertex or vertices.
         Description
 	    Text
-		The vertices adjacent to vertex V are called the neighbors of V. The neighbors
-		of a list of vertices L are those vertices which are not in L and are adjacent 
-		to a vertex in L.
+		The vertices adjacent to vertex {\tt V} are called the neighbors of {\tt V}. The neighbors
+		of a list of vertices {\tt L} are those vertices which are not in {\tt L} and are adjacent 
+		to a vertex in {\tt L}.
 	    Example
      	       	R=QQ[a..f];
 		G=graph {a*b, a*c, a*d, d*e, d*f};
@@ -3036,14 +3016,8 @@ doc ///
 		  randomGraph(R,4)
      	       	  randomGraph(R,4)  
 	SeeAlso
-	     randomHyperGraph
 	     randomUniformHyperGraph
 ///
-
-
-------------------------------------------------------------
--- DOCUMENTATION randomHyperGraph
-------------------------------------------------------------
 
 
 ------------------------------------------------------------
@@ -3075,7 +3049,6 @@ doc ///
      	       	  randomUniformHyperGraph(R,4,2)  
 	SeeAlso
 	     randomGraph
-	     randomHyperGraph
 ///
 
 
@@ -3260,7 +3233,7 @@ doc ///
 		        This function takes a graph or hypergraph, and returns the minimal vertex cover of the graph or
 			hypergraph.   A vertex cover is a subset of the vertices such that every edge of the (hyper)graph has
 			non-empty intersection with this set.  The minimal vertex covers are given by the minimal generators
-			of the cover ideal of H.
+			of the cover ideal of {\tt H}.
 		Example
 	                S = QQ[a..d]
 			g = graph {a*b,b*c,c*d,d*a} -- the four cycle
@@ -3296,7 +3269,7 @@ doc ///
 			of the vertices of {\tt H}
         Description
 	        Text
-		        This function takes a graph or hypergraph, and returns the vertex set of the graph.
+		        This function takes a graph or hypergraph and returns the vertex set of the graph.
 		Example
 	                S = QQ[a..d]
 			g = graph {a*b,b*c,c*d,d*a} -- the four cycle
@@ -3323,7 +3296,8 @@ doc ///
 	Description
 	     	Text
      	       	    Directs @TO isSCM@ to use generic initial ideals to determine whether the
-		    Alexander dual of the edge ideal of a hypergraph is componentwise linear.
+		    Alexander dual of the edge ideal of a hypergraph is componentwise linear. See
+		    full discussion at @TO isSCM@.
 	SeeAlso
 		isSCM
 ///
@@ -3344,7 +3318,9 @@ doc ///
 	  Description
 	       Text
 	       	    The default value for {\tt Gins} is {\tt false} since using generic
-		    initial ideals makes the @TO isSCM@ algorithm probabilistic.
+		    initial ideals makes the @TO isSCM@ algorithm probabilistic, and there 
+		    are characteristic and monomial order requirements. See full 
+		    discussion at @TO isSCM@.
 	  SeeAlso
 	       isSCM
 ///	       
@@ -3438,6 +3414,28 @@ adjacencyMatrix c4
 m = matrix {{0,1,0,1},{1,0,1,0},{0,1,0,1},{1,0,1,0}}
 assert(adjacencyMatrix c4 == m)
 ///
+
+-----------------------------
+-- Test allEvenHoles
+-----------------------------
+
+TEST///
+R=QQ[a..f]
+c4=graph {a*b,b*c,c*d,d*a}
+assert (#(allEvenHoles c4)==1)
+H=graph(monomialIdeal(a*b,b*c,c*d,d*e,e*f,a*f,a*d)) --6-cycle with a chord
+assert (allEvenHoles H == {{a, b, c, d}, {a, d, e, f}})
+
+///
+
+-----------------------------
+-- Test allOddHoles
+-----------------------------
+
+R=QQ[a..f]
+assert (allOddHoles cycle(R,3) == {})
+G=graph(monomialIdeal(a*b,b*c,c*d,d*e,e*f,a*f,a*c))
+assert (allOddHoles G == {{a,c,d,e,f}})
 
 ----------------------------
 -- Test antiCycle
@@ -3534,9 +3532,16 @@ h = hyperGraph i
 assert((coverIdeal h) == j) 
 ///
 
+-----------------------------
+-- Test cycle
+-----------------------------
+
+R=QQ[a..d]
+G=graph(monomialIdeal(a*b,b*c,c*d,a*d))
+assert (G == cycle(R,4))
 
 -----------------------------
--- Test degreeVertex Test 
+-- Test degreeVertex
 -----------------------------
 
 TEST///
@@ -3553,6 +3558,14 @@ assert( degreeVertex(H,3) == 1)
 ///
 
 -----------------------------
+-- Test deleteEdges
+-----------------------------
+
+R=QQ[a..d]
+G=deleteEdges(completeGraph R,{{b,d},{a,c}})
+assert (G == graph(monomialIdeal(a*b,a*d,b*c,c*d)))
+
+-----------------------------
 -- Test edgeIdeal
 -----------------------------
 
@@ -3563,6 +3576,31 @@ h = hyperGraph i
 assert((edgeIdeal h) == i) 
 ///
 
+-----------------------------
+-- Test edges
+-----------------------------
+
+R=QQ[a..d]
+G=graph(monomialIdeal(a*b,c*d,a*d))
+assert (edges G == {{a,b},{a,d},{c,d}})
+
+-----------------------------
+-- Test getCliques
+-- Test getMaxCliques
+-----------------------------
+
+R=QQ[a..d]
+G=completeGraph R
+assert (getMaxCliques G == {{a,b,c,d}})
+assert (#(getCliques G) == binomial(4,2)+binomial(4,3)+binomial(4,4))
+
+-----------------------------
+-- Test getEdge
+-----------------------------
+
+R=QQ[a..d]
+H=hyperGraph(R,{{a,b,d},{d,c,b}})
+assert (getEdge(H,0) == {a,b,d})
 
 -----------------------------
 -- Test getEdgeIndex 
@@ -3661,6 +3699,16 @@ assert(independenceNumber c4 == 3)
 assert(independenceNumber c5 == 2)
 ///
 
+-----------------------------
+-- Test inducedGraph
+-----------------------------
+
+TEST///
+R=QQ[a..e]
+G=graph(monomialIdeal(a*b,b*c,c*d,d*e,a*e))
+--assert(inducedGraph(G,{a,d,e})==graph(QQ[a,d,e],{{a,e},{d,e}}))
+--doesn't quite do it
+///
 
 -----------------------------
 -- Test isBipartite
@@ -3682,9 +3730,10 @@ assert(isBipartite c5 == false)
 TEST///
 R = QQ[a..e];
 C = cycle R;
-assert(isChordal C == false);
-D = graph {a*b,b*c,c*d,a*c};
-assert(isChordal D == true);
+assert(isChordal C == false)
+D = graph {a*b,b*c,c*d,a*c}
+assert(isChordal D == true)
+assert((isChordal completeGraph (QQ[a..e])) == true)
 ///
 
 -----------------------------
@@ -3799,18 +3848,27 @@ assert(numConnectedComponents g == 1)
 assert(numConnectedComponents h == 2)
 ///
 
-
 -------------------------------------
 -- Test randomGraph
 -------------------------------------
 
--------------------------------------
--- Test randomHyperGraph
--------------------------------------
+TEST///
+R=QQ[a..e]
+G=randomGraph(R,3)
+assert(#(edges G) == 3)
+assert(vertices G == {a,b,c,d,e})
+///
 
 -------------------------------------
 -- Test randomUniformHyperGraph
 -------------------------------------
+
+TEST///
+R=QQ[a..e]
+G=randomUniformHyperGraph(R,3,2)
+assert(#(edges G)==2)
+assert(#(first edges G)==3)
+///
 
 -------------------------------------
 -- Test simplicialComplexToHyperGraph
