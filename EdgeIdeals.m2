@@ -995,8 +995,7 @@ spanningTree Graph:= G-> (
 	  count = count+1;
 	  eT = eTemp;
 	  );
-     spanTree = graph eT;
-     return (spanTree);
+     return graph eT;
      );
 
 
