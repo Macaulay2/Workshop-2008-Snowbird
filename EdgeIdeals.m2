@@ -928,6 +928,13 @@ randomUniformHyperGraph (PolynomialRing,ZZ,ZZ) := (R,card,num) -> (
      hyperGraph(R,edges)
      )
 
+-----------------------------------------------------------
+-- ring
+-- returns the ring of a hypergraph
+-----------------------------------------------------------
+
+ring HyperGraph := H -> H#"ring"
+
 --------------------------------------------------
 -- simplicialComplexToHyperGraph
 -- change the type of a simplicial complex to a (hyper)graph
@@ -3048,6 +3055,36 @@ doc ///
      	       	  randomUniformHyperGraph(R,4,2)  
 	SeeAlso
 	     randomGraph
+///
+
+
+------------------------------------------------------------
+-- DOCUMENTATION ring
+------------------------------------------------------------
+
+doc ///
+	Key
+		(ring, HyperGraph)
+	Headline 
+		gives the ring of a (hyper)graph
+	Usage
+		R = ring H 
+	Inputs
+		H:HyperGraph
+	Outputs 
+		R:Ring
+	Description
+	        Text
+		     Every (hyper)graph is defined over some polynomial ring. This method returns the ring of a hypergraph. 
+	        Example
+		       S = QQ[a..d];
+		       g = cycle S;
+		       h = inducedGraph(g,{a,b,c});
+		       describe ring g
+		       describe ring h
+	SeeAlso
+	        edges
+	        vertices
 ///
 
 
