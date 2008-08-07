@@ -34,6 +34,7 @@ export {HyperGraph,
 	allOddHoles,
 	allEvenHoles,
 	antiCycle,
+	changeRing,
 	chromaticNumber,
 	cliqueComplex,
 	cliqueNumber,
@@ -84,6 +85,7 @@ export {HyperGraph,
 	vertexCovers,
 	vertices,
 	Gins,
+	MaximalEdges,
 	OriginalRing
         };
 
@@ -286,10 +288,23 @@ antiCycle (List) := Graph =>(L)-> (
      )     	   
 
 
+------------------------------------------------------------
+-- changeRing
+-- moves a HyperGraph into a new Ring
+-----------------------------------------------------------
 
-    
-
-
+changeRing = method(Options=>{MaximalEdges=>false})
+changeRing (HyperGraph, PolynomialRing, List) :=  option -> (H, R, L) -> (
+     E := edges H;
+     f := map(R, ring H, L);
+     E = toList set apply(E, e-> set apply(e, v-> f v));
+     I := if option.MaximalEdges then (
+       select(toList(0..#E-1), i-> all(toList(0..#E-1), j-> j===i or not isSubset(E_i,E_j)))
+     ) else (
+       select(toList(0..#E-1), i-> all(toList(0..#E-1), j-> j===i or not isSubset(E_j,E_i)))
+     ) ;
+     hyperGraph(R,apply(I, i->toList E_i))
+     );
 
 ---------------------------------------------------------------
 -- chromaticNumber
@@ -990,7 +1005,7 @@ smallestCycleSize Graph := G -> (
 
 ------------------------------------------------------------
 -- spanningTree
--- returna a spanning tree of a graph
+-- returns a spanning tree of a graph
 -----------------------------------------------------------
 
 spanningTree = method();
@@ -1476,6 +1491,71 @@ doc ///
         SeeAlso	    
 	        cycle
 ///	
+
+
+	      
+------------------------------------------------------------
+-- DOCUMENTATION changeRing
+------------------------------------------------------------
+
+doc ///
+        Key
+	        changeRing
+		(changeRing, HyperGraph, PolynomialRing, List)
+		[changeRing, MaximalEdges]
+	Headline
+	        replaces vertices with variables of a different ring
+	Usage
+	        G = changeRing(H,R,L) or G = changeRing(H,R,L, MaximalEdges => B)
+	Inputs
+	        H:HyperGraph
+	        R:PolynomialRing
+		    containing the new vertices as variables
+	        L:List
+		    of substitutions, one variable in R for each vertex of H
+	        B:Boolean
+	Outputs
+	        G:HyperGraph
+			over the ring R with edges obtained by making substitutions into the edges of H
+        Description
+		Text
+			This method is meant for moving a HyperGraph that is defined over 
+			one ring, to another ring R. The parameter L must be a list containing 
+			variables of R that should replace the vertices of H. For the most 
+			basic way to use this method, see the first example:
+		Example
+		     P = QQ[a,b,c];
+		     H = hyperGraph({a*b,b*c});
+		     S = QQ[x,y,z,w];
+		     changeRing(H,S,{x,z,y})
+		Text
+			In the example above, {\tt a} is replaced with {\tt x}, {\tt b} is replaced with {\tt z}, and {\tt c} is replaced with {\tt y}. A more complex situation arises when two vertices of {\tt H} are replaced by the same variable.
+		Example
+		     P = QQ[a,b,c];
+		     H = hyperGraph({a*b*c});
+		     G = hyperGraph({a*b,b*c});
+		     S = QQ[x,y,z,w];
+		     changeRing(H,S,{x,y,x})
+		     changeRing(G,S,{x,y,x})
+		Text
+			Note that duplicate variables are removed from edges after substitution. 
+			Duplicate edges are also reduced to a single edge. 
+			As all HyperGraphs in this package have the property that no edge is a 
+			subset of any other edge, some edges may need to be dropped 
+			after substitution. This happens in the next example.
+		Example
+		     P = QQ[a,b,c];
+		     H = hyperGraph({a*b,b*c});
+		     S = QQ[x,y];
+		     changeRing(H,S,{x,y,y})
+		     changeRing(H,S,{x,y,y},MaximalEdges=>true)
+		Text
+			By defualt, changeRing uses minimal edges that appear after substitution to
+			construct its output. The optional argument @TO MaximalEdges@ allows 
+			one to get the maximal edges instead.
+	SeeAlso
+		inducedHyperGraph
+///		      
 
 
 	      
@@ -2459,8 +2539,17 @@ doc ///
 			inducedHyperGraph(H1,{c,d,e})
 			use ring G
 			inducedHyperGraph(G,{b,c,d,e},OriginalRing=>true) --H1 but in bigger ring
+		Text
+			Equivalently, one can use @TO changeRing@ to move the induced hypergraph
+			back into the original ring.
+		Example
+			R = QQ[a,b,c,d,e]	   
+			G = graph {a*b,b*c,c*d,d*e,e*a} -- graph of the 5-cycle
+			H = inducedHyperGraph(G,{b,c,d})
+			changeRing(H,R,{b,c,d})
         SeeAlso
 	        deleteEdges
+	        changeRing
 ///   
 
 
@@ -3374,7 +3463,23 @@ doc ///
 	  SeeAlso
 	       isSCM
 ///	       
-	       
+
+------------------------------------------------------------
+-- DOCUMENTATION MaximalEdges
+------------------------------------------------------------
+
+doc ///
+        Key
+	        MaximalEdges
+	Headline
+	        optional argument for changeRing
+	Description
+	     	Text
+     	       	    This is an option to tell @TO changeRing@ whether to 
+		    make a hypergraph using maximal or minimal edges after substitution
+		    for the variables.
+///
+
 ------------------------------------------------------------
 -- DOCUMENTATION OriginalRing
 ------------------------------------------------------------
@@ -3416,6 +3521,7 @@ doc ///
 	  SeeAlso
 	       inducedHyperGraph
 ///	       
+
 -----------------------------
 -- Constructor Tests --------
 -- Test hyperGraph and Graph
@@ -3537,6 +3643,29 @@ S= QQ[a..d]
 g = graph {a*c,b*d}
 assert(antiCycle(S) == g)
 assert(complementGraph antiCycle(S) == cycle(S))
+///
+
+------------------------
+-- Test changeRing
+------------------------ 
+
+TEST///
+P = QQ[a,b,c]
+H = hyperGraph {a*b,b*c}
+G = hyperGraph {a*b*c}
+R = QQ[x,y,z,w]
+A1 = hyperGraph {x*z,z*y}
+A2 = hyperGraph {x*y}
+A3 = hyperGraph {x*y}
+A4 = hyperGraph {y}
+A5 = hyperGraph {x*y}
+A6 = hyperGraph {y}
+assert(A1 == changeRing(H,R,{x,z,y}))
+assert(A2 == changeRing(G,R,{x,y,y}))
+assert(A3 == changeRing(H,R,{x,y,x}))
+assert(A4 == changeRing(H,R,{x,y,y}))
+assert(A5 == changeRing(H,R,{x,y,y}, MaximalEdges=>true))
+assert(A6 == changeRing(H,R,{x,y,y}, MaximalEdges=>false))
 ///
 
 ------------------------
