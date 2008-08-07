@@ -59,7 +59,7 @@ export {HyperGraph,
 	incidenceMatrix,
 	independenceComplex,
 	independenceNumber,
-	inducedGraph,
+	inducedHyperGraph,
       	isBipartite,
 	isChordal,
 	isCM,
@@ -83,7 +83,8 @@ export {HyperGraph,
 	vertexCoverNumber,
 	vertexCovers,
 	vertices,
-	Gins
+	Gins,
+	OriginalRing
         };
 
 ----------------------------------------------------------------------------------------
@@ -240,7 +241,7 @@ adjacencyMatrix Graph := G -> (
 allEvenHoles = method();
 allEvenHoles Graph := G -> (
      R:=G#"ring";
-     S:=(coefficientRing R)[append(flatten entries vars R,newVar)];
+     S:=(coefficientRing R)[append(gens R,newVar)];
      edges:=G#"edges";
      numEdges:=#edges;
      count:=0;
@@ -658,19 +659,25 @@ independenceNumber Graph:= G -> (
 
 
 --------------------------------------------------------------------------------
--- inducedGraph
+-- inducedHyperGraph
 -- given a set of vertices, return induced graph on those vertices
 --------------------------------------------------------------------------------
+--if OriginalRing is true, then the hypergraph stays in the larger ring.
+--by default, the ring of the induced hypergraph is the smaller ring.
+--this avoids having lots of isolated vertices in the resulting hypergraph.
 
-inducedGraph = method();
-inducedGraph (HyperGraph,List) := (H,S) -> (
+inducedHyperGraph = method(Options=>{OriginalRing=>false});
+inducedHyperGraph (HyperGraph,List) := opts -> (H,S) -> (
      if (isSubset(set S, set H#"vertices") =!= true) then error "Second argument must be a subset of the vertices";
      ie := select(H#"edges",e -> isSubset(set e,set S));
-     R := (coefficientRing H#"ring")[S];
-     F := map(R,H#"ring");
-     ienew := apply(ie,e -> apply(e,v->F(v)));
-		 use H#"ring";
-     return(hyperGraph(R,ienew));
+     if not opts#OriginalRing then (
+	  R := (coefficientRing H#"ring")[S];
+	  F := map(R,H#"ring");
+     	  ienew := apply(ie,e->apply(e,v->F(v)));
+	  use H#"ring";
+	  return(hyperGraph(R,ienew));
+	  );
+     return(hyperGraph(ring H,ie));
      )
 
 
@@ -699,9 +706,6 @@ isChordal Graph := G -> (
      if D-1 =!= R then return (false);
      return(true);
      )
-----------  this function will break! if G is a complete graph.  We need to fix it!
---CAF: Looks OK to me on Aug. 4. I'll add a test.
---CAF: Seems to work OK on the test.
 
 -------------------------------------------------------------
 -- isCM
@@ -927,7 +931,7 @@ randomUniformHyperGraph (PolynomialRing,ZZ,ZZ) := (R,card,num) -> (
      if card <= 0 then error "cardinalities of hypergraphs must be positive integers";
      if num < 0 then error "number of edges must be nonnegative";
      if num > binomial(numgens R,card) then error "can't make that many edges";
-     edges:=take(random subsets(flatten entries vars R,card),num);
+     edges:=take(random subsets(gens R,card),num);
      hyperGraph(R,edges)
      )
 
@@ -1730,7 +1734,7 @@ doc ///
 			R = QQ[a..l]
 			H = hyperGraph {a*b*c, c*d,d*e*f, h*i, i*j, l}
 			L = connectedComponents H
-			apply(L, C -> inducedGraph(H,C))
+			apply(L, C -> inducedHyperGraph(H,C))
         SeeAlso
 	     isConnected
 	     numConnectedComponents
@@ -2413,20 +2417,19 @@ doc ///
 	        independenceComplex
 ///	
 	      
-
 ------------------------------------------------------------
--- DOCUMENTATION inducedGraph
+-- DOCUMENTATION inducedHyperGraph
 ------------------------------------------------------------
 
 
 doc ///
 	Key
-		inducedGraph
-		(inducedGraph, HyperGraph, List)
+		inducedHyperGraph
+		(inducedHyperGraph, HyperGraph, List)
 	Headline
 		returns the induced subgraph of a (hyper)graph.
 	Usage
-		h = inducedGraph H 
+		h = inducedHyperGraph H 
 	Inputs
 		H:HyperGraph
 		L:List
@@ -2439,15 +2442,23 @@ doc ///
 			This function returns the induced subgraph of a (hyper)graph on a specified set of vertices.  The function 
 			enables the user to create subgraphs of the original (hyper)graph. 
 			
-			The ring of the induced subgraph contains only variables in {\tt L}.
-			The current ring must be changed before working with the induced subgraph.
+			The default option is for the ring of the induced subgraph to contain only 
+			variables in {\tt L}. Then the current ring must be changed before working with the induced subgraph.
+			We use this setup to avoid having a lot of isolated vertices in the induced (hyper)graph. However, one
+			can set the option @TO OriginalRing@ to {\tt true} if one wants give the induced (hyper)graph the
+			same ring as the original (hyper)graph.
+			
+			Note: Since @TO Graph@ is a @TO Type@ of @TO HyperGraph@, {\tt inducedHyperGraph} can be used for graphs. There
+			is no separate method installed.
 		Example
 			R = QQ[a,b,c,d,e]	   
 			G = graph {a*b,b*c,c*d,d*e,e*a} -- graph of the 5-cycle
-			H1 = inducedGraph(G,{b,c,d,e})
-			H2 = inducedGraph(G,{a,b,d,e})
-			use H1#"ring"
-			inducedGraph(H1,{c,d,e})
+			H1 = inducedHyperGraph(G,{b,c,d,e})
+			H2 = inducedHyperGraph(G,{a,b,d,e})
+			use ring H1
+			inducedHyperGraph(H1,{c,d,e})
+			use ring G
+			inducedHyperGraph(G,{b,c,d,e},OriginalRing=>true) --H1 but in bigger ring
         SeeAlso
 	        deleteEdges
 ///   
@@ -3082,7 +3093,7 @@ doc ///
 	        Example
 		       S = QQ[a..d];
 		       g = cycle S;
-		       h = inducedGraph(g,{a,b,c});
+		       h = inducedHyperGraph(g,{a,b,c});
 		       describe ring g
 		       describe ring h
 	SeeAlso
@@ -3194,7 +3205,7 @@ doc ///
 		     not work on unconnected graphs.  The algorithm is very naive;  the first edge
 		     of the tree is the first edge of the graph.  The algorithm then successively
 		     adds the next edge in the graph, as long as no cycle is created.  The algorithm terminates once (n-1)
-		     edges have been added, where n is the number of edges.
+		     edges have been added, where n is the number of vertices.
 		Example      
      	       	     T = QQ[x_1..x_9]
 		     g = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9,x_9*x_1} -- a 9-cycle
@@ -3364,7 +3375,47 @@ doc ///
 	       isSCM
 ///	       
 	       
+------------------------------------------------------------
+-- DOCUMENTATION OriginalRing
+------------------------------------------------------------
 
+doc ///
+        Key
+	        OriginalRing
+	Headline
+	        optional argument for inducedHyperGraph
+	Description
+	     	Text
+     	       	    This is an option to tell @TO inducedHyperGraph@ whether to return
+		    a hypergraph with the original (larger) ring attached or the subring
+		    only involving the variables of {\tt L}. The smaller ring is the default.
+	SeeAlso
+		inducedHyperGraph
+///
+
+doc ///
+     	  Key
+	       [inducedHyperGraph, OriginalRing]
+	  Headline
+	       use OriginalRing inside inducedHyperGraph
+	  Usage
+	       K = inducedHyperGraph(H,L,OrignalRing=>true)
+	  Inputs
+	       H:HyperGraph
+	       	    the hypergraph being considered
+	       L:List
+	       	    a list of vertices
+     	  Outputs
+	       K:HyperGraph
+	       	    the induced HyperGraph of {\tt H} on the vertices of {\tt L}
+	  Description
+	       Text
+     	       	    When {\tt OriginalRing} is set to {\tt true}, @TO inducedHyperGraph@ returns
+		    a hypergraph with the original (larger) ring attached rather than the subring
+		    only involving the variables of {\tt L}.
+	  SeeAlso
+	       inducedHyperGraph
+///	       
 -----------------------------
 -- Constructor Tests --------
 -- Test hyperGraph and Graph
@@ -3739,14 +3790,16 @@ assert(independenceNumber c5 == 2)
 ///
 
 -----------------------------
--- Test inducedGraph
+-- Test inducedHyperGraph
 -----------------------------
 
 TEST///
 R=QQ[a..e]
-G=graph(monomialIdeal(a*b,b*c,c*d,d*e,a*e))
---assert(inducedGraph(G,{a,d,e})==graph(QQ[a,d,e],{{a,e},{d,e}}))
---doesn't quite do it
+G=graph {a*b,b*c,c*d,d*e,a*e}
+assert(inducedHyperGraph(G,{a,d,e},OriginalRing=>true)==graph(monomialIdeal(d*e,a*e)))
+H=inducedHyperGraph(G,{a,d,e})
+use ring H
+assert(H == hyperGraph(monomialIdeal(d*e,a*e)))
 ///
 
 -----------------------------
@@ -3907,6 +3960,18 @@ R=QQ[a..e]
 G=randomUniformHyperGraph(R,3,2)
 assert(#(edges G)==2)
 assert(#(first edges G)==3)
+///
+
+-------------------------------------
+-- Test ring
+-------------------------------------
+
+TEST///
+S=QQ[a..e]
+G=graph monomialIdeal(a*b,c*e)
+assert(ring G == S)
+H=hyperGraph(S,{{a,b,c},{a,d}})
+assert(ring H == S)
 ///
 
 -------------------------------------
