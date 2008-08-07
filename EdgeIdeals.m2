@@ -3515,17 +3515,18 @@ c4=graph {a*b,b*c,c*d,d*a}
 assert (#(allEvenHoles c4)==1)
 H=graph(monomialIdeal(a*b,b*c,c*d,d*e,e*f,a*f,a*d)) --6-cycle with a chord
 assert (allEvenHoles H == {{a, b, c, d}, {a, d, e, f}})
-
 ///
 
 -----------------------------
 -- Test allOddHoles
 -----------------------------
 
+TEST///
 R=QQ[a..f]
 assert (allOddHoles cycle(R,3) == {})
 G=graph(monomialIdeal(a*b,b*c,c*d,d*e,e*f,a*f,a*c))
 assert (allOddHoles G == {{a,c,d,e,f}})
+///
 
 ----------------------------
 -- Test antiCycle
@@ -3626,9 +3627,11 @@ assert((coverIdeal h) == j)
 -- Test cycle
 -----------------------------
 
+TEST///
 R=QQ[a..d]
 G=graph(monomialIdeal(a*b,b*c,c*d,a*d))
 assert (G == cycle(R,4))
+///
 
 -----------------------------
 -- Test degreeVertex
@@ -3651,9 +3654,11 @@ assert( degreeVertex(H,3) == 1)
 -- Test deleteEdges
 -----------------------------
 
+TEST///
 R=QQ[a..d]
 G=deleteEdges(completeGraph R,{{b,d},{a,c}})
 assert (G == graph(monomialIdeal(a*b,a*d,b*c,c*d)))
+///
 
 -----------------------------
 -- Test edgeIdeal
@@ -3670,27 +3675,32 @@ assert((edgeIdeal h) == i)
 -- Test edges
 -----------------------------
 
+TEST///
 R=QQ[a..d]
 G=graph(monomialIdeal(a*b,c*d,a*d))
 assert (edges G == {{a,b},{a,d},{c,d}})
+///
 
 -----------------------------
 -- Test getCliques
 -- Test getMaxCliques
 -----------------------------
 
+TEST///
 R=QQ[a..d]
 G=completeGraph R
 assert (getMaxCliques G == {{a,b,c,d}})
 assert (#(getCliques G) == binomial(4,2)+binomial(4,3)+binomial(4,4))
+///
 
 -----------------------------
 -- Test getEdge
 -----------------------------
-
+TEST///
 R=QQ[a..d]
 H=hyperGraph(R,{{a,b,d},{d,c,b}})
 assert (getEdge(H,0) == {a,b,d})
+///
 
 -----------------------------
 -- Test getEdgeIndex 
