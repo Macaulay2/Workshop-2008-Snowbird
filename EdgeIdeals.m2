@@ -1,3 +1,4 @@
+
 needsPackage "SimplicialComplexes"
 
 newPackage("EdgeIdeals", 
@@ -21,6 +22,7 @@ newPackage("EdgeIdeals",
            DebuggingMode => true
           )
 
+needsPackage "GenericInitialIdeal"
 needsPackage "SimplicialComplexes"
 needsPackage "SimpleDoc"
 
@@ -699,6 +701,7 @@ isChordal Graph := G -> (
      )
 ----------  this function will break! if G is a complete graph.  We need to fix it!
 --CAF: Looks OK to me on Aug. 4. I'll add a test.
+--CAF: Seems to work OK on the test.
 
 -------------------------------------------------------------
 -- isCM
@@ -829,8 +832,8 @@ isPerfect Graph := G -> (
 -- isSCM
 -- checks if (hyper)graph is Sequentially Cohen-Macaulay
 -------------------------------------------------------------
-
-needsPackage "GenericInitialIdeal"
+--uses GenericInitialIdeals package for the gin
+--if the user selects the Gins option
 
 isSCM= method(Options=>{Gins=>false});
 isSCM HyperGraph := opts -> H -> (
