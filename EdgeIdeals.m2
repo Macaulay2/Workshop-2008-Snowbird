@@ -22,7 +22,6 @@ newPackage("EdgeIdeals",
           )
 
 needsPackage "SimplicialComplexes"
-needsPackage "GenericInitialIdeal"
 needsPackage "SimpleDoc"
 
 export {HyperGraph, 
@@ -59,7 +58,7 @@ export {HyperGraph,
 	independenceComplex,
 	independenceNumber,
 	inducedGraph,
-      isBipartite,
+      	isBipartite,
 	isChordal,
 	isCM,
 	isConnected,
@@ -698,10 +697,8 @@ isChordal Graph := G -> (
      if D-1 =!= R then return (false);
      return(true);
      )
-----------  this function will break! if G is a complete graph. 
----------- We need to fix it!
+----------  this function will break! if G is a complete graph.  We need to fix it!
 --CAF: Looks OK to me on Aug. 4. I'll add a test.
---CAF: Seems to work OK on the test.
 
 -------------------------------------------------------------
 -- isCM
@@ -833,8 +830,7 @@ isPerfect Graph := G -> (
 -- checks if (hyper)graph is Sequentially Cohen-Macaulay
 -------------------------------------------------------------
 
---uses GenericInitialIdeals package for the gin
---if the user selects the Gins option
+needsPackage "GenericInitialIdeal"
 
 isSCM= method(Options=>{Gins=>false});
 isSCM HyperGraph := opts -> H -> (
