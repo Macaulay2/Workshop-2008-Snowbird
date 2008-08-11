@@ -78,6 +78,7 @@ export {HyperGraph,
 	numTriangles,
      	randomGraph,
 	randomUniformHyperGraph,
+	randomHyperGraph,
 	simplicialComplexToHyperGraph,
 	smallestCycleSize,
 	spanningTree,
@@ -85,6 +86,8 @@ export {HyperGraph,
 	vertexCovers,
 	vertices,
 	Gins,
+	BranchLimit,
+	TimeLimit,
 	MaximalEdges,
 	OriginalRing
         };
@@ -948,6 +951,44 @@ randomUniformHyperGraph (PolynomialRing,ZZ,ZZ) := (R,card,num) -> (
      if num > binomial(numgens R,card) then error "can't make that many edges";
      edges:=take(random subsets(gens R,card),num);
      hyperGraph(R,edges)
+     )
+
+-----------------------------------------------------------
+-- randomHyperGraph
+-- returns a random hypergraph on a given vertex set
+-- user chooses the size of each edge
+-----------------------------------------------------------
+recursiveRandomHyperGraph = (V,L,D,BranchLimit,TerminateTime) -> (
+     if #D === 0 then return L;
+     V = random V;
+     W := set take(V, D#0);
+     if any(L, l -> all(W, w-> member(w#0,l))) then return null;
+     if any(L, l -> all(l, w-> member(w#0,W))) then return null;
+     L = append(L, W);
+     D = drop(D,1);
+     H := recursiveRandomHyperGraph(V,L,D,BranchLimit,TerminateTime);
+     I := 0;
+     while H === null and I < BranchLimit + #D  and currentTime() < TerminateTime do (
+          H = recursiveRandomHyperGraph(V,L,D,BranchLimit,TerminateTime);
+	  I = I - 1;
+     );
+     return H;
+)
+
+randomHyperGraph = method(Options => {TimeLimit => 5, BranchLimit => 3});
+randomHyperGraph (PolynomialRing,List) := opts -> (R,D) -> (
+     if any(D, d-> d < 0) then error "edge sizes must be nonnegative";
+     V := gens R;
+     if opts.TimeLimit === 0 then opts.TimeLimit === 24*60*60;
+     TerminateTime := currentTime() + opts.TimeLimit;
+     H := null;
+     i := 0;
+     while H === null and i < opts.BranchLimit + #D and currentTime() < TerminateTime do (
+	H = recursiveRandomHyperGraph(V,{},D,opts.BranchLimit,TerminateTime);
+	i = i+1;
+     );
+     if H === null then return null;
+     return hyperGraph(R, apply(H, h-> toList h)); 
      )
 
 -----------------------------------------------------------
@@ -3126,6 +3167,7 @@ doc ///
      	       	  randomGraph(R,4)  
 	SeeAlso
 	     randomUniformHyperGraph
+	     randomHyperGraph
 ///
 
 
@@ -3158,6 +3200,43 @@ doc ///
      	       	  randomUniformHyperGraph(R,4,2)  
 	SeeAlso
 	     randomGraph
+	     randomHyperGraph
+///
+
+------------------------------------------------------------
+-- DOCUMENTATION randomHyperGraph
+------------------------------------------------------------
+
+doc ///
+	Key
+		randomHyperGraph
+		(randomHyperGraph,PolynomialRing,List)
+	Headline 
+		returns a random hypergraph
+	Usage
+		H = randomHyperGraph(R,D)
+	Inputs
+		R:PolynomialRing
+		     which gives the vertex set of {\tt H}
+		D:List
+		     of integers that are the cardinalities of the edges of {\tt H}
+	Outputs 
+		H:HyperGraph
+			a hypergraph with {\tt d} edges {\tt E_i} each of size {\tt D_i}. Returns {\tt null} if none can be found.
+	Description
+	     Text
+		  This method is not guaranteed to return a HyperGraph, even if one exists with the given edge sizes.
+	     Example
+	     	  R=QQ[x_1..x_5]
+		  setRandomSeed 1
+		  randomHyperGraph(R,{3,2,4})
+		  randomHyperGraph(R,{3,2,4})
+     	       	  randomHyperGraph(R,{4,4,2,2}) -- impossible, returns null
+	SeeAlso
+	     randomGraph
+	     randomUniformHyperGraph
+	     BranchLimit
+	     TimeLimit
 ///
 
 
@@ -3465,6 +3544,31 @@ doc ///
 ///	       
 
 ------------------------------------------------------------
+-- DOCUMENTATION BranchLimit
+------------------------------------------------------------
+
+doc ///
+        Key
+	        BranchLimit
+	        [randomHyperGraph, BranchLimit]
+	Headline
+	        optional argument for randomHyperGraph
+	Description
+	     	Text
+     	       	    The @TO randomHyperGraph@ method follows a backtracking algorithm
+		    to generate edges with no inclusions between them. At each step in the
+		    recursive tree,  @TO randomHyperGraph@ will make {\tt BranchLimit} attempts to
+		    complete its list of edges. Thus, if a hypergraph with {\tt N} edges is required,
+		    @TO randomHyperGraph@ may take {\tt BranchLimit^N} steps before terminating.
+		    To be more precise, the method is implemented so that it makes {\tt BranchLimit + L} attempts
+		    at level {\tt L} of the recursion.
+		    The default value is 3.
+	SeeAlso
+		TimeLimit
+		randomHyperGraph
+///
+
+------------------------------------------------------------
 -- DOCUMENTATION MaximalEdges
 ------------------------------------------------------------
 
@@ -3521,6 +3625,29 @@ doc ///
 	  SeeAlso
 	       inducedHyperGraph
 ///	       
+
+------------------------------------------------------------
+-- DOCUMENTATION TimeLimit
+------------------------------------------------------------
+
+doc ///
+        Key
+	        TimeLimit
+	        [randomHyperGraph, TimeLimit]
+	Headline
+	        optional argument for randomHyperGraph
+	Description
+	     	Text
+     	       	    The @TO randomHyperGraph@ method follows a backtracking algorithm
+		    to generate edges with no inclusions between them. As it may take 
+		    a long time to terminate, a time limit is imposed on the method.
+		    The {\tt TimeLimit} option is the amound of time, in seconds, that 
+		    the method @TO randomHyperGraph@ will take before terminating.
+		    A value of 0 is interpreted as one day. The default value is 5 (seconds).
+	SeeAlso
+		BranchLimit
+		randomHyperGraph
+///
 
 -----------------------------
 -- Constructor Tests --------
