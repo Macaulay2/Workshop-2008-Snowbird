@@ -379,30 +379,34 @@ document {
      with their documentation."
      }
 
+-- We may want to change the examples.  Otherwise complete except that
+-- we may want to give the full reference to Eisenbud Huneke Ulrich.
 document {
      Key => {symmetricKernel,(symmetricKernel, Matrix)},
-     Headline => "compute the defining ideal of the rees algebra for a 
-     matrix",
+     Headline => "Compute the rees ring of the image of a matrix",
      Usage => "symmetricKernel(f)",
      Inputs => {"f" => {ofClass Matrix}},
-     Outputs => {{ofClass Ideal, "defining the Rees ring of ", ofClass Matrix, TT "f"}},
-	       
+     Outputs => {{ofClass Ideal, " defining the Rees ring of ", ofClass Matrix, " ", TT "f"}},	       
      PARA{}, "This function is the workhorse of all/most of the Rees algebra 
      functions in the package.  Most users will prefer to use one of the front 
      end commands ", TO "reesAlgebra", " or ", TO "reesIdeal", " and others.",
      EXAMPLE {
 	  "R = QQ[a..e]",
-	  "J = monomialCurveIdeal(R, {1,2,3,4})",
+	  "J = monomialCurveIdeal(R, {1,2,3})",
 	  "symmetricKernel (gens J)"
      },
-    "Let ", TT "I", " be the ideal returned be and the ring it lives in 
-    (also printed) ", TT "S", ", then ", TT "S/I", " is isomorphic to 
-    the Rees algebra ", TT "R[Jt]",  "We can get the same information
+    "Let ", TT "I", " be the ideal returned and let ", TT "S", " be the ring it lives in 
+    (also printed), then ", TT "S/I", " is isomorphic to 
+    the Rees algebra ", TT "R[Jt]",  ".  We can get the same information
     above 
     using ", TT "reesIdeal(J)", ", see ", TO "reesIdeal", ".  Also 
     note that ", TT "S", " is multigraded allowing Macaulay2 to correctly 
     see that the variables of R now live in degree 0 and the new variables 
     needed to describe ", TT "R[Jt]", "as a k-algebra are in degree 1.",
+    EXAMPLE {
+	 "S = ring oo;",
+	 "(monoid S).Options.Degrees"
+	 },
     PARA{ TT "symmetricKernel", " can also be computed over a quotient 
     ring.  "},     
     EXAMPLE { 
@@ -410,7 +414,7 @@ document {
 	  "J = ideal(x,y,z)",
 	  "symmetricKernel(gens J)"
 	  },
-     "These many ways of working with the function allows the system 
+     "The many ways of working with this function allows the system 
      to compute both the classic Rees algebra of an ideal over a ring 
      (polynomial or quotient) and to compute the the Rees algebra of a 
      module or ideal using a universal embedding as described in the paper 
@@ -457,14 +461,13 @@ document {
 	       {0,0,0,d2_0},
 	       {0,0,0,0}}",
 	  "M=M-(transpose M)",
-	  "N=transpose (res coker transpose M).dd_2",
+	  "N= transpose (res coker transpose M).dd_2",
 	  (
 	       stderr << "--warning: non-functional example code commented out" << endl;
 	       "uN=universalEmbedding -- (N)"
 	       )
 	  }
      }
-
 
 document {
      Key => {reesIdeal, (reesIdeal,Ideal), (reesIdeal, Module), 

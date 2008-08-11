@@ -354,12 +354,13 @@ icFracP Ring := List => o -> (R) -> (
 	  D := 1_R;
 	  U := ideal(D);
 	  if o.reportSteps == true then print ("Number of steps: " | toString 0 | ",  Conductor Element: " | toString 1_R);
-	  )     
+	  )    
+     else if coefficientRing(R) === ZZ or coefficientRing(R) === QQ then error("Expected coefficient ring to be a finite field")
      else(
 	  if o.conductorElement === null then (
-     	       P = ideal presentation R;
-     	       c = codim P;
-     	       S = ring P;
+     	       P := ideal presentation R;
+     	       c := codim P;
+     	       S := ring P;
 	       J := promote(jacobian P,R);
 	       n := 1;
 	       det1 := ideal(0_R);
