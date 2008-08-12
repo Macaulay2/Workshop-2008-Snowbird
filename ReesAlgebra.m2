@@ -102,9 +102,17 @@ symmetricKernel(Matrix) := Ideal => o -> (f) -> (
 universalEmbedding = method()
 universalEmbedding(Module) := Matrix => (M) -> (
      UE := transpose syz transpose presentation M;
-     map(target map1, M, UE)
+     map(target UE, M, UE)
      )
-
+///
+restart
+load "Snowbird/ReesAlgebra.m2"
+kk=ZZ/101
+S=kk[x,y,z]
+FF=res ((ideal vars S)^3)
+M=coker (FF.dd_2)
+universalEmbedding M
+///
 
 -- PURPOSE : Front end for computing the defining ideal of the Rees algebra 
 --           of a module, or an ideal defined over a polynomial ring or a 
