@@ -104,15 +104,6 @@ universalEmbedding(Module) := Matrix => (M) -> (
      UE := transpose syz transpose presentation M;
      map(target UE, M, UE)
      )
-///
-restart
-load "Snowbird/ReesAlgebra.m2"
-kk=ZZ/101
-S=kk[x,y,z]
-FF=res ((ideal vars S)^3)
-M=coker (FF.dd_2)
-universalEmbedding M
-///
 
 -- PURPOSE : Front end for computing the defining ideal of the Rees algebra 
 --           of a module, or an ideal defined over a polynomial ring or a 
@@ -441,22 +432,16 @@ document {
      }
 
 --- needs work....
+--- we are mappimg M to the dual of the syzygy of its dual.  
 document { 
      Key => {universalEmbedding, (universalEmbedding,Module)},
      Headline => "Compute the universal embedding",
-     Usage =>  "universalEmbedding(M,I)", 
+     Usage =>  "universalEmbedding M", 
      Inputs => {"M" => {ofClass Module, " over ", ofClass Ring}}, 
-     Outputs => {{ofClass ModuleMap, "defining the universal embedding 
-	       of the module given over a quotient ring into a free
-	       module over the  polynomial ring for ", TT "I",
-	       " where ", TT "M", " is the lift of a presentation of the module to 
-	       the polynomial ring"}},
-      PARA{}, "The main purpose of this function is to compute the embedding 
-     needed to compute the ReesAlgebra of a module following ", EM "What 
-     is the Rees algebra of a module?", " written by Eisenbud, Huneke, and 
-     Ulrich ", ". The function is incorporated in ", TO "reesAlgebra", " but the 
-     interested user can use this function to see the map or use it for 
-     something else. ", 
+     Outputs => {{ofClass ModuleMap, " defining the universal embedding 
+	       of the module ", TT "M", " given into a free module
+	       over the same ring as ", TT "M", "."}},
+      PARA{}, "This function uses the transpose (dual) of the",
      EXAMPLE { 
 	  "R=QQ[x_1..x_8];",
 	  "m1=genericMatrix(R,x_1,2,2); m2=genericMatrix(R,x_5,2,2);",
@@ -469,11 +454,16 @@ document {
 	       {0,0,0,d2_0},
 	       {0,0,0,0}}",
 	  "M=M-(transpose M)",
-	  "N= transpose (res coker transpose M).dd_2",
-	  (
-	       stderr << "--warning: non-functional example code commented out" << endl;
-	       "uN=universalEmbedding -- (N)"
-	       )
+	  "N= coker(res coker transpose M).dd_2",
+	  "universalEmbedding(N)"
+	  },
+     PARA{},
+     "Another example",
+     EXAMPLE {
+ 	  "S = ZZ/101[x,y,z];",
+	  "FF=res ((ideal vars S)^3);",
+	  "M=coker (FF.dd_2)",
+	  "universalEmbedding M"
 	  }
      }
 
