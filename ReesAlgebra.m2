@@ -77,9 +77,10 @@ symmetricKernel(Matrix) := Ideal => o -> (f) -> (
      newHeft := prepend(1, heftR);
      sourceDegs := apply(degrees source f, i -> prepend(1,i));
      RSourceTemp:=(coefficientRing R)(
-	  tensor(monoid[w_1..w_(rank source f)],monoid R,Heft =>newHeft));
+	  tensor(monoid[w_1..w_(rank ambient source f)],monoid R,Heft =>newHeft));
      RSource:=newRing(RSourceTemp, 
-	  Degrees=>join(sourceDegs,drop ((monoid RSourceTemp).Options.Degrees, rank source f)));
+	  Degrees=>join(sourceDegs,drop ((monoid     RSourceTemp).Options.Degrees, 
+		    rank ambient source f)));
      tarDegs := apply(degrees target f, i -> prepend(1,i));
      RTar := (flattenRing (R[z_1..z_(rank target f), Degrees => tarDegs]))_0;
      RTarNewVars := matrix{
