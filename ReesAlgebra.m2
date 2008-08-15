@@ -73,8 +73,7 @@ symmetricKernel = method(Options=>{Variable => global w})
 symmetricKernel(Matrix) := Ideal => o -> (f) -> (
      R := ring f; 
      z := local z;
-     heftR := (monoid R).Options.Heft;
-     newHeft := prepend(1, heftR);
+     newHeft := prepend(1,(monoid R).Options.Heft);
      sourceDegs := apply(degrees source f, i -> prepend(1,i));
      RSourceTemp:=(coefficientRing R)(
 	  tensor(monoid[w_1..w_(rank ambient source f)],monoid R,Heft =>newHeft));
@@ -144,11 +143,11 @@ reesIdeal (Module, RingElement) := Ideal => o -> (M,a) -> (
      if R =!= ring a 
      then error("Expected Module and Element over the same ring");   
      P := presentation M;
+     newHeft := prepend(1, (monoid R).Options.Heft);
      sourceDegs := apply(degrees target P, i -> prepend(1,i));
-     RSourceTemp:=(coefficientRing R)(monoid[w_1..w_(rank target P)]**monoid R);
+     RSourceTemp:=(coefficientRing R)(monoid[w_1..w_(rank target P)]**monoid R, Heft => newHeft);
      RSource:=newRing(RSourceTemp, 
 	  Degrees=>join(sourceDegs,drop ( (monoid RSourceTemp).Options.Degrees, rank target P)));
---     RSource := R[o.Variable_1..o.Variable_(rank target P), Degrees =>sourceDegs];
      NewVars:=matrix{apply(rank target P, i->RSource_i)};
      I := ideal (NewVars*(substitute(P, RSource)));
      a = substitute(a, RSource);
