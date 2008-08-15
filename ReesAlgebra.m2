@@ -441,29 +441,30 @@ document {
      Outputs => {{ofClass ModuleMap, " defining the universal embedding 
 	       of the module ", TT "M", " given into a free module
 	       over the same ring as ", TT "M", "."}},
-      PARA{}, "This function uses the transpose (dual) of the",
-     EXAMPLE { 
-	  "R=QQ[x_1..x_8];",
-	  "m1=genericMatrix(R,x_1,2,2); m2=genericMatrix(R,x_5,2,2);",
-	  "m=m1*m2",
-	  "i= ideal flatten m",
-	  "d1=minors(2,m1); d2=minors(2,m2);",
-	  "j=i+d1+d2",
-	  "M=matrix{{0,d1_0,m_(0,0),m_(0,1)},
-               {0,0,m_(1,0),m_(1,1)},
-	       {0,0,0,d2_0},
-	       {0,0,0,0}}",
-	  "M=M-(transpose M)",
-	  "N= coker(res coker transpose M).dd_2",
-	  "universalEmbedding(N)"
-	  },
-     PARA{},
-     "Another example",
-     EXAMPLE {
+      PARA{}, "This function uses the transpose (dual) of the .  We
+      first give a simple example looking at a syzygy matrix of the cube of
+      the maximial ideal of a polynomial ring.",
+      EXAMPLE {
  	  "S = ZZ/101[x,y,z];",
 	  "FF=res ((ideal vars S)^3);",
 	  "M=coker (FF.dd_2)",
 	  "universalEmbedding M"
+	  },
+      PARA{},
+     "A more complicated example.",
+     EXAMPLE { 
+	  "x = symbol x;",
+	  "R=QQ[x_1..x_8];",
+	  "m1=genericMatrix(R,x_1,2,2); m2=genericMatrix(R,x_5,2,2);",
+	  "m=m1*m2",
+	  "d1=minors(2,m1); d2=minors(2,m2);",
+	  "M=matrix{{0,d1_0,m_(0,0),m_(0,1)},
+               {0,0,m_(1,0),m_(1,1)},
+	       {0,0,0,d2_0},
+	       {0,0,0,0}}",
+	  "M=M-(transpose M);",
+	  "N= coker(res coker transpose M).dd_2",
+	  "universalEmbedding(N)"
 	  }
      }
 
