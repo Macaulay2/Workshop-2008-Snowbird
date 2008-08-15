@@ -364,6 +364,47 @@ distinguishedAndMult(Ideal,RingElement) := List => o -> (i,a) -> (
 	       --computed as (degree Pcomponent)/(degree P)
        	  {(degree Pcomponent)/(degree P), kernel(map(S/P, R))})))
  
+ 
+------------------------------------------------------------------
+--- We include the code from newrg.m2 in the Snowbird respository
+--- This version of newRing is necessary for the code in this package 
+--- and should be removed once a new distribution of M2 is released
+--- as this version of newRing will be in that distribution. 
+---
+--- We are not exporting any of these functions as they will be in the
+--- main distribution once released. 
+ 
+nothing = first values options newRing
+
+mergeOptions = (x,y) -> merge(x, y, (a,b) -> if b === nothing then a else b)
+
+newRing Ring := Ring => opts -> (R) -> (
+     -- First check the type of ring of R
+     -- The following is for the case when R is a polynomial ring,
+     -- or a quotient of a polynomial ring
+
+     if    (instance(opts.Variables,List) 
+              and #( opts.Variables ) =!= numgens R)
+        or (instance(opts.Variables,ZZ) 
+              and opts.Variables =!= numgens R)
+     then
+         error "cannot change the number of variables using 'newRing'";
+
+     if opts.DegreeRank =!= nothing and opts.Degrees === nothing then opts = first override(opts, Degrees => null);
+     --if opts.DegreeRank =!= nothing or opts.Degrees =!= nothing then opts = first override(opts, Heft => null);
+     if opts.DegreeRank === nothing and opts.Degrees =!= nothing then opts = first override(opts, DegreeRank => null);
+     opts = mergeOptions((monoid R).Options,opts);
+     opts = select(opts, v -> v =!= nothing); -- this applies especially to the MonomialSize option, no longer present in (monoid R).Options
+     f := presentation R;
+     A := ring f;
+     k := coefficientRing A;
+     S := k(monoid [opts]);
+     f = substitute(f,vars S);
+     S/image f
+     )
+------------------------------------------------------------------
+ 
+ 
 beginDocumentation()
 
 document {
