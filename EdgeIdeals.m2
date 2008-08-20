@@ -1050,21 +1050,26 @@ smallestCycleSize Graph := G -> (
 
 spanningTree = method();
 spanningTree Graph:= G-> (
-     if (not isConnected G) then error "The graph must be connected";
-     eG := G#"edges";
-     numVert := #G#"vertices";
-     eT := {eG_0};
-     count := 1;
-     while #eT < numVert-1 do (
-	  eTemp := append(eT,eG_count);
-	  while (smallestCycleSize (graph eTemp) > 0) do (
-	       count = count+1;
-	       eTemp = append(eT,eG_count);
-	       );
-	  count = count+1;
-	  eT = eTemp;
-	  );
-     return graph eT;
+     if #edges(G) === 0 then return G;
+     E := G#"edges";
+     W := set(G#"vertices"); -- vertices not visited yet
+     V := {}; -- vertices visited
+     T := {}; -- edges in tree
+     M := 0; -- index of vertex to visit next
+     while #W > 0 do (
+	X := first toList W;
+	W = W - set{X};
+	V = append(V,X);
+	while M < #V do (
+	    L := select(E, e-> member(V#M,e) and not member(first toList(set(e)-set{V#M}), V));
+	    T = T | L;
+	    L = toList(set(flatten L) - set{V#M});
+	    V = V | L;
+	    W = W - set(L);
+	    M = M + 1;
+	    );
+	);
+     return graph T;
      );
 
 
@@ -3383,28 +3388,25 @@ doc ///
 	        spanningTree 
 		(spanningTree, Graph)
 	Headline
-	        returns a spanning tree of a connected graph
+	        returns a spanning tree of a graph
 	Usage
-	        t = spanningTree(G)
+	        T = spanningTree(G)
 	Inputs
 		G:Graph
-		     the input
 	Outputs
-		t:Graph
+		T:Graph
 		     the spanning tree of G
         Description
 	        Text
-		     This function returns the a spanning tree of a connected graph.  It will
-		     not work on unconnected graphs.  The algorithm is very naive;  the first edge
-		     of the tree is the first edge of the graph.  The algorithm then successively
-		     adds the next edge in the graph, as long as no cycle is created.  The algorithm terminates once (n-1)
-		     edges have been added, where n is the number of vertices.
+		     This function returns a breadth first spanning tree of a graph. 
 		Example      
-     	       	     T = QQ[x_1..x_9];
-		     g = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9,x_9*x_1} -- a 9-cycle
-		     spanningTree g
-		     h = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9} -- a tree (no cycles)
-		     spanningTree h === h
+     	       	     R = QQ[x_1..x_6];
+		     C = cycle R; -- a 6-cycle
+		     spanningTree C
+		     T = graph {x_1*x_2,x_2*x_3, x_1*x_4,x_1*x_5,x_5*x_6}; -- a tree (no cycles)
+		     T == spanningTree T
+		     G = graph {x_1*x_2,x_2*x_3,x_3*x_1,x_4*x_5,x_5*x_6,x_6*x_4}; -- two three cycles
+		     spanningTree G
 ///
 
 
