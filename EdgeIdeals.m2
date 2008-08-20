@@ -245,18 +245,18 @@ adjacencyMatrix Graph := G -> (
 
 allEvenHoles = method();
 allEvenHoles Graph := G -> (
-     R:=G#"ring";
-     S:=(coefficientRing R)[append(gens R,newVar)];
-     edges:=G#"edges";
-     numEdges:=#edges;
-     count:=0;
-     evenCycles:={};
+     R := G#"ring";
+     S := (coefficientRing R)[append(gens R,newVar)];
+     edges := G#"edges";
+     numEdges := #edges;
+     count := 0;
+     evenCycles := {};
      while count < numEdges do (
-	  newEdges:={{first(edges#count),newVar},{newVar,(edges#count)#1}};
-     	  tempEdges:=apply(join(drop(edges,{count,count}),newEdges),i->apply(i,j->substitute(j,S)));
-	  tempGraph:=graph(S,tempEdges);
-	  evenCycles=append(evenCycles,select(allOddHoles tempGraph,i->member(newVar,i)));
-	  count=count+1;
+	  newEdges := {{first(edges#count),newVar},{newVar,(edges#count)#1}};
+     	  tempEdges := apply(join(drop(edges,{count,count}),newEdges),i->apply(i,j->substitute(j,S)));
+	  tempGraph := graph(S,tempEdges);
+	  evenCycles = append(evenCycles,select(allOddHoles tempGraph,i->member(newVar,i)));
+	  count = count+1;
 	  );
      use R;
      apply(unique apply(flatten evenCycles,i->select(i,j->(j != newVar))),k->apply(k,l->substitute(l,R)))
@@ -269,7 +269,7 @@ allEvenHoles Graph := G -> (
 
 allOddHoles = method();
 allOddHoles Graph := G -> (
-     coverI:=coverIdeal G;
+     coverI := coverIdeal G;
      apply(select(ass coverI^2,i->codim i > 3),j->flatten entries gens j)
      )
 
@@ -331,7 +331,7 @@ chromaticNumber HyperGraph := H -> (
 -- cliqueComplex
 -- return the simplicial complex whose faces are the cliques of a graph
 ---------------------------------------------------------------
-cliqueComplex =method();
+cliqueComplex = method();
 cliqueComplex Graph := G -> independenceComplex complementGraph G;
 
 
@@ -491,10 +491,9 @@ degreeVertex (HyperGraph, RingElement) := (H,V) ->	(
 deleteEdges = method();
 
 deleteEdges (HyperGraph,List) := (H,E) -> (
+     if all(E, e -> class class e === PolynomialRing) then E = apply(E, support);
      if (isSubset(set E,set H#"edges") =!= true) then error "Second argument must be a subset of the edges, entered as a list";
-     newedges:=set(H#"edges")-set(E);
-     if toList newedges == {} then return (hyperGraph monomialIdeal(0_(H#"ring")));
-     return (hyperGraph toList newedges);
+     hyperGraph(ring H, toList(set(H#"edges")-set(E)))
      )
 
 --deleteEdges (Graph,List) := (H,E) -> (graph deleteEdges (hyperGraph(H),E))
@@ -527,21 +526,21 @@ edges HyperGraph := H -> H#"edges";
 
 getCliques = method();
 getCliques (Graph,ZZ) := (G,d) -> (
-     subs:=apply(subsets(G#"vertices",d),i->subsets(i,2));
-     cliqueIdeals:=apply(subs,i->ideal apply(i,j->product j));
-     edgeId:=edgeIdeal G;
+     subs := apply(subsets(G#"vertices",d),i->subsets(i,2));
+     cliqueIdeals := apply(subs,i->ideal apply(i,j->product j));
+     edgeId := edgeIdeal G;
      apply(select(cliqueIdeals,i->isSubset(i,edgeId)),j->support j)
        )
 
 getCliques Graph := G -> (
-     numVerts:=#(G#"vertices");
-     cliques:={};
-     count:=2;
+     numVerts := #(G#"vertices");
+     cliques := {};
+     count := 2;
      while count <= numVerts do (
 	  newCliques:=getCliques(G,count);
 	  if newCliques == {} then return flatten cliques;
-	  cliques=append(cliques,newCliques);
-	  count=count+1;
+	  cliques = append(cliques,newCliques);
+	  count = count+1;
 	  );
      flatten cliques
      )
@@ -603,8 +602,8 @@ getGoodLeafIndex HyperGraph := H ->
  -- return all cliques of maximal size
 getMaxCliques = method();
 getMaxCliques Graph := G -> (
-     cliqueList:=getCliques G;
-     clNum:=#(last cliqueList);
+     cliqueList := getCliques G;
+     clNum := #(last cliqueList);
      select(cliqueList,i->#i == clNum)
      )
 
@@ -625,7 +624,7 @@ hasGoodLeaf HyperGraph := H -> any(0..#(H#"edges")-1, N -> isGoodLeaf(H,N))
 
 hasOddHole = method();
 hasOddHole Graph := G -> (
-     coverI:=coverIdeal G;
+     coverI := coverIdeal G;
      any(ass coverI^2,i->codim i > 3)
      )     
 
@@ -660,7 +659,7 @@ incidenceMatrix HyperGraph := H -> (
 -- independenceComplex
 -- returns the simplicial complex whose faces are the independent sets of a (hyper)graph
 --------------------------------------------------------------------------------
-independenceComplex =method();
+independenceComplex = method();
 
 independenceComplex HyperGraph := H -> (simplicialComplex edgeIdeal H)
 
@@ -733,7 +732,7 @@ isChordal Graph := G -> (
 isCM = method();
 
 isCM HyperGraph := H -> (
-     I:=edgeIdeal H;
+     I := edgeIdeal H;
      codim I == pdim coker gens I
      )
 
@@ -859,18 +858,18 @@ isPerfect Graph := G -> (
 
 isSCM= method(Options=>{Gins=>false});
 isSCM HyperGraph := opts -> H -> (
-     J:=dual edgeIdeal H;
+     J := dual edgeIdeal H;
      if opts#Gins then (
-	  g:=gin J;
+	  g := gin J;
 	  return (#(flatten entries mingens g) == #(flatten entries mingens J));
 	  );
-     degs:=sort unique apply(flatten entries gens J,i->first degree i);
-     numDegs:=#degs;
-     count:=0;
+     degs := sort unique apply(flatten entries gens J,i->first degree i);
+     numDegs := #degs;
+     count := 0;
      while count < numDegs do (
 	  Jdeg:=monomialIdeal super basis(degs#count,J);
 	  if regularity Jdeg != degs#count then return false;
-	  count=count+1;
+	  count = count+1;
 	  );
      return true;
      )
@@ -949,7 +948,7 @@ randomUniformHyperGraph (PolynomialRing,ZZ,ZZ) := (R,card,num) -> (
      if card <= 0 then error "cardinalities of hypergraphs must be positive integers";
      if num < 0 then error "number of edges must be nonnegative";
      if num > binomial(numgens R,card) then error "can't make that many edges";
-     edges:=take(random subsets(gens R,card),num);
+     edges := take(random subsets(gens R,card),num);
      hyperGraph(R,edges)
      )
 
@@ -986,7 +985,7 @@ randomHyperGraph (PolynomialRing,List) := opts -> (R,D) -> (
      while H === null and i < opts.BranchLimit + #D and currentTime() < TerminateTime do (
 	H = recursiveRandomHyperGraph(V,{},D,opts.BranchLimit,TerminateTime);
 	i = i+1;
-     );
+        );
      if H === null then return null;
      return hyperGraph(R, apply(H, h-> toList h)); 
      )
@@ -1018,7 +1017,7 @@ smallestCycleSize = method();
 smallestCycleSize Graph := G -> (
      if numTriangles G =!= 0 then return(3);
      R :=  res edgeIdeal complementGraph G;
-     smallestCycle:=0;
+     smallestCycle := 0;
      i := 1;
      -- this loop determines if there is a non-linear syzygy
      -- the first non-linear syzygy tells us the smallest induced
@@ -1053,13 +1052,13 @@ spanningTree = method();
 spanningTree Graph:= G-> (
      if (not isConnected G) then error "The graph must be connected";
      eG := G#"edges";
-     numVert:=#G#"vertices";
+     numVert := #G#"vertices";
      eT := {eG_0};
-     count:=1;
+     count := 1;
      while #eT < numVert-1 do (
 	  eTemp := append(eT,eG_count);
 	  while (smallestCycleSize (graph eTemp) > 0) do (
-	       count =count+1;
+	       count = count+1;
 	       eTemp = append(eT,eG_count);
 	       );
 	  count = count+1;
@@ -1157,6 +1156,22 @@ doc ///
 		HyperGraph
 	Headline 
 		a class for hypergraphs.
+	Description
+		Text
+			This class represents hypergraph. A hypergraph is a tuple {\tt (V,E)} of vertices {\tt V} and edges {\tt E} 
+			which are subsets of the vertices. In this package, all hypergraphs have the additional property that no edge
+			is subset of any other edge. Hypergraphs of this form are often referred to as clutters.
+		Example
+			R = QQ[w,x,y,z];
+			H = hyperGraph(R, {{w,x},{w,y,z},{x,y,z}});
+			vertices H
+			edges H
+			ring H
+		Text
+			Hypergraphs are always associated with a polynomial ring whose variables are the vertices of the hypergraph. 
+	SeeAlso
+		hyperGraph
+		Graph
 ///
 
 doc ///
@@ -1168,7 +1183,16 @@ doc ///
 		Text
 			This class represents simple graphs. This class extends @TO HyperGraph@ and hence
 			inherits all HyperGraph methods.
+		Example
+			R = QQ[w,x,y,z];
+			G = graph(R, {{w,x},{w,y},{w,z},{y,z}});
+			vertices G
+			edges G
+			ring G
+		Text
+			Like hypergraphs, graphs are associated with a polynomial ring whose variables are the vertices of the graph. 
 	SeeAlso
+		graph
 		HyperGraph
 ///
 
@@ -1378,7 +1402,7 @@ doc ///
 		       This function determines if two HyperGraphs are mathematically equal.
 		       Two HyperGraphs are equal if they are defined over the same ring, have 
                        the same variables and have the same set of edges. In particular, 
-                       the order of the edges and the order of variables within each edges 
+                       the order of the edges and the order of variables within each edge 
                        does not matter.
 		Example
                        R = QQ[a..f];
@@ -1400,11 +1424,11 @@ doc ///
 	Headline
 	        returns the adjacency Matrix of a graph
 	Usage
-	        m = adjacencyMatrix g
+	        M = adjacencyMatrix G
 	Inputs
-	        g:Graph
+	        G:Graph
 	Outputs
-	        m:Matrix
+	        M:Matrix
 		       the adjacency matrix of the graph
         Description
 	        Text
@@ -1413,12 +1437,12 @@ doc ///
 		       and 0 otherwise.  The rows and columns are indexed by the variables of the ring and uses the 
 		       ordering of the variables for determining the order of the rows and columns.
 		Example
-                       S = QQ[a..f]
-		       g = graph {a*b,a*c,b*c,c*d,d*e,e*f,f*a,a*d}
-		       t = adjacencyMatrix g	  
-		       T = QQ[f,e,d,c,b,a]
-		       g = graph {a*b,a*c,b*c,c*d,d*e,e*f,f*a,a*d}
-		       t = adjacencyMatrix g -- although the same graph, matrix is different since variables have different ordering
+                       S = QQ[a..f];
+		       G = graph {a*b,a*c,b*c,c*d,d*e,e*f,f*a,a*d}
+		       t = adjacencyMatrix G
+		       T = QQ[f,e,d,c,b,a];
+		       G = graph {a*b,a*c,b*c,c*d,d*e,e*f,f*a,a*d}
+		       t = adjacencyMatrix G -- although the same graph, matrix is different since variables have different ordering
 	SeeAlso
 	    incidenceMatrix
 	    vertices
@@ -1452,10 +1476,10 @@ doc ///
 		  vertex. Dropping this vertex from each of the odd holes gives all the even holes in 
 		  the original graph.
 	     Example
-	     	  R=QQ[a..f]
-		  G=cycle(R,6);
+	     	  R = QQ[a..f];
+		  G = cycle(R,6);
 		  allEvenHoles G 
-		  H=graph(monomialIdeal(a*b,b*c,c*d,d*e,e*f,a*f,a*d)) --6-cycle with a chord
+		  H = graph(monomialIdeal(a*b,b*c,c*d,d*e,e*f,a*f,a*d)) --6-cycle with a chord
 		  allEvenHoles H --two 4-cycles
 	SeeAlso
 	     allOddHoles
@@ -1485,10 +1509,10 @@ doc ///
 		  of the square of the Alexander dual of the edge ideal. An odd hole is an odd induced
 		  cycle of length at least 5.
 	     Example
-	     	  R=QQ[x_1..x_6]
-		  G=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
+	     	  R = QQ[x_1..x_6];
+		  G = graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
 		  allOddHoles G --only the 5-cycle should appear
-		  H=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6,x_1*x_4}) --no odd holes
+		  H = graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6,x_1*x_4}) --no odd holes
 		  allOddHoles H
 	SeeAlso
 	     allEvenHoles
@@ -1524,7 +1548,7 @@ doc ///
 		        This function is the reverse of the function @TO cycle @ by returning
 			the graph which is the complement of a cycle.
 		Example
-			R = QQ[a,b,c,d,e]	   
+			R = QQ[a,b,c,d,e];
 			antiCycle R
 			antiCycle(R,4)
 			antiCycle {e,c,d,b}
@@ -1543,7 +1567,6 @@ doc ///
         Key
 	        changeRing
 		(changeRing, HyperGraph, PolynomialRing, List)
-		[changeRing, MaximalEdges]
 	Headline
 	        replaces vertices with variables of a different ring
 	Usage
@@ -1619,10 +1642,10 @@ doc ///
 		       the chromatic number of {\tt H}
         Description
 	        Text
-		     Returns the chromatic number, the smallest number of colors needed to color a graph.  This method
+		     Returns the chromatic number, the smallest number of colors needed to color vertices of a graph.  This method
 		     is based upon a result of Francisco-Ha-Van Tuyl which relates the chromatic number to an ideal membership problem.
 		Example
-		     S = QQ[a..f]
+		     S = QQ[a..f];
 		     c4 = cycle(S,4) -- 4-cycle; chromatic number = 2
 		     c5 = cycle(S,5) -- 5-cycle; chromatic number = 3
 		     k6 = completeGraph S  -- complete graph on 6 vertices; chormatic number = 6
@@ -1649,7 +1672,7 @@ doc ///
 	        G:Graph
 	Outputs
 	        D:SimplicialComplex
-		       the clique complex of a {\tt G}
+		       the clique complex of {\tt G}
         Description
 	        Text
 		     This function returns the clique complex of a graph $G$.  This is the simplicial
@@ -1657,7 +1680,7 @@ doc ///
 		     $F = \{x_{i_1},...,x_{i_s}\}$ is a face of the clique complex of $G$ if and only
 		     if the induced graph on $\{x_{i_1},...,x_{i_s}\}$ is a clique of $G$.
 		Example
-		     R=QQ[w,x,y,z]
+		     R = QQ[w,x,y,z];
 		     e = graph {w*x,w*y,x*y,y*z}  -- clique on {w,x,y} and {y,z}
 		     cliqueComplex e  -- max facets {w,x,y} and {y,z}
 		     g = completeGraph R
@@ -1693,7 +1716,7 @@ doc ///
 		     contained in the graph.  This number is also related to the dimension of 
 		     the clique complex of the graph.
 		Example
-		     R=QQ[a..d]
+		     R = QQ[a..d];
 		     cliqueNumber completeGraph R
 		     G = graph({a*b,b*c,a*c,a*d})
 		     cliqueNumber G
@@ -1759,10 +1782,10 @@ doc ///
 	Headline
 		returns a complete graph.
 	Usage
-		K = completeGraph R \n K = completeGraph(R,N) \n K = completeGraph L
+		K = completeGraph R \n K = completeGraph(R,n) \n K = completeGraph L
 	Inputs
 		R:Ring
-		N:ZZ
+		n:ZZ
 			number of variables to use
 		L:List
 			of vertices to make into a complete graph
@@ -1793,12 +1816,12 @@ doc ///
 	Headline
 		returns a complete multipartite graph.
 	Usage
-		K = completeMultiPartite(R,N,M) \n K = completeMultiPartite(R,L)
+		K = completeMultiPartite(R,n,m) \n K = completeMultiPartite(R,L)
 	Inputs
 		R:Ring
-		N:ZZ
+		n:ZZ
 			number of partitions
-		M:ZZ
+		m:ZZ
 			size of each partition
 		L:List
 			of integers giving the size of each partition, or a list of paritions which are lists of variables
@@ -1818,9 +1841,9 @@ doc ///
 			completeMultiPartite(R,{2,4})
 			completeMultiPartite(R,{{a,b,c,x},{y,z}})
 		Text
-		        When N is the number of variables and M = 1, we recover the complete graph.
+		        When {\tt n} is the number of variables and {\tt M = 1}, we recover the complete graph.
 		Example
-		        R = QQ[a,b,c,d,e]
+		        R = QQ[a,b,c,d,e];
 			t1 = completeMultiPartite(R,5,1)
 			t2 = completeGraph R
 			t1 == t2
@@ -1837,7 +1860,7 @@ doc ///
 		connectedComponents
 		(connectedComponents, HyperGraph)
 	Headline
-		the connected components of a hypergraph
+		returns the connected components of a hypergraph
 	Usage
 		L = connectedComponents H
 	Inputs
@@ -1852,8 +1875,8 @@ doc ///
 			is disjoint and vertices that are not contained in any edge do not appear in
 			any connected component.
 		Example
-			R = QQ[a..l]
-			H = hyperGraph {a*b*c, c*d,d*e*f, h*i, i*j, l}
+			R = QQ[a..l];
+			H = hyperGraph {a*b*c, c*d, d*e*f, h*i, i*j, l}
 			L = connectedComponents H
 			apply(L, C -> inducedHyperGraph(H,C))
         SeeAlso
@@ -1874,24 +1897,25 @@ doc ///
 	Headline
 	        creates the cover ideal of a (hyper)graph
 	Usage
-	        i = coverIdeal H
+	        I = coverIdeal H
 	Inputs
 	        H:HyperGraph
 	Outputs
-	        i:MonomialIdeal
+	        I:MonomialIdeal
 		       the cover ideal of H
         Description
 	        Text
 		 Returns the monomial ideal generated by the minimal vertex covers.  This is also the Alexander dual 
 		 of the edge ideal of the hypergraph {\tt H}.
 		Example
-		 S= QQ[a,b,c,d,e,f]
+		 S = QQ[a,b,c,d,e,f];
 		 k6 = completeGraph S  -- complete graph on 6 vertices
 		 coverIdeal k6 -- each generator corresponds to a minimal vertex of k6
                  h = hyperGraph {a*b*c,c*d,d*e*f}
 		 coverIdeal h
 		 dual coverIdeal h == edgeIdeal h
 	SeeAlso
+		dual
 	        edgeIdeal
 		vertexCoverNumber
 		vertexCovers
@@ -1908,12 +1932,12 @@ doc ///
 		(cycle, Ring, ZZ)
 		(cycle, List)
 	Headline
-		returns a graph cycle.
+		returns a graph cycle
 	Usage
-		C = cycle R \n C = cycle(R,N) \n C = cycle L
+		C = cycle R \n C = cycle(R,n) \n C = cycle L
 	Inputs
 		R:Ring
-		N:ZZ
+		n:ZZ
 			length of cycle
 		L:List
 			of vertices to make into a cycle in the order provided
@@ -1926,11 +1950,11 @@ doc ///
 			cycle on those vertices, using the order given or the internal ordering of the
 			@TO vertices @.  Unspecified vertices are treated as isolated vertices.
 		Example
-			R = QQ[a,b,c,d,e]	   
+			R = QQ[a,b,c,d,e];
 			cycle R
 			cycle(R,3)
 			cycle {e,c,d,b}
-			R = QQ[a,c,d,b,e] -- variables given different order
+			R = QQ[a,c,d,b,e];-- variables given different order
 			cycle R
 	SeeAlso
 	        antiCycle
@@ -1946,24 +1970,24 @@ doc ///
 		(degreeVertex, HyperGraph, ZZ)
 		(degreeVertex, HyperGraph, RingElement)
 	Headline 
-		gives degree of a vertex.
+		returns the degree of a vertex.
 	Usage
-		D = degreeVertex(H,N) \n D = degreeVertex(H,V)
+		d = degreeVertex(H,n) \n d = degreeVertex(H,V)
 	Inputs
 		H:HyperGraph
-		N:ZZ
+		n:ZZ
 			the index of a vertex
 		V:RingElement
 			a vertex/variable of the HyperGraph
 	Outputs 
-		D:ZZ
-			which is the degree of vertex {\tt V} (or vertex number {\tt N})
+		d:ZZ
+			which is the degree of vertex {\tt V} (or vertex number {\tt n})
 	Description
 		Text
-			The degree of a vertex in a hypergraph is the number of edges that contain the vertex.
-			The degree is also the number of elements in the neighbor set of a vertex.
+			The degree of a vertex in a (hyper)graph is the number of edges that contain the vertex.
+			In a graph, the degree is also the number of elements in the neighbor set of a vertex.
 	        Example
-		        S = QQ[a,b,c,d,e]
+		        S = QQ[a,b,c,d,e];
 			k5 = completeGraph S
 			dv = degreeVertex(k5,a)
 			n = neighbors(k5,a)
@@ -1990,7 +2014,7 @@ doc ///
 	Headline
 	        returns the (hyper)graph with specified edges removed
 	Usage
-	        h = deleteEdges (H,S) 
+	        h = deleteEdges(H, S) 
 	Inputs
 		H:HyperGraph
 		S:List
@@ -2003,8 +2027,8 @@ doc ///
 		       This function enables the user to remove specified edges from a graph to form
 		       a subgraph.
 		Example
-		       S=QQ[a,b,c,d,e]
-		       g=cycle S
+		       S = QQ[a,b,c,d,e];
+		       g = cycle S
 		       T = {{a,b},{d,e}}
 		       gprime = deleteEdges (g,T)
 		       h = hyperGraph {a*b*c,c*d*e,a*e}
@@ -2026,11 +2050,11 @@ doc ///
 	Headline
 	     creates the edge ideal of a (hyper)graph
 	Usage
-	     i = edgeIdeal H
+	     I = edgeIdeal H
 	Inputs
 	     H:HyperGraph
 	Outputs
-	     i:MonomialIdeal
+	     I:MonomialIdeal
 	          the edge ideal of H
 	Description
 	     Text
@@ -2043,7 +2067,7 @@ doc ///
 		  edges, then the edge ideal is a quadratic square-free monomial ideal generated by
 		  terms of the form $x_ix_j$ whenever $\{x_i,x_j\}$ is an edge of the graph.
 	     Example
-	     	  S = QQ[a..e]
+	     	  S = QQ[a..e];
 		  c5 = cycle S
 		  edgeIdeal c5
 		  graph flatten entries gens edgeIdeal c5 == c5 
@@ -2054,10 +2078,10 @@ doc ///
 		  generated by monomials of the form $x_{i_1}x_{i_2}...x_{i_s}$ whenever
 		  $\{x_{i_1},...,x_{i_s}\}$ is an edge of the hypergraph.  Because all of our
 		  hypergraphs are clutters, that is, no edge is allowed to be a subset of another edge,
-		  we have a bijection between the generators of the egde ideal of hypergraph and the edges
+		  we have a bijection between the generators of the edge ideal of hypergraph and the edges
 		  of the hypergraph.
 	     Example
-	     	  S = QQ[z_1..z_8]
+	     	  S = QQ[z_1..z_8];
 		  h = hyperGraph {{z_1,z_2,z_3},{z_2,z_3,z_4,z_5},{z_4,z_5,z_6},{z_6,z_7,z_8}}
 		  edgeIdeal h
         SeeAlso
@@ -2088,9 +2112,9 @@ doc ///
 	        Text
 		      This function takes a (hyper)graph, and returns the edges set of the (hyper)graph.
 	        Example
-		       S = QQ[a..d]
+		       S = QQ[a..d];
 		       g = graph {a*b,b*c,c*d,d*a} -- the four cycle
-     	       	       edges (g)
+     	       	       edges g
 		       h = hyperGraph{a*b*c}
      	       	       edges h	 
 		       k4 = completeGraph S
@@ -2112,24 +2136,24 @@ doc ///
 	Headline 
 		returns cliques in a graph
 	Usage
-		c = getCliques(G,d) or c = getCliques G
+		C = getCliques(G,d) or C = getCliques G
 	Inputs
 		G:Graph
 		d:ZZ
 			representing the size of the cliques desired
 	Outputs 
-		c:List
+		C:List
 			of cliques of size {\tt d} or, if no {\tt d} is entered, all cliques.
 	SeeAlso
 	        cliqueNumber
 	Description
 		Text
-		     	A clique on a subset of the vertices is a subgraph in which every vertex in the subgraph
-			is adjacent to every other vertex in the graph.  This function returns all cliques
-			of a specified size, and if no size is given, it returns all cliques.  Note that 
+			A clique of a graph is a subset of its vertices which induces a complete subgraph. 
+			That is, a set of vertices is a clique if every pair of vertices in the set form an edge of the graph.
+			This function returns all cliques of a specified size, and if no size is given, it returns all cliques.  Note that 
 			all the edges of the graph are considered cliques of size two.
 		Example
-		     	R = QQ[a..d]
+		     	R = QQ[a..d];
 			G = completeGraph R 
      	       	    	getCliques(G,3)
 			getCliques(G,4)
@@ -2149,19 +2173,19 @@ doc ///
 	Headline 
 		gets the n-th edge in a (hyper)graph
 	Usage
-		E = getEdge(H,N)
+		E = getEdge(H,n)
 	Inputs
 		H:HyperGraph
-		N:ZZ
+		n:ZZ
 			an index of an edge in {\tt H}
 	Outputs 
 		E:List
-			which is the {\tt N}-th edge of {\tt H}
+			which is the {\tt n}-th edge of {\tt H}
 	Description
 	        Text
 		        This function returns the n^{th} edge of the (hyper)graph.
 		Example
-		        S = QQ[a..f]
+		        S = QQ[a..f];
 			g = cycle S
 			edges g
 			getEdge (g,3)  -- counting starts from 0, so the 4th element in the above list
@@ -2184,7 +2208,7 @@ doc ///
 	Headline 
 		finds the index of an edge in a HyperGraph
 	Usage
-		N = getEdgeIndex(H,E) or N = getEdgeIndex(H,M)
+		n = getEdgeIndex(H,E) or n = getEdgeIndex(H,M)
 	Inputs
 		H:HyperGraph
 		E:List
@@ -2192,15 +2216,17 @@ doc ///
 		M:RingElement
 			a monomial of vertices
 	Outputs 
-		N:ZZ
+		n:ZZ
 			which is the index of {\tt E} as an edge of {\tt H}. If {\tt E} is not in {\tt H}
 			then -1 is returned
 	Description
 	        Text
 		        This function returns the index of the edge of the (hyper)graph, where the ordering
-			is determined by the internal ordering of the edges.
+			is determined by the internal ordering of the edges. Note that the internal order of the
+			edges may not be preserved by methods which change the hypergraph 
+			(i.e. @TO inducedHyperGraph@, @TO changeRing@, @TO (hyperGraph, MonomialIdeal)@, etc.).
 		Example
-		     	S = QQ[z_1..z_8]
+		     	S = QQ[z_1..z_8];
 			h = hyperGraph {z_2*z_3*z_4,z_6*z_8,z_7*z_5,z_1*z_6*z_7,z_2*z_4*z_8}
 			edges h
 			getEdgeIndex (h,{z_2,z_4,z_8})  -- although entered last, edge is internally stored in 4th spot (counting begins at 0)
@@ -2256,11 +2282,11 @@ doc ///
 	Headline 
 		returns the index of an edge that is a good leaf
 	Usage
-		N = getGoodLeafIndex(H) 
+		n = getGoodLeafIndex(H) 
 	Inputs
 		H:HyperGraph
 	Outputs 
-		N:ZZ
+		n:ZZ
 			the index of an edge in H of a good leaf. 
 			Returns -1 if H does not have a good leaf.
 	Description
@@ -2269,8 +2295,7 @@ doc ///
 			with all other edges form a totally ordered set. It follows that
 			{\tt L} must have a free vertex. In the graph setting, a good leaf is 
 			an edge containing a vertex of degree one.
-			The notion of a good
-			leaf was introduced by X. Zheng in her PhD thesis (2004).
+			The notion of a good leaf was introduced by X. Zheng in her PhD thesis (2004).
 		Example
 		     	R = QQ[a..g];
 			H = hyperGraph {b*c*d*e, a*b*c*d, c*d*f, d*g, e*f*g};
@@ -2294,20 +2319,20 @@ doc ///
 	Headline 
 		returns maximal cliques in a graph
 	Usage
-		c = getMaxCliques G
+		C = getMaxCliques G
 	Inputs
 		G:Graph
 	Outputs 
-		c:List
+		C:List
 			of cliques of maximal size contained in {\tt G}
 	Description
 	     	Text
-		     The function returns all cliques of maximal size in a graph as a list of lists.
+		     The function returns all cliques of maximal size in a graph as a list of lists. For more details, see @TO getCliques@.
 		Example
-		     	R = QQ[a..d]
+		     	R = QQ[a..d];
 			G = completeGraph R 
      	       	    	getMaxCliques G
-			H=graph({a*b,b*c,a*c,c*d,b*d})
+			H = graph({a*b,b*c,a*c,c*d,b*d})
 			getMaxCliques H
 	SeeAlso
 	        cliqueNumber
@@ -2325,11 +2350,11 @@ doc ///
 	Headline 
 		determines if a HyperGraph contains a good leaf
 	Usage
-		B = hasGoodLeaf(H) 
+		b = hasGoodLeaf(H) 
 	Inputs
 		H:HyperGraph
 	Outputs 
-		B:Boolean
+		b:Boolean
 			true if H contains an edge that is a good leaf.
 	Description
 		Text
@@ -2360,22 +2385,22 @@ doc ///
 	Headline 
 		tells whether a graph contains an odd hole.
 	Usage
-		B = hasOddHole G
+		b = hasOddHole G
 	Inputs
 		G:Graph
 	Outputs 
-		B:Boolean
+		b:Boolean
 			returns {\tt true} if {\tt G} has an odd hole and {\tt false} otherwise
 	Description
 	     Text
+		  An odd hole is an odd induced cycle of length at least 5.
 	     	  The method is based on work of Francisco-Ha-Van Tuyl, looking at the associated primes
-		  of the square of the Alexander dual of the edge ideal. An odd hole is an odd induced
-		  cycle of length at least 5.
+		  of the square of the Alexander dual of the edge ideal. 
 	     Example
-	     	  R=QQ[x_1..x_6]
-		  G=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
+	     	  R = QQ[x_1..x_6];
+		  G = graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
 		  hasOddHole G
-		  H=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6,x_1*x_4}) --no odd holes
+		  H = graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6,x_1*x_4}) --no odd holes
 		  hasOddHole H
 	SeeAlso
 	     allOddHoles
@@ -2407,8 +2432,8 @@ doc ///
 		  This function is the reverse of @TO simplicialComplexToHyperGraph @.  This function enables the users
 		  to make use of the functions in the package @TO SimplicialComplexes @
 	     Example
-	     	  R=QQ[x_1..x_6]
-		  G=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
+	     	  R = QQ[x_1..x_6];
+		  G = graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
 		  DeltaG = hyperGraphToSimplicialComplex G
 		  hyperGraphDeltaG = simplicialComplexToHyperGraph DeltaG
 	          GPrime = graph(hyperGraphDeltaG)
@@ -2482,7 +2507,7 @@ doc ///
 		       "Shellable graphs and sequentially Cohen-Macaulay bipartite graphs,"
 		       Journal of Combinatorial Theory, Series A 115 (2008) 799-814.
 	        Example
-		       S = QQ[a..e]
+		       S = QQ[a..e];
 		       g = graph {a*b,b*c,c*d,d*e,e*a} -- the 5-cycle
 		       independenceComplex g 
 		       h = hyperGraph {a*b*c,b*c*d,d*e}
@@ -2491,7 +2516,7 @@ doc ///
 		       Equivalently, the independence complex is the simplicial complex associated
 		       to the edge ideal of the (hyper)graph H via the Stanley-Reisner correspondence.
 		Example
-		       S = QQ[a..e]
+		       S = QQ[a..e];
 		       g = graph {a*b,b*c,a*c,d*e,a*e}
 		       Delta1 = independenceComplex g 
 		       Delta2 = simplicialComplex edgeIdeal g
@@ -2527,7 +2552,7 @@ doc ///
 		       can be found by computing the dimension of the simplicial complex whose faces are the independent
 		       sets (see @TO independenceComplex @) and adding 1 to this number.
                 Example
-		       R = QQ[a..e]
+		       R = QQ[a..e];
 		       c4 = graph {a*b,b*c,c*d,d*a} -- 4-cycle plus an isolated vertex!!!!
 		       c5 = graph {a*b,b*c,c*d,d*e,e*a} -- 5-cycle
 		       independenceNumber c4 
@@ -2554,7 +2579,7 @@ doc ///
 	Inputs
 		H:HyperGraph
 		L:List
-			of vertices (i.e. variables in the ring of {\tt H} or {\tt G})
+			of vertices (i.e. variables in the ring of {\tt H})
 	Outputs
 		h:HyperGraph
 			the induced subgraph of {\tt H} whose edges are contained in {\tt L}
@@ -2566,13 +2591,13 @@ doc ///
 			The default option is for the ring of the induced subgraph to contain only 
 			variables in {\tt L}. Then the current ring must be changed before working with the induced subgraph.
 			We use this setup to avoid having a lot of isolated vertices in the induced (hyper)graph. However, one
-			can set the option @TO OriginalRing@ to {\tt true} if one wants give the induced (hyper)graph the
+			can set the option @TO OriginalRing@ to {\tt true} if one wants to give the induced (hyper)graph the
 			same ring as the original (hyper)graph.
 			
 			Note: Since @TO Graph@ is a @TO Type@ of @TO HyperGraph@, {\tt inducedHyperGraph} can be used for graphs. There
 			is no separate method installed.
 		Example
-			R = QQ[a,b,c,d,e]	   
+			R = QQ[a,b,c,d,e];
 			G = graph {a*b,b*c,c*d,d*e,e*a} -- graph of the 5-cycle
 			H1 = inducedHyperGraph(G,{b,c,d,e})
 			H2 = inducedHyperGraph(G,{a,b,d,e})
@@ -2584,7 +2609,7 @@ doc ///
 			Equivalently, one can use @TO changeRing@ to move the induced hypergraph
 			back into the original ring.
 		Example
-			R = QQ[a,b,c,d,e]	   
+			R = QQ[a,b,c,d,e]; 
 			G = graph {a*b,b*c,c*d,d*e,e*a} -- graph of the 5-cycle
 			H = inducedHyperGraph(G,{b,c,d})
 			changeRing(H,R,{b,c,d})
@@ -2606,11 +2631,11 @@ doc ///
 	Headline
 	        determines if a graph is bipartite
 	Usage
-	        B = isBipartite G
+	        b = isBipartite G
 	Inputs
 	        G:Graph
 	Outputs
-	        B:Boolean
+	        b:Boolean
 		       returns {\tt true} if {\tt G} is bipartite, {\tt false} otherwise
         Description
 	        Text
@@ -2620,7 +2645,7 @@ doc ///
 		       if and only if its chromatic number is 2, we can check if a graph is bipartite by 
 		       computing its chromatic number.
                 Example
-		       S = QQ[a..e]
+		       S = QQ[a..e];
 		       t = graph {a*b,b*c,c*d,a*e} -- a tree (and thus, bipartite)
 		       c5 = cycle S -- 5-cycle (not bipartite)
 		       isBipartite t
@@ -2642,11 +2667,11 @@ doc ///
 	Headline
 	        determines if a graph is chordal
 	Usage
-	        B = isChordal G
+	        b = isChordal G
 	Inputs
 	        G:Graph
 	Outputs
-	        B:Boolean
+	        b:Boolean
 		       true if the graph is chordal
 	Description
 	        Text
@@ -2677,11 +2702,11 @@ doc ///
 	Headline
 	        determines if a (hyper)graph is Cohen-Macaulay
 	Usage
-	        B = isCM H
+	        b = isCM H
 	Inputs
 	        H:HyperGraph
 	Outputs
-	        B:Boolean
+	        b:Boolean
 		       true if the @TO edgeIdeal@ of {\tt H} is Cohen-Macaulay
 	Description
 	     	Text
@@ -2715,13 +2740,13 @@ doc ///
 	Inputs
 	        H:Graph
 	Outputs
-	        B:Boolean
+	        b:Boolean
 		       returns {\tt true} if {\tt H} is connected, {\tt false} otherwise
         Description
 	        Text
 		       This function checks if the (hyper)graph is connected.  It relies on the @TO numConnectedComponents @.
 		Example
-		       S = QQ[a..e]
+		       S = QQ[a..e];
 		       g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
 		       h = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
 		       isConnected g
@@ -2748,7 +2773,7 @@ doc ///
 	Headline 
 		determines if an edge is in a (hyper)graph
 	Usage
-		B = isEdge(H,E) \n B = isEdge(H,M)
+		b = isEdge(H,E) \n b = isEdge(H,M)
 	Inputs
 		H:HyperGraph
 		E:List
@@ -2756,15 +2781,15 @@ doc ///
 		M:RingElement
 			a monomial representing an edge.
 	Outputs 
-		B:Boolean
+		b:Boolean
 			which is true iff {\tt E} (or {\tt support M}) is an edge of {\tt H}
 	Description
 	        Text
 		        This function checks if a given edge, represented either as a list or monomial, belongs
 			to a given (hyper)graph.
 	        Example
-		        S = QQ[z_1..z_8]
-			h = hyperGraph {z_2*z_3*z_4,z_6*z_8,z_7*z_5,z_1*z_6*z_7,z_2*z_4*z_8}
+		        S = QQ[z_1..z_8];
+			h = hyperGraph {z_2*z_3*z_4,z_6*z_8,z_7*z_5,z_1*z_6*z_7,z_2*z_4*z_8};
 			edges h
 			isEdge (h,{z_2,z_4,z_8})  
 			isEdge (h,z_2*z_3*z_4)
@@ -2785,24 +2810,23 @@ doc ///
 	Headline 
 		determines whether a (hyper)graph is a forest
 	Usage
-		B = isForest G or B = isForest H
+		b = isForest G or b = isForest H
 	Inputs
 		G:Graph
 		H:HyperGraph
 	Outputs 
-		B:Boolean
+		b:Boolean
 			true if G (or H) is a forest
         Description
 	     Text
-	        This function determins if a graph or hypergraph is a forest.  A graph is a forest if 
-		if the graph has no induced cycles.  We say that a hypergraph is forest if each
-		connected component is a forest in the sense of S. Faridi.  See the paper
+	        This function determines if a graph or hypergraph is a forest.  A graph is a forest if 
+		if the graph has no cycles. We say that a hypergraph is forest if each
+		connected component is a tree in the sense of S. Faridi.  See the paper
 		"The facet ideal of a simplicial complex," Manuscripta Mathematica 109, 159-174 (2002).
 	     Example
-	        S = QQ[a..e]
+	        S = QQ[a..f];
 		t = graph {a*b,a*c,a*e}
 		isForest t
-		T = QQ[a..f]
 		h = hyperGraph {a*b*c,c*d*e,b*d*f}
 		isForest h
 ///
@@ -2816,16 +2840,16 @@ doc ///
 		isGoodLeaf
 		(isGoodLeaf, HyperGraph, ZZ)
 	Headline 
-		returns an edge that is a good leaf
+		determines if an edge is a good leaf
 	Usage
-		B = getGoodLeaf(H,N) 
+		b = getGoodLeaf(H,n) 
 	Inputs
 		H:HyperGraph
-		N:ZZ
+		n:ZZ
 			index of an edge
 	Outputs 
-		B:Boolean
-			true if edge N of H is a good leaf.
+		b:Boolean
+			true if edge {\tt n} of {\tt H} is a good leaf.
 	Description
 		Text
 			A good leaf of hypergraph {\tt H} is an edge {\tt L} whose intersections
@@ -2856,11 +2880,11 @@ doc ///
 	Headline
 	        determines if a hypergraph is a graph 
 	Usage
-	        B = isGraph H
+	        b = isGraph H
 	Inputs
 	        H:HyperGraph
 	Outputs
-	        B:Boolean
+	        b:Boolean
 		       {\tt true} if all edges in {\tt H} have size two
         Description
 	        Example
@@ -2883,17 +2907,17 @@ doc ///
 	Headline 
 		determines if an edge (or vertex) is a leaf of a (hyper)graph
 	Usage
-		B = isLeaf(G,N) or B = isLeaf(H,N) or B = isLeaf(H,V)
+		b = isLeaf(G,N) or b = isLeaf(H,n) or b = isLeaf(H,V)
 	Inputs
 		G:Graph
 		H:HyperGraph
-		N:ZZ
+		n:ZZ
 			an index of an edge 
 		V:RingElement
 			a vertex 
 	Outputs 
-		B:Boolean
-			true if edge N is a leaf or if vertex V has degree 1
+		b:Boolean
+			true if edge {\tt n} is a leaf or if vertex {\tt V} has degree 1
         Description
 	     Text
 		  An edge in a graph is a leaf if it contains a vertex of degree one.
@@ -2933,11 +2957,11 @@ doc ///
 	Headline 
 		determines whether a graph is perfect
 	Usage
-		B = isPerfect G
+		b = isPerfect G
 	Inputs
 		G:Graph
 	Outputs 
-		B:Boolean
+		b:Boolean
 			which is {\tt true} if {\tt G} is perfect and {\tt false} otherwise
         Description
 	     Text
@@ -2945,10 +2969,10 @@ doc ///
 		  perfect if and only if neither {\tt G} nor its complement contains an odd hole.
 		  @TO hasOddHole@ is used to determine whether these conditions hold.
 	     Example
-     	       	  R=QQ[x_1..x_7]
-		  G=complementGraph cycle R; --odd antihole with 7 vertices
+     	       	  R = QQ[x_1..x_7];
+		  G = complementGraph cycle R; --odd antihole with 7 vertices
 		  isPerfect G
-		  H=cycle(R,4)
+		  H = cycle(R,4)
 		  isPerfect H
 		  	     	  
 	SeeAlso
@@ -2966,11 +2990,11 @@ doc ///
 	Headline
 	        determines if a (hyper)graph is sequentially Cohen-Macaulay
 	Usage
-	        B = isSCM H
+	        b = isSCM H
 	Inputs
 	        H:HyperGraph
 	Outputs
-	        B:Boolean
+	        b:Boolean
 		       true if the @TO edgeIdeal@ of {\tt H} is sequentially Cohen-Macaulay
 	Description
 	     	Text
@@ -3010,7 +3034,7 @@ doc ///
 		lineGraph
 		(lineGraph, HyperGraph)
 	Headline 
-		gives the line graph of a (hyper)graph
+		returns the line graph of a (hyper)graph
 	Usage
 		L = lineGraph H
 	Inputs
@@ -3025,7 +3049,7 @@ doc ///
 		  The order of the vertices in {\tt L} are determined by the implict order 
 		  on the edges of {\tt H}. See @TO edges@.
 	     Example
-     	       	  R = QQ[a..e]
+     	       	  R = QQ[a..e];
 		  G = graph {a*b,a*c,a*d,d*e}
 		  lineGraph G
 	SeeAlso
@@ -3043,14 +3067,14 @@ doc ///
 		(neighbors, HyperGraph, ZZ)
 		(neighbors, HyperGraph, List)
 	Headline 
-		gives the neighbors of a vertex or list of vertices
+		returns the neighbors of a vertex or list of vertices
 	Usage
-		N = neighbors(H,V) or N = neighbors(H,I) or N = neighbors(H,L)
+		N = neighbors(H,V) or N = neighbors(H,n) or N = neighbors(H,L)
 	Inputs
 		H:HyperGraph
 		V:RingElement
 			a vertex
-		I:ZZ
+		n:ZZ
 			the index of a vertex
 		L:List
 			a list of vertices or indices of vertices
@@ -3063,14 +3087,15 @@ doc ///
 		of a list of vertices {\tt L} are those vertices which are not in {\tt L} and are adjacent 
 		to a vertex in {\tt L}.
 	    Example
-     	       	R=QQ[a..f];
-		G=graph {a*b, a*c, a*d, d*e, d*f};
+     	       	R = QQ[a..f];
+		G = graph {a*b, a*c, a*d, d*e, d*f};
 		neighbors(G,a)
 		neighbors(G,0)
 		neighbors(G,{a,d})
 		neighbors(G,{0,3})
         SeeAlso
 	     degreeVertex
+	     vertices
 ///
 
 ------------------------------------------------------------
@@ -3093,10 +3118,10 @@ doc ///
 	Description
 	     Text
 	     	  The function returns the number of connected components of a (hyper)graph.  To count the number of components,
-		  the algorithm turns H into a simplicial complex, and then computes the rank of the 0^{th} reduced
+		  the algorithm turns {\tt H} into a simplicial complex, and then computes the rank of the 0^{th} reduced
 		  homology group.  This number plus 1 gives us the number of connected components.
 	     Example
-	     	   S = QQ[a..e]
+	     	   S = QQ[a..e];
 		   g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
 		   h = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
 		   numConnectedComponents g
@@ -3130,10 +3155,10 @@ doc ///
 		  of the square of the Alexander dual of the edge ideal. The function counts the number
 		  of these associated primes of height 3.
 	     Example
-	     	  R=QQ[x_1..x_6]
-		  G=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
+	     	  R = QQ[x_1..x_6];
+		  G = graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
 		  numTriangles G
-		  H=completeGraph R;
+		  H = completeGraph R;
 		  numTriangles H == binomial(6,3)
 	SeeAlso
 	     allOddHoles
@@ -3162,7 +3187,7 @@ doc ///
 			a graph with {\tt d} edges on vertex set determined by {\tt R}
 	Description
 	     Example
-	     	  R=QQ[x_1..x_9]
+	     	  R = QQ[x_1..x_9];
 		  randomGraph(R,4)
      	       	  randomGraph(R,4)  
 	SeeAlso
@@ -3195,7 +3220,7 @@ doc ///
 			a hypergraph with {\tt d} edges of cardinality {\tt c} on vertex set determined by {\tt R}
 	Description
 	     Example
-	     	  R=QQ[x_1..x_9]
+	     	  R = QQ[x_1..x_9];
 		  randomUniformHyperGraph(R,3,4)
      	       	  randomUniformHyperGraph(R,4,2)  
 	SeeAlso
@@ -3222,16 +3247,19 @@ doc ///
 		     of integers that are the cardinalities of the edges of {\tt H}
 	Outputs 
 		H:HyperGraph
-			a hypergraph with {\tt d} edges {\tt E_i} each of size {\tt D_i}. Returns {\tt null} if none can be found.
+			a hypergraph with edges {\tt E_i} each of size {\tt D_i}. Returns {\tt null} if none can be found.
 	Description
 	     Text
-		  This method is not guaranteed to return a HyperGraph, even if one exists with the given edge sizes.
+		  This method is not guaranteed to return a HyperGraph, even if one exists with the given edge sizes. This method
+		  searches for a hypergraph with the given edge sizes using a random recursive algorithm. Limits can be placed on the
+		  both number of recursive steps taken (see @TO BranchLimit@) and on the time taken (see @TO TimeLimit@). The method
+		  will return null if it cannot find a hypergraph within the branch and time limits.
 	     Example
-	     	  R=QQ[x_1..x_5]
-		  setRandomSeed 1
+	     	  R = QQ[x_1..x_5];
 		  randomHyperGraph(R,{3,2,4})
 		  randomHyperGraph(R,{3,2,4})
-     	       	  randomHyperGraph(R,{4,4,2,2}) -- impossible, returns null
+		  randomHyperGraph(R,{3,2,4})
+     	       	  randomHyperGraph(R,{4,4,2,2}) -- impossible, returns null when time/branch limit reached
 	SeeAlso
 	     randomGraph
 	     randomUniformHyperGraph
@@ -3283,12 +3311,12 @@ doc ///
 	Headline 
 		change the type of a simplicial complex to a (hyper)graph
 	Usage
-		h = simplicialComplexToHyperGraph(D) 
+		H = simplicialComplexToHyperGraph(D) 
 	Inputs
 		D:SimplicialComplex
 		        the input
 	Outputs 		
-	        h:HyperGraph
+	        H:HyperGraph
 			whose edges are the facets of D
         Description
  	        Text
@@ -3296,9 +3324,9 @@ doc ///
 			returning a hypergraph whose edges are defined by the facets of the simplicial
 			complex.  This is the reverse of the function @TO hyperGraphToSimplicialComplex @
 		Example
-	                S = QQ[a..f]
+	                S = QQ[a..f];
 			Delta = simplicialComplex {a*b*c,b*c*d,c*d*e,d*e*f}
-                        h = simplicialComplexToHyperGraph Delta
+                        H = simplicialComplexToHyperGraph Delta
         SeeAlso
 	        hyperGraphToSimplicialComplex
 ///
@@ -3333,7 +3361,7 @@ doc ///
 		     looks at the resolution of the edge ideal of the complement to determine the size
 		     of the smallest cycle.    	  
 		Example      
-     	       	     T = QQ[x_1..x_9]
+     	       	     T = QQ[x_1..x_9];
 		     g = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9,x_9*x_1} -- a 9-cycle
 		     smallestCycleSize g
 		     h = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9} -- a tree (no cycles)
@@ -3343,9 +3371,6 @@ doc ///
 		Text
 		     Note that if g is a tree if and only if {\tt smallestCycleSize g = 0}
 ///
-
-
-
 
 
 
@@ -3375,18 +3400,12 @@ doc ///
 		     adds the next edge in the graph, as long as no cycle is created.  The algorithm terminates once (n-1)
 		     edges have been added, where n is the number of vertices.
 		Example      
-     	       	     T = QQ[x_1..x_9]
+     	       	     T = QQ[x_1..x_9];
 		     g = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9,x_9*x_1} -- a 9-cycle
 		     spanningTree g
 		     h = graph {x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_5*x_6,x_6*x_7,x_7*x_8,x_8*x_9} -- a tree (no cycles)
 		     spanningTree h === h
 ///
-
-
-
-
-
-
 
 
 
@@ -3410,14 +3429,14 @@ doc ///
 			the vertex covering number
         Description
 	        Text
-		        This function takes a graph or hypergraph, and returns the vertex covering number, that is,
+		        This function returns the vertex covering number of a (hyper)graph. The vertex covering number is
 			the size of smallest vertex cover of the (hyper)graph.  This corresponds to the smallest
 			degree of a generator of the cover ideal of the (hyper)graph.
 		Example
-	                S = QQ[a..d]
+	                S = QQ[a..d];
 			g = graph {a*b,b*c,c*d,d*a} -- the four cycle
 			vertexCoverNumber g
-		        S = QQ[a..e]
+		        S = QQ[a..e];
 			g = graph {a*b,a*c,a*d,a*e,b*c,b*d,b*e,c*d,c*e,d*e} -- the complete graph K_5
 			vertexCoverNumber g
 		      	h = hyperGraph {a*b*c,a*d,c*e,b*d*e}
@@ -3448,17 +3467,17 @@ doc ///
 			of the minimal vertex covers of {\tt H}.  The vertex covers are represented as monomials.
         Description
 	        Text
-		        This function takes a graph or hypergraph, and returns the minimal vertex cover of the graph or
-			hypergraph.   A vertex cover is a subset of the vertices such that every edge of the (hyper)graph has
+		        This function returns the minimal vertex covers of a (hyper)graph. 
+			A vertex cover is a subset of the vertices such that every edge of the (hyper)graph has
 			non-empty intersection with this set.  The minimal vertex covers are given by the minimal generators
 			of the cover ideal of {\tt H}.
 		Example
-	                S = QQ[a..d]
+	                S = QQ[a..d];
 			g = graph {a*b,b*c,c*d,d*a} -- the four cycle
 			vertexCovers g
 		        coverIdeal g
 			flatten entries gens coverIdeal g == vertexCovers g
-			S = QQ[a..e]
+			S = QQ[a..e];
 			h = hyperGraph {a*b*c,a*d,c*e,b*d*e}
 			vertexCovers(h)
         SeeAlso
@@ -3489,11 +3508,11 @@ doc ///
 	        Text
 		        This function takes a graph or hypergraph and returns the vertex set of the graph.
 		Example
-	                S = QQ[a..d]
+	                S = QQ[a..d];
 			g = graph {a*b,b*c,c*d,d*a} -- the four cycle
-			vertices(g)
+			vertices g 
 			h = hyperGraph{a*b*c}
-			vertices(h) -- the vertex d is treated as an isolated vertex
+			vertices h  -- the vertex d is treated as an isolated vertex
         SeeAlso 
 	        edges
 ///
@@ -3550,9 +3569,33 @@ doc ///
 doc ///
         Key
 	        BranchLimit
-	        [randomHyperGraph, BranchLimit]
 	Headline
 	        optional argument for randomHyperGraph
+	Description
+	     	Text
+     	       	    The @TO randomHyperGraph@ method follows a backtracking algorithm
+		    to generate edges with no inclusions between them. At each step in the
+		    recursive tree,  @TO randomHyperGraph@ will make {\tt BranchLimit} attempts to
+		    complete its list of edges. Thus, if a hypergraph with {\tt N} edges is required,
+		    @TO randomHyperGraph@ may take {\tt BranchLimit^N} steps before terminating.
+		    To be more precise, the method is implemented so that it makes {\tt BranchLimit + L} attempts
+		    at level {\tt L} of the recursion.
+		    The default value is 3.
+	SeeAlso
+		TimeLimit
+		randomHyperGraph
+///
+
+doc ///
+        Key
+	        [randomHyperGraph, BranchLimit]
+	Headline
+	        limit recursive branching in randomHyperGraph
+	Usage
+		G = randomHyperGraph(R,D,BranchLimit=>n)
+	Inputs
+		n:ZZ
+		    number of branches at each level in the recursion of {\tt randomHyperGraph}
 	Description
 	     	Text
      	       	    The @TO randomHyperGraph@ method follows a backtracking algorithm
@@ -3577,6 +3620,20 @@ doc ///
 	        MaximalEdges
 	Headline
 	        optional argument for changeRing
+	Description
+	     	Text
+     	       	    This is an option to tell @TO changeRing@ whether to 
+		    make a hypergraph using maximal or minimal edges after substitution
+		    for the variables.
+///
+
+doc ///
+        Key
+	        [changeRing, MaximalEdges]
+	Headline
+	        optional argument for changeRing
+	Usage
+	        G = changeRing(H,R,L,MaximalEdges=>true)
 	Description
 	     	Text
      	       	    This is an option to tell @TO changeRing@ whether to 
@@ -3633,9 +3690,31 @@ doc ///
 doc ///
         Key
 	        TimeLimit
-	        [randomHyperGraph, TimeLimit]
 	Headline
 	        optional argument for randomHyperGraph
+	Description
+	     	Text
+     	       	    The @TO randomHyperGraph@ method follows a backtracking algorithm
+		    to generate edges with no inclusions between them. As it may take 
+		    a long time to terminate, a time limit is imposed on the method.
+		    The {\tt TimeLimit} option is the amound of time, in seconds, that 
+		    the method @TO randomHyperGraph@ will take before terminating.
+		    A value of 0 is interpreted as one day. The default value is 5 (seconds).
+	SeeAlso
+		BranchLimit
+		randomHyperGraph
+///
+
+doc ///
+        Key
+	        [randomHyperGraph, TimeLimit]
+	Headline
+	        limit the running time of randomHyperGraph
+	Usage
+		randomHyperGraph(R,D,TimeLimit=>s)
+	Inputs
+		s:ZZ
+		    time in seconds before randomHyperGraph returns null
 	Description
 	     	Text
      	       	    The @TO randomHyperGraph@ method follows a backtracking algorithm
@@ -3884,8 +3963,8 @@ assert((coverIdeal h) == j)
 -----------------------------
 
 TEST///
-R=QQ[a..d]
-G=graph(monomialIdeal(a*b,b*c,c*d,a*d))
+R = QQ[a..d]
+G = graph(monomialIdeal(a*b,b*c,c*d,a*d))
 assert (G == cycle(R,4))
 ///
 
@@ -3911,8 +3990,8 @@ assert( degreeVertex(H,3) == 1)
 -----------------------------
 
 TEST///
-R=QQ[a..d]
-G=deleteEdges(completeGraph R,{{b,d},{a,c}})
+R = QQ[a..d]
+G = deleteEdges(completeGraph R,{{b,d},{a,c}})
 assert (G == graph(monomialIdeal(a*b,a*d,b*c,c*d)))
 ///
 
@@ -3932,8 +4011,8 @@ assert((edgeIdeal h) == i)
 -----------------------------
 
 TEST///
-R=QQ[a..d]
-G=graph(monomialIdeal(a*b,c*d,a*d))
+R = QQ[a..d]
+G = graph(monomialIdeal(a*b,c*d,a*d))
 assert (edges G == {{a,b},{a,d},{c,d}})
 ///
 
@@ -3943,8 +4022,8 @@ assert (edges G == {{a,b},{a,d},{c,d}})
 -----------------------------
 
 TEST///
-R=QQ[a..d]
-G=completeGraph R
+R = QQ[a..d]
+G = completeGraph R
 assert (getMaxCliques G == {{a,b,c,d}})
 assert (#(getCliques G) == binomial(4,2)+binomial(4,3)+binomial(4,4))
 ///
@@ -3953,8 +4032,8 @@ assert (#(getCliques G) == binomial(4,2)+binomial(4,3)+binomial(4,4))
 -- Test getEdge
 -----------------------------
 TEST///
-R=QQ[a..d]
-H=hyperGraph(R,{{a,b,d},{d,c,b}})
+R = QQ[a..d]
+H = hyperGraph(R,{{a,b,d},{d,c,b}})
 assert (getEdge(H,0) == {a,b,d})
 ///
 
@@ -4013,8 +4092,8 @@ assert not isPerfect G
 ----------------------------------
 
 TEST///
-R=QQ[x_1..x_6]
-G=graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
+R = QQ[x_1..x_6]
+G = graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
 DeltaG = hyperGraphToSimplicialComplex G
 hyperGraphDeltaG = simplicialComplexToHyperGraph DeltaG
 GPrime = graph(hyperGraphDeltaG)
@@ -4060,10 +4139,10 @@ assert(independenceNumber c5 == 2)
 -----------------------------
 
 TEST///
-R=QQ[a..e]
-G=graph {a*b,b*c,c*d,d*e,a*e}
+R = QQ[a..e]
+G = graph {a*b,b*c,c*d,d*e,a*e}
 assert(inducedHyperGraph(G,{a,d,e},OriginalRing=>true)==graph(monomialIdeal(d*e,a*e)))
-H=inducedHyperGraph(G,{a,d,e})
+H = inducedHyperGraph(G,{a,d,e})
 use ring H
 assert(H == hyperGraph(monomialIdeal(d*e,a*e)))
 ///
@@ -4211,8 +4290,8 @@ assert(numConnectedComponents h == 2)
 -------------------------------------
 
 TEST///
-R=QQ[a..e]
-G=randomGraph(R,3)
+R = QQ[a..e]
+G = randomGraph(R,3)
 assert(#(edges G) == 3)
 assert(vertices G == {a,b,c,d,e})
 ///
@@ -4222,8 +4301,8 @@ assert(vertices G == {a,b,c,d,e})
 -------------------------------------
 
 TEST///
-R=QQ[a..e]
-G=randomUniformHyperGraph(R,3,2)
+R = QQ[a..e]
+G = randomUniformHyperGraph(R,3,2)
 assert(#(edges G)==2)
 assert(#(first edges G)==3)
 ///
@@ -4233,10 +4312,10 @@ assert(#(first edges G)==3)
 -------------------------------------
 
 TEST///
-S=QQ[a..e]
-G=graph monomialIdeal(a*b,c*e)
+S = QQ[a..e]
+G = graph monomialIdeal(a*b,c*e)
 assert(ring G == S)
-H=hyperGraph(S,{{a,b,c},{a,d}})
+H = hyperGraph(S,{{a,b,c},{a,d}})
 assert(ring H == S)
 ///
 
