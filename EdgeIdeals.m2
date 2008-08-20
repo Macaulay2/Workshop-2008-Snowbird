@@ -1221,7 +1221,7 @@ document {
 		  "randomGraph(R,3)", 
 		  "randomUniformHyperGraph(R,2,3)",
 		  "randomHyperGraph(R,{3,2,1})"},
-	PARA { "The ", TO randomHyperGraph, " method is not garaunteed to return a hypergraph; sometimes it returns null.",
+	PARA { "The ", TO randomHyperGraph, " method is not guaranteed to return a hypergraph; sometimes it returns null.",
 	       "Please see the documentation of this method for more details."},
 	SeeAlso => { Graph, HyperGraph, graph, hyperGraph, simplicialComplexToHyperGraph, hyperGraphToSimplicialComplex, cycle, antiCycle, completeGraph, 
 		     completeMultiPartite, randomGraph, randomUniformHyperGraph, randomHyperGraph}
