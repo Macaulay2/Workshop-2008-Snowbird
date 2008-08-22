@@ -977,6 +977,7 @@ recursiveRandomHyperGraph = (V,L,D,BranchLimit,TerminateTime) -> (
 randomHyperGraph = method(Options => {TimeLimit => 5, BranchLimit => 3});
 randomHyperGraph (PolynomialRing,List) := opts -> (R,D) -> (
      if any(D, d-> d < 0) then error "edge sizes must be nonnegative";
+     if sum(apply(toList(0..#D-1), i-> (binomial(numgens R, D_i))^(-1))) > 1 then return null;
      V := gens R;
      if opts.TimeLimit === 0 then opts.TimeLimit === 24*60*60;
      TerminateTime := currentTime() + opts.TimeLimit;
@@ -1144,7 +1145,7 @@ doc ///
 		    ideal of a simplicial complex, as defined by S. Faridi in  "The facet ideal of a simplicial complex," 
 		    Manuscripta Mathematica 109, 159-174 (2002).
 ///
- 
+
 document {
 	Key => "Constructor Overview",
 	Headline => "a summary of the many ways of making graphs and hypergraphs",
@@ -3294,39 +3295,6 @@ doc ///
 
 
 ------------------------------------------------------------
--- DOCUMENTATION randomUniformHyperGraph
-------------------------------------------------------------
-
-doc ///
-	Key
-		randomUniformHyperGraph
-		(randomUniformHyperGraph,PolynomialRing,ZZ,ZZ)
-	Headline 
-		returns a random uniform hypergraph
-	Usage
-		H = randomUniformHyperGraph(R,c,d)
-	Inputs
-		R:PolynomialRing
-		     which gives the vertex set of {\tt H}
-		c:ZZ
-		     the cardinality of the edge sets
-		d:ZZ
-		     the number of edges in {\tt H}
-	Outputs 
-		H:HyperGraph
-			a hypergraph with {\tt d} edges of cardinality {\tt c} on vertex set determined by {\tt R}
-	Description
-	     Example
-	     	  R = QQ[x_1..x_9];
-		  randomUniformHyperGraph(R,3,4)
-     	       	  randomUniformHyperGraph(R,4,2)  
-	SeeAlso
-		randomGraph
-		randomHyperGraph
-		"Constructor Overview"
-///
-
-------------------------------------------------------------
 -- DOCUMENTATION randomHyperGraph
 ------------------------------------------------------------
 
@@ -3358,11 +3326,50 @@ doc ///
 		  randomHyperGraph(R,{3,2,4})
 		  randomHyperGraph(R,{3,2,4})
      	       	  randomHyperGraph(R,{4,4,2,2}) -- impossible, returns null when time/branch limit reached
+	     Text
+		  The {\tt randomHyperGraph} method will return null immediately if the sizes of the edges fail to pass
+		  the LYM-inequality: $1/(n choose D_1) + 1/(n choose D_2) + ... + 1/(n choose D_m) \leq 1$ where $n$ is 
+		  the number of variables in {\tt R} and $m$ is the length of {\tt D}. Note that even if {\tt D} passes 
+		  this inequality, it is not necessarily true that there is some hypergraph with edge sizes given by {\tt D}.
+		  See D. Lubell's "A short proof of Sperner's lemma," J. Combin. Theory, 1:299 (1966).
 	SeeAlso
 		randomGraph
 		randomUniformHyperGraph
 		BranchLimit
 		TimeLimit
+		"Constructor Overview"
+///
+
+------------------------------------------------------------
+-- DOCUMENTATION randomUniformHyperGraph
+------------------------------------------------------------
+
+doc ///
+	Key
+		randomUniformHyperGraph
+		(randomUniformHyperGraph,PolynomialRing,ZZ,ZZ)
+	Headline 
+		returns a random uniform hypergraph
+	Usage
+		H = randomUniformHyperGraph(R,c,d)
+	Inputs
+		R:PolynomialRing
+		     which gives the vertex set of {\tt H}
+		c:ZZ
+		     the cardinality of the edge sets
+		d:ZZ
+		     the number of edges in {\tt H}
+	Outputs 
+		H:HyperGraph
+			a hypergraph with {\tt d} edges of cardinality {\tt c} on vertex set determined by {\tt R}
+	Description
+	     Example
+	     	  R = QQ[x_1..x_9];
+		  randomUniformHyperGraph(R,3,4)
+     	       	  randomUniformHyperGraph(R,4,2)  
+	SeeAlso
+		randomGraph
+		randomHyperGraph
 		"Constructor Overview"
 ///
 
