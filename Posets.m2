@@ -268,28 +268,31 @@ Filter:=(P,a) -> (
 --Joins, Meets, Lattices and Atoms
 ----------------------------------------------------
 -- inputs: P, poset, and two elements of P.GroundSet
--- outputs:  the element of P.GroundSet that is the join of these, and false if no join exists
+-- outputs:  the element of P.GroundSet that is the join of these, or "not comparable" or "not unique" if those situations occur
 -- usage:
 PosetJoin = (P,a,b) -> (
      OIa := OrderIdeal(P,a);     
      OIb := OrderIdeal(P,b);
      upperBounds := toList (set(OIa)*set(OIb));
-     if upperBounds == {} then (false) else (M := P.RelationMatrix;
-     	  L := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
-     	  upperBounds_{position (L, l -> l == min L)})
-     )
+     if upperBounds == {} then ("not comparable") else (M := P.RelationMatrix;
+     	  heightUpperBounds := flatten apply(upperBounds, element-> sum entries M_{indexElement(P,element)});
+     	  if #(select(heightUpperBounds, i-> i== min heightUpperBounds)) > 1 then "not unique" else(
+	  upperBounds_{position (heightUpperBounds, l -> l == min heightUpperBounds)})
+     ))
 
 
 --inputs:  P a poset, and 2 elements of P.GroundSet
---outputs:  the element in P.GroundSet that is the meet of these, and false if no meet exists
+--outputs:  the element in P.GroundSet that is the meet of these, or "not comparable" or "not unique"
 -- usage:
 PosetMeet = (P,a,b) ->(
      Fa:= Filter(P,a);
      Fb:= Filter(P,b);
      lowerBounds:= toList (set(Fa)*set(Fb));
-     if lowerBounds == {} then (false) else (M := P.RelationMatrix;
-     	  L := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
-     	  lowerBounds_{position (L, l -> l == max L)})
+     if lowerBounds == {} then ("not comparable") else (
+	  M := P.RelationMatrix;
+     	  heightLowerBounds := flatten apply(lowerBounds, element-> sum entries M_{indexElement(P,element)});
+     	  if #(select(heightLowerBounds, i-> i== max heightLowerBounds)) > 1 then "not unique" else(
+	  lowerBounds_{position (heightLowerBounds, l -> l == max heightLowerBounds)})) 
      )
 
 
@@ -301,7 +304,8 @@ isLattice = (P) -> (
 	                apply (P.GroundSet, elt2-> PosetJoin(P,elt, elt2)));
     checkMeets :=  unique flatten flatten apply(P.GroundSet, elt -> 
 	                apply (P.GroundSet, elt2-> PosetMeet(P,elt, elt2) ));
-    if member(false, set(flatten{checkJoins,checkMeets})) === true then false else true 
+    checkNons := {member("not unique", set(flatten{checkJoins,checkMeets})),member("not comparable", set(flatten{checkJoins,checkMeets}))};
+    if member(true, set checkNons) === true then false else true 
      )
 
 
