@@ -137,15 +137,23 @@ symmetricKernel(gens J, Variable => o.Variable)
      )
 
 ---- needs user-provided non-zerodivisor. 
-
+///
+restart
+loadPackage "ReesAlgebra"
+S=ZZ/101[x,y]
+i=ideal"x5,y5, x3y2"
+iR = reesIdeal(i)
+betti res iR 
+///
 reesIdeal (Module, RingElement) := Ideal => o -> (M,a) -> (
      R:= ring M;
      if R =!= ring a 
      then error("Expected Module and Element over the same ring");   
      P := presentation M;
-     newHeft := prepend(1, (monoid R).Options.Heft);
      sourceDegs := apply(degrees target P, i -> prepend(1,i));
-     RSourceTemp:=(coefficientRing R)(monoid[w_1..w_(rank target P)]**monoid R, Heft => newHeft);
+     newHeft := prepend(1,(monoid R).Options.Heft);
+     RSourceTemp:=(coefficientRing R)(
+	  tensor(monoid[w_1..w_(rank target P)],monoid R,Heft =>newHeft));
      RSource:=newRing(RSourceTemp, 
 	  Degrees=>join(sourceDegs,drop ( (monoid RSourceTemp).Options.Degrees, rank target P)));
      NewVars:=matrix{apply(rank target P, i->RSource_i)};
