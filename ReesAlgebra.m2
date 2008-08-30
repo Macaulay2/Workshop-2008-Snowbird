@@ -137,14 +137,7 @@ symmetricKernel(gens J, Variable => o.Variable)
      )
 
 ---- needs user-provided non-zerodivisor. 
-///
-restart
-loadPackage "ReesAlgebra"
-S=ZZ/101[x,y]
-i=ideal"x5,y5, x3y2"
-iR = reesIdeal(i)
-betti res iR 
-///
+
 reesIdeal (Module, RingElement) := Ideal => o -> (M,a) -> (
      R:= ring M;
      if R =!= ring a 
@@ -236,14 +229,19 @@ associatedGradedRing (Ideal, RingElement) := o -> (I,a) -> normalCone(I)
 multiplicity = method()
 multiplicity(Ideal) := ZZ => I ->  (
      RI := normalCone I;
-     RInew := newRing(ring presentation RI, Degrees => apply(#gens RI, i -> {1}));
+     --- This method of building the new ring with degrees to use the
+     --- function degree may not be the best for all examples. 
+     RIring := ring presentation RI; 
+     RInew := (coefficientRing(RIring))[gens RIring, MonomialOrder => (monoid RIring).Options.MonomialOrder];
      degree (RInew/(substitute(ideal presentation RI, RInew)))
      )
 multiplicity(Ideal,RingElement) := ZZ => (I,a) ->  (
      RI := normalCone (I,a);
-     RInew := newRing(ring presentation RI, Degrees => apply(#gens RI, i -> {1}));
+     RIring := ring presentation RI; 
+     RInew := (coefficientRing(RIring))[gens RIring, MonomialOrder => (monoid RIring).Options.MonomialOrder];
      degree (RInew/(substitute(ideal presentation RI, RInew)))
      )
+--- RInew = newRing(ring presentation RI, Degrees => apply(#gens RI,i -> {1}));
 
 
 --Special fiber is here defined to be the fiber of the blowup over the
@@ -489,7 +487,7 @@ document {
      Inputs => {"M" => {ofClass Module, " over ", ofClass Ring}}, 
      Outputs => {{ofClass ModuleMap, " defining the universal embedding 
 	       of the module ", TT "M", " given into a free module
-	       over the same ring as ", TT "M", "."}},
+ 	       over the same ring as ", TT "M", "."}},
       PARA{}, "This function uses the transpose (dual) of the .  We
       first give a simple example looking at a syzygy matrix of the cube of
       the maximial ideal of a polynomial ring.",
@@ -736,10 +734,25 @@ end
 
 -- From M2 workshop
 ///
---Examples for the ReesAlgebra package.                                                                                                                                                                                       
+-- Very Basic example 
+///
 restart
 loadPackage "ReesAlgebra"
+S=ZZ/101[x,y]
+i=ideal"x5,y5, x3y2"
+V1 = reesIdeal(i)
+use ring V1
+assert(V1 == ideal(-w_1*y^2+w_3*x^2,w_1*w_2*x-w_3^2*y,w_2*x^3-w_3*y^3,-w_1^2*w_2*y+w_3^3*x,w_1^3*w_
+     2^2-w_3^5))
+V2 = reesIdeal(i,i_0)
+use ring V2
+assert(V2 == ideal(-w_1*y^2+w_3*x^2,w_1*w_2*x-w_3^2*y,w_2*x^3-w_3*y^3,-w_1^2*w_2*y+w_3^3*x,w_1^3*w_
+     2^2-w_3^5))
+
+
+--Examples for the ReesAlgebra package.                                                                                                                                                                                       
 kk=ZZ/101
+x = symbol x
 
 --Example 1: a monomial ideal in 4-space.
 S=kk[x_0..x_4]
@@ -750,7 +763,6 @@ time reesIdeal(i,i_0); --.3 sec
 --Example 2: determinantal ideals
 restart
 loadPackage "ReesAlgebra"
-load"newrg.m2"
 kk=ZZ/101
 S=kk[a,b,c]
 m=matrix"a,0;b,a;0,b"
@@ -851,7 +863,7 @@ kk=ZZ/101
 R=kk[x,y]
 i=(ideal vars R)^2
 i = ideal(x^2, y^2)
-isLinearType i
+isLinearType i -- error!
 ///
 
      
@@ -864,8 +876,8 @@ i=(ideal vars R)^2
 reesAlgebra i
 reesIdeal i
 specialFiberIdeal i
-assert (isLinearType i==false)
-isLinearType (ideal vars R)
+assert (isLinearType i==false) -- error
+isLinearType (ideal vars R) -- error
 normalCone i
 
 restart
@@ -873,8 +885,9 @@ loadPackage "ReesAlgebra"
 kk=ZZ/101
 R=kk[x,y]
 i = ideal(x^2,y^2)
+-- need to reset ring
 i = ideal(x+y^2)
-multiplicity i
+multiplicity i 
 
 R = ZZ/101[x,y]/ideal(x^3-y^3)
 I = ideal(x^2,y^2)
