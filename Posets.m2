@@ -30,7 +30,9 @@ export {
      Edges,
      PosetMeet,
      PosetJoin,
-     isLattice
+     isLattice,
+     lcm,
+     lcmLattice
      }
 
 
@@ -121,13 +123,13 @@ allPairsShortestPath(DirectedGraph) := Matrix => (G)-> allPairsShortestPath(adja
 -- input: a poset, and an element A from I
 -- output:  the index of A in the ground set of P
 -- usage: compare, OrderIdeal 
-indexElement:= (P,A) -> (
+indexElement := (P,A) -> (
       sum apply(#P.GroundSet, i-> if P.GroundSet#i == A then i else 0))
 
 -- input:  a list, potentially with nulls
 -- output:  a list w/out nulls
 -- usage:  OrderIdeal, Filter
-nonnull:=(L) -> (
+nonnull :=(L) -> (
      select(L, i-> i =!= null))
 
 
@@ -307,6 +309,29 @@ isLattice = (P) -> (
     checkNons := {member("not unique", set(flatten{checkJoins,checkMeets})),member("not comparable", set(flatten{checkJoins,checkMeets}))};
     if member(true, set checkNons) === true then false else true 
      )
+
+
+-----------------------------------------------
+-- LCM lattices
+-----------------------------------------------
+--input: a set of monomials
+-- output: the lcm of those monomials
+lcm = (L) -> (
+    flatten entries gens intersect apply(L, i-> ideal (i))
+    )
+
+-- input:  generators of a monomial ideal
+-- output: lcm lattice of that monomial ideal, without the minimal element
+
+lcmLattice = method()     
+lcmLattice(Ideal) := Poset => (I) -> (
+	   L := flatten entries gens I;
+	   subsetsL := flatten apply(#L, i-> subsets (L,i+1));
+	   Ground := unique flatten apply (subsetsL, r-> lcm(r));
+	   Rels := nonnull unique flatten apply (Ground, r-> apply(Ground, s-> if s%r == 0 then (r,s)));
+	   P = poset (Ground, Rels);
+	   P)
+
 
 
 
