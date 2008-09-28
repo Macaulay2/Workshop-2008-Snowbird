@@ -71,6 +71,7 @@ specialFiberIdeal,analyticSpread, distinguished,distinguishedAndMult}
 w := global w;
 symmetricKernel = method(Options=>{Variable => global w})
 symmetricKernel(Matrix) := Ideal => o -> (f) -> (
+     if rank source f == 0 then return 0_R;
      R := ring f; 
      z := local z;
      newHeft := prepend(1,(monoid R).Options.Heft);
@@ -80,6 +81,7 @@ symmetricKernel(Matrix) := Ideal => o -> (f) -> (
      RSource:=newRing(RSourceTemp, 
 	  Degrees=>join(sourceDegs,drop ((monoid     RSourceTemp).Options.Degrees, 
 		    rank ambient source f)));
+     if rank target f == 0 then return ideal(1_RSource);
      tarDegs := apply(degrees target f, i -> prepend(1,i));
      RTar := (flattenRing (R[z_1..z_(rank target f), Degrees => tarDegs]))_0;
      RTarNewVars := matrix{
@@ -154,7 +156,6 @@ reesIdeal (Module, RingElement) := Ideal => o -> (M,a) -> (
      a = substitute(a, RSource);
      saturate(I,a)
      )
-
 reesIdeal(Ideal, RingElement) := Ideal => o -> (I,a) -> (
      reesIdeal(module I, a)
      )
@@ -346,26 +347,26 @@ K = distinguishedAndMult I
 intersect apply(K, i-> i_1^(i_0)) 
 ///
 
+
 distinguishedAndMult = method(Options => {Variable => w})
 distinguishedAndMult(Ideal) := List => o -> i -> (
     R:=ring i;
     ReesI := reesIdeal( i, Variable => o.Variable);
     (S,toFlatS) := flattenRing ring ReesI;
      I:=(toFlatS ReesI)+substitute(i,S);
-     Itop:=top I;
-     L:=decompose Itop;
-     apply(L,P->(Pcomponent := Itop:(saturate(Itop,P)); 
+     L:=decompose I;
+     apply(L,P->(Pcomponent := I:(saturate(I,P)); 
 	       --the P-primary component. The multiplicity is
 	       --computed as (degree Pcomponent)/(degree P)
        	  {(degree Pcomponent)/(degree P), kernel(map(S/P, R))})))
+
 distinguishedAndMult(Ideal,RingElement) := List => o -> (i,a) -> (
     R:=ring i;
     ReesI := reesIdeal( i,a, Variable => o.Variable);
     (S,toFlatS) := flattenRing ring ReesI;
      I:=(toFlatS ReesI)+substitute(i,S);
-     Itop:=top I;
-     L:=decompose Itop;
-     apply(L,P->(Pcomponent := Itop:(saturate(Itop,P)); 
+     L:=decompose I;
+     apply(L,P->(Pcomponent := I:(saturate(I,P)); 
 	       --the P-primary component. The multiplicity is
 	       --computed as (degree Pcomponent)/(degree P)
        	  {(degree Pcomponent)/(degree P), kernel(map(S/P, R))})))
@@ -418,15 +419,17 @@ document {
      Headline => "compute Rees algebras",
      " The goal of this package is to provide commands to compute the 
      Rees algebra of a module as it is defined in the paper ", EM "What is 
-     the Rees algebra of a module?", " by Craig Huneke, David Eisenbud and 
-     Bernd Ulrich. It also includes functions for computing many of 
-     the structures that require a Rees algebra.  The included functions are 
+     the Rees algebra of a module?", " by  David Eisenbud, Craig Huneke and 
+     Bernd Ulrich, Proc. Amer. Math. Soc. 131 (2003) 701--708.
+     It also includes functions for computing many 
+     structures that require a Rees algebra.  The included functions are 
      listed below. Examples of the use of each of the functions are included 
      with their documentation."
      }
 
--- We may want to change the examples.  Otherwise complete except that
--- we may want to give the full reference to Eisenbud Huneke Ulrich.
+
+-- We may want to change the examples.  
+
 document {
      Key => {symmetricKernel,(symmetricKernel, Matrix)},
      Headline => "Compute the rees ring of the image of a matrix",
@@ -737,6 +740,7 @@ end
 -- Very Basic example 
 ///
 restart
+
 loadPackage "ReesAlgebra"
 S=ZZ/101[x,y]
 i=ideal"x5,y5, x3y2"
@@ -1102,4 +1106,6 @@ I = kernel f
 *}
 
 end
+restart
 installPackage "ReesAlgebra"
+viewHelp installPackage

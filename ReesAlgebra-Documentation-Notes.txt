@@ -1,0 +1,461 @@
+for symmetricKernel
+
+Given a map between free modules $f: F \to G$ this function computes the
+kernel of the induced map of symmetric algebras, $Sym(f): Sym(F) \to Sym(G)$
+as an ideal in $Sym(F)$.
+When $f$ defines the universal embedding of $Im f$, or when $G$ is the ground ring,
+then (by results in the paper of Huneke-Eisenbud-Ulrich)
+this is equal to the defining ideal of the Rees algebra of the module Im f.
+
+document {
+     Key => {symmetricKernel,(symmetricKernel, Matrix)},
+     Headline => "Compute the rees ring of the image of a matrix",
+     Usage => "symmetricKernel(f)",
+     Inputs => {"f" => {ofClass Matrix}},
+     Outputs => {{ofClass Ideal, " defining the Rees ring of ", ofClass Matrix, " ", TT "f"}},	       
+     PARA{}, "This function is the workhorse of all/most of the Rees algebra 
+     functions in the package.  Most users will prefer to use one of the front 
+     end commands ", TO "reesAlgebra", " or ", TO "reesIdeal", " and others.",
+     EXAMPLE {
+	  "R = QQ[a..e]",
+	  "J = monomialCurveIdeal(R, {1,2,3})",
+	  "symmetricKernel (gens J)"
+     },
+    "Let ", TT "I", " be the ideal returned and let ", TT "S", " be the ring it lives in 
+    (also printed), then ", TT "S/I", " is isomorphic to 
+    the Rees algebra ", TT "R[Jt]",  ".  We can get the same information
+    above 
+    using ", TT "reesIdeal(J)", ", see ", TO "reesIdeal", ".  Also 
+    note that ", TT "S", " is multigraded allowing Macaulay2 to correctly 
+    see that the variables of R now live in degree 0 and the new variables 
+    needed to describe ", TT "R[Jt]", "as a k-algebra are in degree 1.",
+    EXAMPLE {
+	 "S = ring oo;",
+	 "(monoid S).Options.Degrees"
+	 },
+    PARA{ TT "symmetricKernel", " can also be computed over a quotient 
+    ring.  "},     
+    EXAMPLE { 
+     	  "R = QQ[x,y,z]/ideal(x*y^2-z^9)",
+	  "J = ideal(x,y,z)",
+	  "symmetricKernel(gens J)"
+	  },
+     "The many ways of working with this function allows the system 
+     to compute both the classic Rees algebra of an ideal over a ring 
+     (polynomial or quotient) and to compute the the Rees algebra of a 
+     module or ideal using a universal embedding as described in the paper 
+     of Eisenbud, Huneke and Ulrich.  It also allows different ways of 
+     setting up the quotient ring.",
+     SeeAlso => {reesIdeal, reesAlgebra, universalEmbedding},
+     }
+
+
+document {
+     Key => [symmetricKernel, Variable],
+     Headline=> "symmetricKernel introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default variable is", TT  "w", "but the default value of the option 
+     is null."     
+     }
+
+for universalEmbedding:
+
+universalEmbedding provides the universal map from the input module M into
+a free module over the same ring; that is, given a module M over a ring R,
+universalEmbedding M returns a map $g: M\to G$, where $G$ is free over $R$, and
+any map from $M$ to a free $R$-module factors uniquely through $g$. If 
+$h:F\to M$ is a surjection from a free module, then by definition 
+the Rees algebra of $M$ is the image of the induced map of $Sym(gh): Sym(F)\to Sym(G)$,
+and thus can be computed with symmetricKernel(g*h).
+
+document { 
+     Key => {universalEmbedding, (universalEmbedding,Module)},
+     Headline => "Compute the universal embedding",
+     Usage =>  "universalEmbedding M", 
+     Inputs => {"M" => {ofClass Module, " over ", ofClass Ring}}, 
+     Outputs => {{ofClass ModuleMap, " defining the universal embedding 
+	       of the module ", TT "M", " given into a free module
+ 	       over the same ring as ", TT "M", "."}},
+      PARA{}, "This function uses the transpose (dual) of the .  We
+      first give a simple example looking at a syzygy matrix of the cube of
+      the maximial ideal of a polynomial ring.",
+      EXAMPLE {
+ 	  "S = ZZ/101[x,y,z];",
+	  "FF=res ((ideal vars S)^3);",
+	  "M=coker (FF.dd_2)",
+	  "universalEmbedding M"
+	  },
+      PARA{},
+     "A more complicated example.",
+     EXAMPLE { 
+	  "x = symbol x;",
+	  "R=QQ[x_1..x_8];",
+	  "m1=genericMatrix(R,x_1,2,2); m2=genericMatrix(R,x_5,2,2);",
+	  "m=m1*m2",
+	  "d1=minors(2,m1); d2=minors(2,m2);",
+	  "M=matrix{{0,d1_0,m_(0,0),m_(0,1)},
+               {0,0,m_(1,0),m_(1,1)},
+	       {0,0,0,d2_0},
+	       {0,0,0,0}}",
+	  "M=M-(transpose M);",
+	  "N= coker(res coker transpose M).dd_2",
+	  "universalEmbedding(N)"
+	  }
+     }
+
+for reesIdeal (some of this replaces some of
+the documentation below):
+
+The Rees algebra of a module $M$ over a ring $R$
+is here defined, following the paper 
+What is the Rees algebra of a module? David Eisenbud, Craig Huneke and Bernd Ulrich,
+Proc. Amer. Math. Soc. 131 (2003) 701--708, as follows:
+If $h:F\to M$ is a surjection from a free module,
+and $g: M\to G$ is the universal map to a free module, then 
+the Rees algebra of $M$ is the image of the induced map of $Sym(gh): Sym(F)\to Sym(G)$,
+and thus can be computed with symmetricKernel(gh). The paper above proves
+that if $M$ is isomorphic to an ideal with inclusion $g: M\to R$
+(or, in characteristic zero
+but not in characteristic $>0$ if $M$ is a submodule of a free module and
+$g': M\to G$) is any injection), then the Rees algebra is equal to the image
+of $g'h$, so it is unnecessary to compute the universal embedding.
+
+This package gives the user a choice between two methods 
+for finding the defining ideal of the Rees algebra of an ideal or module
+$M$ over a ring $R$: The call
+
+reesIdeal(M)
+
+computes the universal embedding $g: M\to G$ and a surjection $f: F\to M$ and
+returns the result of symmetricKernel(gf). On the other hand, if the
+user knows an non-zerodivisor $a\in R$ such that $M[a^{-1}$ is a free module
+(this is the case, for example, if $a \in M\subset R$ and $a$ is a non-zerodivisor),
+then it is often much faster to call
+
+reesIdeal(M,a)
+
+which finds a surjection $f: F\to M$ and
+returns $(J:a^{\infty}) \subset Sym(F)$, the saturation of
+the ideal $J:=(ker f)Sym(F)$. Note that this gives the correct answer
+even under the slightly weaker hypothesis that $M[a^{-1}]$ is ``of linear
+type''. (See also "isLinearType".)
+
+Historical Background:
+The Rees Algebra of an ideal is the basic commutative algebra analogue of the 
+blow up operation in algebraic geometry. It has many applications, and 
+a great deal of modern work in commutative algebra has been devoted to it.
+The term "Rees Algebra" (of an ideal $I$ in a ring $R$, say) is
+used here to refer to the ring $R[It]\subset R[t]$ which is sometimes called
+the "blowup algebra" instead. (The origin of the name may be traced
+to a paper by David Rees, (On a problem of Zariski. Illinois J. Math. (1958)145–149)
+where Rees used the ring $R[It,t^{-1}$, now also called the
+``extended Rees Algebra.'') 
+
+document {
+     Key => {reesIdeal, (reesIdeal,Ideal), (reesIdeal, Module), 
+	  (reesIdeal,Ideal, RingElement), (reesIdeal,Module, RingElement)},
+     Headline => "compute the defining ideal of the Rees Algebra",
+     Usage =>  "reesIdeal(M)\n reesIdeal(I) \n reesIdeal(M,f) \n reesIdeal(I,f)",
+     Inputs => {"M" => Module => "Any module over a quotient ring", 
+	  "I" => Ideal => "Any ideal over a quotient ring",
+	  "f" => RingElement => "Any non-zerodivisor 
+	  mod the ideal or module"},
+     Outputs => {{ofClass Ideal, " defining the Rees algebra of  
+	       the ", ofClass Module, " ", TT "M"}},
+     PARA{},
+     "There are effectively two methods implemented in this package
+     for computing the definiting ideal of a Rees algebra of a module or
+     ideal over a quotient ring.  The first uses the code
+     symmetricKernel which is based on Eisenbud, Huneke, Ulrich, and for
+     ideals works as one might naively expect it to.  The second
+     implementation can be much faster, but requires a user provided
+--This is wrong! --     non-zerodivisor mod the ideal or module.  This algorithm saturates
+     the ideal of the new variables times a presentation of the module with
+     respect to the non-zerodivisor. We provide several examples below that
+     include some meaningful time comparisons. ",
+     EXAMPLE {
+     	  "kk = ZZ/101;",
+     	  "S=kk[x_0..x_4];",
+     	  "i=monomialCurveIdeal(S,{2,3,5,6})",
+     	  "time reesIdeal i;", -- 2.25 sec
+     	  "time reesIdeal(i,i_0);" --.3 sec
+     	  },
+     "Another example illustrates the power and usage of the code.  We
+     also show the output in this example.  While a bit messy, the
+     user can see how we handle the degrees in both cases.",
+     EXAMPLE { 
+	  "S=kk[a,b,c]",
+	  "m=matrix{{a,0},{b,a},{0,b}}",
+	  "i=minors(2,m)",
+	  "time reesIdeal i",
+	  "res i",
+	  "m=random(S^3,S^{4:-1})",
+	  "i=minors(3,m);",
+	  "time I=reesIdeal (i,i_0);", -- .05 sec
+	  "transpose gens I",
+	  "i=minors(2,m);",
+	  "time I=reesIdeal (i,i_0);" -- 22 sec
+	  },
+     SeeAlso => {symmetricKernel, reesAlgebra}
+     }
+
+
+-- needs updating, like most of this documentation.
+document {
+     Key => [reesIdeal, Variable],
+     Headline=> "symmetricKernel introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default variable is", TT  "w", "but the default value of the option 
+     is null."     
+     }
+
+
+for "reesAlgebra". 
+
+If $M$ is an ideal or module over a ring $R$, 
+and $F\to M$ is a surjection from a free module, then 
+reesAlgebra(M) returns the ring $Sym(F)/J$, where $J = reesIdeal(M)$.
+
+-- the output is a sequence pair and loadpackage is yelling at us. 
+document {
+     Key => {reesAlgebra, (reesAlgebra, Module), (reesAlgebra, Ideal), 
+	  (reesAlgebra, Module, RingElement), (reesAlgebra, Ideal, RingElement)},
+     Headline => "determine if the image of a matrix is of linear type",
+     Usage =>  "isLinearType(M)",
+     Inputs =>  {"M", "a"},
+     Outputs => {{ofClass Sequence, "true if the module is of linear 
+	  type and false otherwise."}},
+     "Stuff."
+     }
+
+document {
+     Key => [reesAlgebra, Variable],
+     Headline=> "rees introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default is", TT  "w"     
+     }
+
+for "isLinearType"
+
+A module or ideal $M$ is said to be ``of linear type'' if the natural
+map from the symmetric algebra of $M$ to the Rees algebra of $M$ is
+an isomorphism. It is known, for example, that any complete intersection ideal
+is of linear type.
+
+document {
+     Key => {isLinearType, (isLinearType, Module), (isLinearType, Ideal), 
+	  (isLinearType,Module, RingElement), (isLinearType, Ideal, RingElement)},
+     Headline => "determine if the image of a matrix is of linear type",
+     Usage =>  "isLinearType(M)",
+     Inputs =>  {"M", "a"},
+     Outputs => {{"true if the module is of linear 
+	  type and false otherwise."}},
+     "Stuff."
+     }
+
+for "normalCone"
+
+The normal cone of an ideal $I\subset R$ is the ring
+$R/I \oplus I/I^2 \oplus \cdots$, also called 
+"the associated graded ring of $R$ with respect to $I$. 
+If $S$ is the Rees algebra of
+$I$, then this ring is isomorphic to $S/IS$, which is how it is
+computed here.
+
+NOTE that the documentation below was taken from another function, and is wrong.
+document {
+     Key => {normalCone, (normalCone, Ideal), (normalCone, Ideal, RingElement)},
+     Headline => "",
+     Usage =>  "normalCone(J)",
+     Inputs =>  {"J" => Ideal => "input",
+	  "a" => RingElement => "also input"},
+--THIS IS WRONG     Outputs => {{"true if the ideal is of linear  
+	  type and false otherwise."}},
+     "Stuff."
+     }
+
+document {
+     Key => [normalCone, Variable],
+     Headline=> "symmetricKernel introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default variable is", TT  "w", "but the default value of the option 
+     is null."     
+     }
+
+for associatedGradedRing:
+
+associatedGradedRing is a synonym for normalCone.
+
+document {
+     Key => {associatedGradedRing, (associatedGradedRing, Ideal),
+	  (associatedGradedRing, Ideal, RingElement)},
+     Headline => "",
+     Usage =>  "associatedGradedRing(J)",
+     Inputs =>  {"J" => Ideal => "input",
+	  "a" => RingElement => "otherinput"},
+     Outputs => {{"true if the ideal is of linear 
+	  type and false otherwise."}},
+     "Stuff."
+     }
+
+document {
+     Key => [associatedGradedRing, Variable],
+     Headline=> "symmetricKernel introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default variable is", TT  "w", "but the default value of the option 
+     is null."     
+     }
+
+for "multiplicity".
+
+Given an ideal $I\subset R$, ``multiplicity I'' 
+returns the degree of the normal cone of $I$.
+When $R/I$ has finite length this is the sum of the Samuel multiplicities
+of $I$ at the various localizations of $R$. When $I$ is generated by
+a complete intersection, this is the length of the ring $R/I$ but in general
+it is greater. For example, 
+TEST ///
+R=ZZ/101[x,y]
+I = ideal(x^3, x^2*y, y^3)
+assert (multiplicity I == 9)
+assert(degree(R^1/I) == 7).
+///
+
+document {
+     Key => {multiplicity, (multiplicity, Ideal), (multiplicity, Ideal, RingElement)},
+     Headline => "compute the Hilbert-Samuel multiplicty of an ideal",
+     Usage =>  "multiplicity I",
+     Inputs =>  {"I" => Ideal => "input",
+	  "a" => RingElement => "other input"},
+     Outputs => {{"  that is the normalized leading 
+	  coefficient of the associated graded ring of ", TT "R", 
+	  " with respect to ", TT "I"}},
+     "Stuff."
+     }
+
+for specialFiberIdeal
+
+Let $M$ be an $R = k[x_1,\dots,x_n]/J$-module (for example an ideal),
+and let $mm=ideal vars R = (x_1,\dots,x_n)$, and suppose that
+$M$ is a homomorphic image of the free module $F$. Let $T$ be the 
+Rees algebra of $M$. The call
+specialFiberIdeal(M) returns the ideal $J\subset Sym(F)$ such
+that $Sym(F)/J \cong T/mm*T$; that is, 
+specialFiberIdeal(M) = reesIdeal(M)+mm*Sym(F).
+
+ The name derives from the fact that
+$Proj(T/mm*T)$ is the special fiber of the blowup of $Spec R$ along
+the subscheme defined by $I$. 
+
+document { 
+     Key => {specialFiberIdeal, (specialFiberIdeal, Module), 
+	  (specialFiberIdeal, Ideal), (specialFiberIdeal, Module, RingElement), 
+	  (specialFiberIdeal, Ideal, RingElement)},
+     Headline => "compute the special fiber of the image of a matrix over a", 
+     "a quotient ring",
+     Usage =>  "specialFiber(M)",
+     Inputs =>  {"M","a"},
+     Outputs => {{"defining the special fiber of ", TT "M"}},
+     "Stuff."
+     }
+
+document {
+     Key => [specialFiberIdeal, Variable],
+     Headline=> "symmetricKernel introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default variable is", TT  "w", "but the default value of the option 
+     is null."     
+     }
+
+for analyticSpread
+
+The analytic spread of a module is the dimension of its special fiber ring.
+When $I$ is an ideal (and more generally, with the right definitions)
+the analytic spread of $I4 is the smallest number of generators of an ideal $J$
+such that $I$ is integral over $J$. See for example the book 
+Integral closure of ideals, rings, and modules. London Mathematical Society 
+Lecture Note Series, 336. Cambridge University Press, Cambridge, 2006, by
+Craig Huneke and Irena Swanson.
+
+document {
+     Key => {analyticSpread, (analyticSpread,Module),(analyticSpread, Ideal), 
+	  (analyticSpread, Module, RingElement), 
+	  (analyticSpread, Ideal, RingElement)},  
+     Headline => "compute the analytic spread of a module over a 
+     quotient ring",
+     Usage => "analyticSpread(M)",
+     Inputs => {"M","a"},
+     Outputs => {{"the dimension of the special fiber of ", TT "M"}},
+               "Stuff."
+     }	   
+
+
+for distinguished (and for distinguishedAndMult):
+
+Let $I\subset R$ be an ideal in a ring $R$, the image of a free
+$R$-module $F$. Let $ReesI$ be the Rees algebra of $I$.
+Certain of the minimal primes of $I$ are
+distinguished from the point of view of intersection theory:  These
+are the ones that correspond to primes $P\subset ReesI$
+minimal among those containing $I*ReesI$---in other words,
+the isolated components of the 	 
+support of the normal cone of $I$. The prime $p$ corresponding to $P$ is
+simply the kernel of the the induced map $R \to ReesI/P$.
+
+Each of these primes comes equipped with a multiplicity, which may be
+computed as the ratio $degree(ReesI/P)/degree(R/p)$.
+
+For these matters and their significance, see section
+6.1 of the book ``Intersection Theory,'' by William Fulton, and
+the references there, along with the paper
+
+``A geometric effective Nullstellensatz.''
+Invent. Math. 137 (1999), no. 2, 427--448 by
+Ein and Lazarsfeld.
+
+
+---------------
+
+
+document {
+     Key => {distinguished, (distinguished, Ideal), 
+	  (distinguished, Ideal, RingElement)},
+     Headline => "computes the distinguished subvarieties of a scheme",
+     Usage => "distinguished I" ,
+     Inputs =>  {"I" => {ofClass Ideal, " in ", ofClass PolynomialRing}},
+     Outputs => {{ofClass List, " of prime ideals defining the components 
+	  of the support of the normal cone over ", TT "I"}},
+     "Stuff."
+     }
+
+document {
+     Key => [distinguished, Variable],
+     Headline=> "distinguished introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default is", TT  "w"     
+     }
+
+document {
+     Key => {distinguishedAndMult, (distinguishedAndMult,Ideal),
+	  (distinguishedAndMult, Ideal, RingElement)},
+     Headline => "compute the distinguished subvarieties of a variety along 
+     with their multiplicities",
+     Usage => "distinguishedAndMult I" ,
+     Inputs => {"I" => {ofClass Ideal, " in ", ofClass PolynomialRing}, 
+	  "a" => {ofClass RingElement, "stuff."}},
+     Outputs => {{ofClass List, " of pairs where the first entry 
+	       is the multiplicity of the second entry which is one 
+	       of the ideals defining a component of the support of 
+	       the normal cone over ", TT "I"}},
+     "Stuff."
+     }
+
+document {
+     Key => [distinguishedAndMult, Variable],
+     Headline=> "distinguishedAndMult introduces new variables and the option 
+     Variable allows the user to specify a variable name for this purpose, 
+     the default is", TT  "w"     
+     }
+
+
+
