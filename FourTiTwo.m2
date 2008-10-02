@@ -260,8 +260,7 @@ doc ///
 	       loadPackage("FourTiTwo", Configuration=>{"path"=>"C:/cygwin/4ti2/win32/"})  <br>
 	       assuming that 4ti2 has been installed in C:/cygwin/4ti2/win32.
       Caveat 
-      	   Text
-	       If package SimpleDoc is not found when installing FourTiTwo.m2, 
+      	       If package SimpleDoc is not found when installing FourTiTwo.m2, 
 	       see questions and answers 6, 7, and 8 on the Macaulay 2 web site.	       
 ///;
 
