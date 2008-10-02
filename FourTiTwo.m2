@@ -259,7 +259,8 @@ doc ///
 	       Alternately, the path for 4ti2 may be set when loading the package using the following command:<br>
 	       loadPackage("FourTiTwo", Configuration=>{"path"=>"C:/cygwin/4ti2/win32/"})  <br>
 	       assuming that 4ti2 has been installed in C:/cygwin/4ti2/win32.
-      Caveat 
+      	       
+	       {\bf Caveat:}   
       	       If package SimpleDoc is not found when installing FourTiTwo.m2, 
 	       see questions and answers 6, 7, and 8 on the Macaulay 2 web site.	       
 ///;
