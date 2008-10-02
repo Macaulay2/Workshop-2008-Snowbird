@@ -19,7 +19,7 @@ newPackage(
     	Authors => {
 	     {Name => "Mike Stillman", Email => "mike@math.cornell.edu", HomePage => ""},
 	     {Name => "Josephine Yu", Email => "jyu@math.mit.edu", HomePage => ""},
-	     {Name => "Sonja Petrovic", Email => "petrovic@ms.uky.edu", HomePage => ""}
+	     {Name => "Sonja Petrovic", Email => "petrovic@math.uic.edu", HomePage => ""}
 	     },
     	Headline => "Interface to 4ti2",
 	Configuration => { "path" => "",
@@ -254,11 +254,15 @@ doc ///
                {\bf Note for cygwin users:} 
 	       If a problem occurs during package installation and/or loading, it should be fixed 
 	       by setting the path inside the file .Macaulay2/init-FourTiTwo.m2  to whatever folder 4ti2 is installed.
-	       For example, if  4ti2 has been installed in C:/cygwin/4ti2_v1.3.1/win32 , then the line 
-	       inside the init-FourTiTwo.m2 file will look like this:  "path" => "4ti2_v1.3.1/win32/"  .<br>
+	       For example, if  4ti2 has been installed in C:/cygwin/4ti2/win32 , then the line 
+	       inside the init-FourTiTwo.m2 file will look like this:  "path" => "C:/cygwin/4ti2/win32/"  .<br>
 	       Alternately, the path for 4ti2 may be set when loading the package using the following command:<br>
-	       loadPackage("FourTiTwo", Configuration=>{"path"=>"4ti2_v1.3.1/win32/"})  <br>
-	       assuming that 4ti2 has been installed in C:/cygwin/4ti2_v1.3.1/win32.
+	       loadPackage("FourTiTwo", Configuration=>{"path"=>"C:/cygwin/4ti2/win32/"})  <br>
+	       assuming that 4ti2 has been installed in C:/cygwin/4ti2/win32.
+      Caveat 
+      	   Text
+	       If package SimpleDoc is not found when installing FourTiTwo.m2, 
+	       see questions and answers 6, 7, and 8 on the Macaulay 2 web site.	       
 ///;
 
 doc ///
