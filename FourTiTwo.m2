@@ -8,7 +8,7 @@
 -- Sonja Petrovic -- 
 --     	    	      	   interface for windows; edited documentation; tests
 --     	    	      	   
--- latest update: 6Jul08
+-- latest update: 6Jul08;  small revision in Documentation: 2oct08.
 ----------------------------------------------------
 ----------------------------------------------------
 
