@@ -187,6 +187,7 @@ isLinearType=method(TypicalValue =>Boolean)
 
 isLinearType(Ideal):=
 isLinearType(Module):= M->(
+     if class M == Ideal then M = module M;
      I:=reesIdeal M;
      P:=substitute(presentation M, ring I);
      newVars := matrix{apply(rank target P, i -> (ring I)_i)};
@@ -195,6 +196,7 @@ isLinearType(Module):= M->(
      
 isLinearType(Ideal, RingElement):=
 isLinearType(Module, RingElement):= (M,a)->(
+     if class M == Ideal then M = module M;
      I:=reesIdeal (M,a);
      P:=substitute(presentation M, ring I);
      newVars := matrix{apply(rank target P, i -> (ring I)_i)};
@@ -244,6 +246,34 @@ multiplicity(Ideal,RingElement) := ZZ => (I,a) ->  (
      )
 --- RInew = newRing(ring presentation RI, Degrees => apply(#gens RI,i -> {1}));
 
+///
+restart
+load "ReesAlgebra.m2"
+
+kk=ZZ/101
+S=kk[x,y]
+I = ideal(x^2, y^3)
+assert (multiplicity I == 6)
+use S
+I=ideal(x^2, x*y+y^3)
+assert(multiplicity I == 6)
+use S
+I = ideal(x^2+x^3)
+assert(multiplicity I == 3)
+normalCone I
+use S
+isLinearType I
+
+use S
+I = ideal((x+1)^2, (x+1)*(y+1)+(y+1)^3)
+multiplicity I
+
+use S
+I = ideal"x3, x2y,y3"
+multiplicity I
+degree(S^1/I)
+viewHelp TEST
+///
 
 --Special fiber is here defined to be the fiber of the blowup over the
 --homogeneous maximal ideal of the original ring.
@@ -305,6 +335,7 @@ distinguished(Ideal) := List => o -> i -> (
      L:=decompose substitute(i,T);
      apply(L, p->kernel(map(T/p, T)*B*A))
      )
+
 distinguished(Ideal,RingElement) := List => o -> (i,a) -> (
      R:=ring i;
      (reesAi,A) := reesAlgebra (i,a,Variable=>o.Variable);
@@ -324,7 +355,9 @@ distinguished(Ideal,RingElement) := List => o -> (i,a) -> (
 
 
 ///
+
 restart
+installPackage "ReesAlgebra"
 loadPackage "ReesAlgebra"
 T=ZZ/101[c,d]
 D = 4
@@ -335,18 +368,24 @@ ass I -- there is one minimal associated prime (a thick line in PP^3) and D embe
 primaryDecomposition I
 distinguished I -- only the minimal prime is a distinguished component
 
-K = distinguishedAndMult(I) -- get multiplicity 2 
-intersect apply(K, i-> i_1^(i_0)) -- checks the Geometric Nullstellensatz on Ein-Lazarsfeld
 
+K = distinguishedAndMult(I) -- get multiplicity 2 
+J=intersect apply(K, i-> i_1^(i_0)) -- checks the Geometric Nullstellensatz on Ein-Lazarsfeld
+(gens J)% (gb I)
 
 R=ZZ/32003[x,y,z]
 I=intersect(ideal(x),(ideal(x,y))^2, (ideal(x,y,z))^3)
 ass I
+decompose top intersect(ideal(x), ideal(y,z))
+
 distinguished  I
 K = distinguishedAndMult I
 intersect apply(K, i-> i_1^(i_0)) 
-///
 
+viewHelp top
+
+
+///
 
 distinguishedAndMult = method(Options => {Variable => w})
 distinguishedAndMult(Ideal) := List => o -> i -> (
@@ -354,8 +393,11 @@ distinguishedAndMult(Ideal) := List => o -> i -> (
     ReesI := reesIdeal( i, Variable => o.Variable);
     (S,toFlatS) := flattenRing ring ReesI;
      I:=(toFlatS ReesI)+substitute(i,S);
+--     Itop:=top I;
+--     L:=decompose Itop;
      L:=decompose I;
      apply(L,P->(Pcomponent := I:(saturate(I,P)); 
+--     apply(L,P->(Pcomponent := Itop:(saturate(Itop,P)); 
 	       --the P-primary component. The multiplicity is
 	       --computed as (degree Pcomponent)/(degree P)
        	  {(degree Pcomponent)/(degree P), kernel(map(S/P, R))})))
@@ -365,8 +407,11 @@ distinguishedAndMult(Ideal,RingElement) := List => o -> (i,a) -> (
     ReesI := reesIdeal( i,a, Variable => o.Variable);
     (S,toFlatS) := flattenRing ring ReesI;
      I:=(toFlatS ReesI)+substitute(i,S);
+--     Itop:=top I;
+--     L:=decompose Itop;
      L:=decompose I;
      apply(L,P->(Pcomponent := I:(saturate(I,P)); 
+--     apply(L,P->(Pcomponent := Itop:(saturate(Itop,P)); 
 	       --the P-primary component. The multiplicity is
 	       --computed as (degree Pcomponent)/(degree P)
        	  {(degree Pcomponent)/(degree P), kernel(map(S/P, R))})))
@@ -419,17 +464,15 @@ document {
      Headline => "compute Rees algebras",
      " The goal of this package is to provide commands to compute the 
      Rees algebra of a module as it is defined in the paper ", EM "What is 
-     the Rees algebra of a module?", " by  David Eisenbud, Craig Huneke and 
-     Bernd Ulrich, Proc. Amer. Math. Soc. 131 (2003) 701--708.
-     It also includes functions for computing many 
-     structures that require a Rees algebra.  The included functions are 
+     the Rees algebra of a module?", " by Craig Huneke, David Eisenbud and 
+     Bernd Ulrich. It also includes functions for computing many of 
+     the structures that require a Rees algebra.  The included functions are 
      listed below. Examples of the use of each of the functions are included 
      with their documentation."
      }
 
-
--- We may want to change the examples.  
-
+-- We may want to change the examples.  Otherwise complete except that
+-- we may want to give the full reference to Eisenbud Huneke Ulrich.
 document {
      Key => {symmetricKernel,(symmetricKernel, Matrix)},
      Headline => "Compute the rees ring of the image of a matrix",
@@ -779,7 +822,8 @@ i=minors(3,m);
 time I=reesIdeal (i,i_0); -- .05 sec
 transpose gens I
 i=minors(2,m);
-time I=reesIdeal (i,i_0); -- 22 sec
+time I=reesIdeal (i,i_0); -- .04 sec
+time I=reesIdeal(i)
 
 T. Roemer,  "Homological Properties of Bigraded Modules"
 Römer, Tim(D-ESSN)
@@ -917,10 +961,14 @@ loadPackage "ReesAlgebra"
 
 R=QQ[a..e]
 j=monomialCurveIdeal(R, {1,2,3,5})
-IS = symmetricKernel(j)
+IS = symmetricKernel(gens j)
 time L = reesAlgebra(j)
+use R
 M = coker gens j
-IM = reesAlgebra(M)
+reesAlgebra M
+universalEmbedding M
+
+(IM,A) = reesAlgebra(M)
 IR= time reesIdeal(j)
 betti gens IR
 degrees source vars ring IR
@@ -930,12 +978,12 @@ analyticSpread(j, Strategy => I)
 
 
 --TEST 
-
+restart
+loadPackage "ReesAlgebra"
 R=QQ[a,b,c,d,e,f]
 M=matrix{{a,c,e},{b,d,f}}
+image M
 analyticSpread image M
---status: analyticSpread dies because it asks for the ring of a polynomial ring
---status: David, Amelia, and Sorin should fix it
 
 
 restart
@@ -1071,6 +1119,8 @@ J2 = saturate(J, ideal(v_0,v_1, v_2))
 
 {*
 --- Example of non-distinguished components to test distinguished code.
+restart 
+loadPackage "ReesAlgebra"
 T=ZZ/101[c,d]
 D = 4
 P = product(D, i -> random(1,T))
@@ -1081,7 +1131,8 @@ primaryDecomposition I
 distinguished(I) -- only the minimal prime is a distinguished component
 K = distinguishedAndMult(I) -- get multiplicity 2 
 intersect apply(K, i-> i_1^(i_0)) -- checks the Geometric Nullstellensatz on Ein-Lazarsfeld
-
+I
+decompose I
 *}
 
 {*
@@ -1109,3 +1160,4 @@ end
 restart
 installPackage "ReesAlgebra"
 viewHelp installPackage
+viewHelp ReesAlgebra
