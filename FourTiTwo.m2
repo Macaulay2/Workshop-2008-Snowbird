@@ -8,7 +8,8 @@
 -- Sonja Petrovic -- 
 --     	    	      	   interface for windows; edited documentation; tests
 --     	    	      	   
--- latest update: 6Jul08;  small revision in Documentation: 2oct08.
+-- latest major update: 6Jul08;  
+-- small revision in Documentation: 6oct08.
 ----------------------------------------------------
 ----------------------------------------------------
 
@@ -483,6 +484,12 @@ doc ///
 	  Text
 	       Note that these are all 1-norms of the vectors. Since I_A is homogeneous, there are 3 binomials of degree 2 (norm 4) 
 	       and 2 binomials of degree 3 (norm 6).
+	       
+	       Here is a more complicated example, where one may not want to see the Graver basis elements explicitly. 
+	       The toric ideal I_M is the ideal of the rational normal scroll S(3,2,3):
+	  Example
+	       M = matrix "1,1,1,1,1,1,1,1,1,1,1; 1,1,1,1,0,0,0,0,0,0,0; 0,0,0,0,1,1,1,0,0,0,0; 0,0,0,0,0,0,0,1,1,1,1; 1,2,3,4,1,2,3,1,2,3,4"
+	       toricGraverDegrees(M)
 ///;
 
 
