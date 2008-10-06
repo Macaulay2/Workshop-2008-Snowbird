@@ -60,13 +60,17 @@ document {
 
 for universalEmbedding:
 
-universalEmbedding provides the universal map from the input module M into
-a free module over the same ring; that is, given a module M over a ring R,
-universalEmbedding M returns a map $g: M\to G$, where $G$ is free over $R$, and
-any map from $M$ to a free $R$-module factors uniquely through $g$. If 
-$h:F\to M$ is a surjection from a free module, then by definition 
-the Rees algebra of $M$ is the image of the induced map of $Sym(gh): Sym(F)\to Sym(G)$,
-and thus can be computed with symmetricKernel(g*h).
+Suppose that M has free presentation $F\to G$. 
+universalEmbedding provides the universal map  from the input module M into
+a free module H over the same ring, written as a map $u:M \to H$,
+such that any map from $M$ to a free $R$-module, factors uniquely through $u$.
+Let $u1$ be the map $u1: G\to H$ induced by composing $u$ with the surjection
+$p: G \to M$.
+By definition,
+the Rees algebra of $M$ is the image of the induced map  $Sym(u1): Sym(G)\to Sym(H)$,
+and thus can be computed with symmetricKernel(u1).
+The map u is computed from the dual of the first syzygy map of the dual of the
+presentation.
 
 document { 
      Key => {universalEmbedding, (universalEmbedding,Module)},
