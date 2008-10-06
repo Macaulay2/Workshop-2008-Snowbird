@@ -46,12 +46,10 @@ export {
 path'4ti2 = (options FourTiTwo).Configuration#"path"
 -- NOTE: the absolute path should be put into the .init file for 4ti2 inside the .Macaulay2 directory.
 
-
 -- the following command is necessary to be run under windows-cygwin:
 -- externalPath = value Core#"private dictionary"#"externalPath"
 -- Note: outside of cygwin (linux/mac), this string is just the null string. 
 -- But under Windows machines this is necessary (the value of the string is C:/cygwin).
---externalPath = replace("/","\\",value Core#"private dictionary"#"externalPath")
 externalPath = replace("\\\\","/",value Core#"private dictionary"#"externalPath")
 -- Without this command, the temporary files won't be found and there will be a ton of error messages.
 
