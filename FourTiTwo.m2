@@ -9,7 +9,7 @@
 --     	    	      	   interface for windows; edited documentation; tests
 --     	    	      	   
 -- latest major update: 6Jul08;  
--- small revision in Documentation: 6oct08.
+-- small revision in Documentation: 6oct08; SP.
 ----------------------------------------------------
 ----------------------------------------------------
 
@@ -112,8 +112,7 @@ toricMarkov Matrix := Matrix => o -> (A) -> (
        	  F = openOut(filename|".mat");
      putMatrix(F,A);
      close F;
-     execstr = path'4ti2|"markov -q " |externalPath |filename; --added externalPath
-     -- execstr = path'4ti2|"4ti2int32 markov -q "|filename; -- for windows!!! (if not w/ cygwin)
+     execstr = path'4ti2|"markov -q " |externalPath |filename; --added externalPath because Win needs: -- execstr = path'4ti2|"4ti2int32 markov -q "|filename; 
      ret := run(execstr);
      if ret =!= 0 then error "error occurred while executing external program 4ti2: markov";
      getMatrix(filename|".mar")
@@ -200,6 +199,7 @@ rays Matrix := Matrix => (A ->(
 -- I would like to have a command that gives the list of degrees of Graver/Groebner/Circuit/Markov file;
 -- the way 4ti2 does this is you tell it the whatever.mar or whatever.cir file and it writes the degrees
 -- to the screen.
+-- On the other hand, it doesn't matter because you can ask M2 for those degrees directly! 
 toricGraverDegrees = method()
 toricGraverDegrees Matrix := Matrix => (A ->(
      filename := getFilename();
