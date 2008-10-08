@@ -21,24 +21,70 @@ newPackage(
      DebuggingMode => true
      )
 loadPackage "SimpleDoc"
-export{isSyzygy, elementary, evansGriffith, bruns}
 
-isSyzygy=method(TypicalValue=>Boolean)
-isSyzygy(Module,ZZ) := (M,d)->(
-     --tests whether coker f is a d-th syzygy
-     --You would THINK that the LenghtLimit bounds below 
-     --would SPEED things up, but
-     --in fact they SLOW things a little, at least in the example below.
-     --     F:=res (coker transpose f, LengthLimit => d+1);
-     --     G:=res (coker transpose F.dd_(d+1), LengthLimit=>d+1);
-     f = presentation M;
-     F:=res coker transpose f;
-     G:=res coker transpose F.dd_(d+1);
-     value:=true;
-     for i from 2 to d+1 do
-         value = (value and sort flatten degrees G_i == sort(-flatten degrees F_(d+1-i)));
-     value
-     )
+export{bruns, 
+       brunsIdeal,
+       elementary, 
+       evansGriffith,
+       isSyzygy}
+       
+
+--------------------------------------------------------------
+-- bruns
+-- returns a 3-generated ideal whose second syzygy module agrees
+-- with the input
+--------------------------------------------------------------
+
+bruns = method(TypicalValue => Ideal)
+bruns Matrix := f->(
+     --given a matrix f, whose cokernel is a 2-rd syzygy,
+     --bruns f returns a 3-generator ideal whose second syzygy is the image of f
+     f1:=evansGriffith(f,2);
+     FF:=res coker(transpose f1);
+     g:=transpose FF.dd_2;
+     --the row degrees of g are in the reverse order for bruns 1, so reverse them
+     Lsource := flatten degrees source g;
+     Ltar := flatten degrees target g;
+     grev=map((ring g)^(-reverse Ltar), (ring g)^(-Lsource), g^(reverse splice {0..#Ltar-1}));
+     h:=evansGriffith(grev,1);
+     KK:=res coker transpose h;
+     ideal transpose KK.dd_2)
+
+bruns Module := M->(
+     --Given a module M that is at least a 3rd syzygy, 
+     --the function returns a 3-generator ideal with 2nd syzygy
+     --isomorphic to M.
+     --It does this by constructing a matrix f whose image is M and 
+     --whose cokernel is a second syzygy, and then calling 
+     --bruns f.
+     ff:=presentation M;
+     ft:= syz transpose ff;
+     bruns transpose ft)
+
+
+
+--------------------------------------------------------------
+-- brunsIdeal
+-- returns a 3-generated ideal whose second syzygy module agrees
+-- with the second syzygy module of the inputted ideal
+--------------------------------------------------------------
+
+
+brunsIdeal = method();
+brunsIdeal Ideal := I->(
+     --given ideal I, compute its 3rd syzygy module and brusify it!
+    --S = ring I;
+    F = res I;
+    M = image F.dd_3;
+    -- f=F.dd_3;
+    bruns M
+    )
+
+
+--------------------------------------------------------------
+-- elementary
+-- a function used for brunsification
+--------------------------------------------------------------
 
 elementary=method(TypicalValue=>Matrix)
 elementary(Matrix, ZZ, ZZ) := (f,k,m)->(
@@ -68,6 +114,11 @@ elementary(Matrix, ZZ, ZZ) := (f,k,m)->(
      (m11|(m12||m22))*f
      )
 
+
+--------------------------------------------------------------
+-- evansGriffith
+-- a function used by bruns in the brunsification process
+--------------------------------------------------------------
 
 evansGriffith = method(TypicalValue => Matrix)
 evansGriffith(Matrix, ZZ) := (f,n)->(
@@ -104,50 +155,39 @@ evansGriffith(Matrix, ZZ) := (f,n)->(
     f1)
 
 
-bruns = method(TypicalValue => Ideal)
-bruns Matrix := f->(
-     --given a matrix f, whose cokernel is a 2-rd syzygy,
-     --bruns f returns a 3-generator ideal whose second syzygy is the image of f
-     f1:=evansGriffith(f,2);
-     FF:=res coker(transpose f1);
-     g:=transpose FF.dd_2;
-     --the row degrees of g are in the reverse order for bruns 1, so reverse them
-     Lsource := flatten degrees source g;
-     Ltar := flatten degrees target g;
-     grev=map((ring g)^(-reverse Ltar), (ring g)^(-Lsource), g^(reverse splice {0..#Ltar-1}));
-     h:=evansGriffith(grev,1);
-     KK:=res coker transpose h;
-     ideal transpose KK.dd_2)
 
-bruns Module := M->(
-     --Given a module M that is at least a 3rd syzygy, 
-     --the function returns a 3-generator ideal with 2nd syzygy
-     --isomorphic to M.
-     --It does this by constructing a matrix f whose image is M and 
-     --whose cokernel is a second syzygy, and then calling 
-     --bruns f.
-     ff:=presentation M;
-     ft:= syz transpose ff;
-     bruns transpose ft)
+--------------------------------------------------------------
+-- isSyzgy
+-- checks if a module is a d-th syzygy
+--------------------------------------------------------------
 
--- BEGIN added 7oct08
--- let's try to add the option where we input an ideal to bruns!! 
--- 7. Oct 2008.  (SP)
-bruns Ideal := I->(
-     --given ideal I, compute its 3rd syzygy module and brusify it!
-    S = ring I;
-    F = res I;
-    M = image F.dd_3;
-    -- f=F.dd_3;
-    bruns M
-    )
--- END added 7oct08
+isSyzygy=method(TypicalValue=>Boolean)
+isSyzygy(Module,ZZ) := (M,d)->(
+     --tests whether coker f is a d-th syzygy
+     --You would THINK that the LenghtLimit bounds below 
+     --would SPEED things up, but
+     --in fact they SLOW things a little, at least in the example below.
+     --     F:=res (coker transpose f, LengthLimit => d+1);
+     --     G:=res (coker transpose F.dd_(d+1), LengthLimit=>d+1);
+     f = presentation M;
+     F:=res coker transpose f;
+     G:=res coker transpose F.dd_(d+1);
+     value:=true;
+     for i from 2 to d+1 do
+         value = (value and sort flatten degrees G_i == sort(-flatten degrees F_(d+1-i)));
+     value
+     )
 
 
 --- Contributions to Documentation by Sonja Petrovic and Adam Van Tuyl 
 --- Snowbird, M2 Workshop, June-July 2008 
 
 beginDocumentation()
+
+---------------------------------------------------------
+-- DOCUMENTATION Bruns
+---------------------------------------------------------
+
 doc ///
 Key 
    Bruns
@@ -159,7 +199,7 @@ Description
     
     A well-known paper of Winfried Bruns, entitled  
     {\bf ''Jede'' freie Aufl\"osung ist freie Aufl\"osung eines drei-Erzeugenden Ideals }
-    (J. Algebra 39 (1976), no. 2, 429-439.),
+    (J. Algebra 39 (1976), no. 2, 429-439),
     shows that every second syzygy module is the second syzygy module of an ideal with three generators.
     
     The general context of this result uses the theory of ''basic elements'', a
@@ -177,6 +217,10 @@ Description
     
     This package implements this method.
 ///
+
+---------------------------------------------------------
+-- DOCUMENTATION bruns
+---------------------------------------------------------
 
 doc ///
 Key
@@ -236,7 +280,53 @@ Description
     betti (F=res i)
     time j=bruns F.dd_3;
     betti res j
+SeeAlso
+    brunsIdeal
 ///
+
+
+---------------------------------------------------------
+-- DOCUMENTATION brunsIdeal
+---------------------------------------------------------
+
+doc ///
+Key
+  brunsIdeal
+  (brunsIdeal,Ideal)
+Headline
+  Returns an ideal generated by three elements whose 2nd syzygy module agrees with the given ideal
+Usage
+  j = brunsIdeal i
+Inputs
+  i:Ideal
+    a homogeneous ideal
+Outputs
+  j:Ideal
+    a homogeneous ideal generated by three elements whose second syzygy module is isomorphic the second syzygy module of the ideal i.
+Description
+  Text
+    This function is a special case of the function @TO bruns @.  Given an ideal, the
+    user can find another ideal which is 3-generated, and furthermore, the second syzygy modules
+    of both ideals are isomorphic.  Although one can use @TO bruns @ to do this procedure,
+    this function cuts out some of the steps.
+  Example
+    kk=ZZ/32003
+    S=kk[a..d]
+    i=ideal(a^2,b^2,c^2, d^2)
+    betti (F=res i)
+    M = image F.dd_3
+    j1 = bruns M
+    betti res j1    
+    j2=brunsIdeal i
+    betti res j2
+    (betti res j1) == (betti res j2)
+SeeAlso
+    bruns
+///
+
+---------------------------------------------------------
+-- DOCUMENTATION elementary
+---------------------------------------------------------
 
 doc ///
 Key
@@ -288,6 +378,11 @@ Description
   Text
     This method is called by @TO evansGriffith @. 
 ///
+
+---------------------------------------------------------
+-- DOCUMENTATION evansGriffith
+---------------------------------------------------------
+
 doc ///
 Key
   evansGriffith
@@ -324,7 +419,12 @@ Description
    isSyzygy(coker EG,2)
   Text
    This is called within @TO bruns @. 
-    ///
+///
+
+---------------------------------------------------------
+-- DOCUMENTATION isSyzygy
+---------------------------------------------------------
+
 doc ///
 Key
   isSyzygy
@@ -396,6 +496,16 @@ TEST///
     f=F.dd_3
     g=bruns f   
     assert((#flatten entries gens g) == 3)
+///
+TEST///
+    loadPackage "Bruns"
+    kk=ZZ/32003
+    i=ideal(a^2,b^2,c^2, d^2)
+    F=res i
+    M = image F.dd_3
+    j1 = bruns M
+    j2 = brunsIdeal i
+    assert((betti res j1) == (betti res j2))
 ///
 
 end 
