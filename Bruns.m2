@@ -7,6 +7,7 @@
 -- UPDATE HISTORY : bruns2.0 created 28 June 2008
 -- 	     	    updated 1 July 2008
 --     	    	    Minor typos in documentation fixed: 7 Oct 2008 (SP)
+--     	    	    Added function brunsIdeal 8 Oct 2008 (SP and AVT)
 -- 
 ---------------------------------------------------------------------------
 
