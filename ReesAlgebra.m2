@@ -754,7 +754,7 @@ document {
      Usage => "analyticSpread(M)",
      Inputs => {"M","a"},
      Outputs => {{"the dimension of the special fiber of ", TT "M"}},
-               "Stuff."
+               "trouble Shooting documentation - stuff."
      }	   
 
 document {
