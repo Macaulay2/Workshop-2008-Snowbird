@@ -251,9 +251,9 @@ fastReg (Ideal):= opts -> I -> (
      )      
      
      
-  h =findHyperplane(I,3)
-  I = (slice h) (I);
-  regularity I        
+--  h =findHyperplane(I,3)
+--  I = (slice h) (I);
+--  regularity I        
      
      
      
