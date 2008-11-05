@@ -805,7 +805,7 @@ restart
 loadPackage "ReesAlgebra"
 ///
 
---- Very Basic Test/Example
+--- Some Very Basic Tests/Examples
 TEST///
 S=ZZ/101[x,y]
 i=ideal"x5,y5, x3y2"
@@ -817,6 +817,35 @@ V2 = reesIdeal(i,i_0)
 use ring V2
 assert(V2 == ideal(-w_1*y^2+w_3*x^2,w_1*w_2*x-w_3^2*y,w_2*x^3-w_3*y^3,-w_1^2*w_2*y+w_3^3*x,w_1^3*w_
      2^2-w_3^5))
+///
+
+-- 3 very simple tests.  The first tests just reesIdeal, the second
+-- just reesAlgebra and the third tests both. 
+TEST///
+S = ZZ/101[x,y]
+M = module ideal(x,y)
+V = reesIdeal M
+use ring V
+assert(V == ideal (-w_1*y+w_2*x))
+use S
+M = module (ideal(x,y))^2
+R = reesAlgebra M
+assert(numgens R_0 == 5)
+use ring ideal R_0
+assert(ideal R_0 == ideal (-w_2*y+w_3*x, -w_1*y + w_2*x, w_2^2 - w_1*w_3))
+F = map(R_0, S, {x,y})
+assert(F == R_1)
+use S
+M = module (ideal (x,y))^3
+V = reesIdeal M
+use ring V
+assert(V == ideal (-w_3*y+w_4*x,-w_2*y+w_3*x,-w_1*y+w_2*x,w_3^2-w_2*w_4,w_2*w_3-w_1*w_4,w_2^2-w_1*w_3))
+R = reesAlgebra M
+assert(numgens R_0 == 6)
+use ring ideal R_0
+assert(ideal R_0 == ideal (-w_3*y+w_4*x,-w_2*y+w_3*x,-w_1*y+w_2*x,w_3^2-w_2*w_4,w_2*w_3-w_1*w_4,w_2^2-w_1*w_3))
+F = map(R_0, S, {x,y})
+assert(F == R_1)
 ///
 
 --- Checking that the two methods for getting a Rees Ideal yields the
@@ -850,47 +879,7 @@ symmetricKernel F
 degrees ring oo
 /// 
 
-///
-S = ZZ/101[x,y]
-M = module ideal(x,y)
-reesIdeal(M)
-use S
-M = module (ideal(x,y))^2
-reesIdeal(M)
-use S
-M = module (ideal (x,y))^3
-M
-reesIdeal(M)
-///
 
-///
-restart
-S=ZZ/101[x][y]
-loadPackage "ReesAlgebra"
-S = ZZ/101[x,y]
-M = module ideal(x,y)
-reesIdeal(M,S_0)
-reesIdeal(M)
-use S
-M = module (ideal(x,y))^2
-reesIdeal(M,S_0)
-reesIdeal(M)
-///
-
-///
-restart
-loadPackage "ReesAlgebra"
-S = ZZ/101[x,y]
-M = module ideal(x,y)
-reesAlgebra(M,S_0)
-reesAlgebra(M)
-reesIdeal M
-
-M = module (ideal(x,y))^2
-reesAlgebra(M)
-M = module (ideal (x,y))^3
-reesAlgebra(M)
-///
 ///
 restart
 loadPackage "ReesAlgebra"
