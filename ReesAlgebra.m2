@@ -865,11 +865,12 @@ assert(M2 == M1)
 ///
 
 
+
 ///
 --- Our working example
 restart
 loadPackage "ReesAlgebra"
-S = ZZ/101[x_1,x_2, Degrees => {{1,1}, {1,-3}}]
+S = kk[x_1,x_2, Degrees => {{1,1}, {1,-3}}]
 I = ideal(x_1^4*x_2^3)
 f = matrix{{x_1,x_2, 0, 0, 0}, {0, 0 , x_1^2, x_1*x_2, x_2^2}}
 F = map(S^{{-2, 1}, {2, 2}}, S^{{-3, 0},{ -3, 4},{0,0}, {0, 4}, {0,8}}, f)
@@ -919,17 +920,6 @@ multiplicity I
 
 ///
 
-///
-restart
-loadPackage "ReesAlgebra"
-kk=ZZ/101
-R=kk[x,y]
-i=(ideal vars R)^2
-reesAlgebra i
-reesIdeal i
-specialFiberIdeal i
-///
-
 ---------------------
 
 restart
@@ -948,8 +938,8 @@ universalEmbedding M
 IR= time reesIdeal(j)
 betti gens IR
 degrees source vars ring IR
-specialFiber(j, Strategy => I)
-analyticSpread(j, Strategy => I)
+specialFiberIdeal j
+analyticSpread j
 ----
 
 
