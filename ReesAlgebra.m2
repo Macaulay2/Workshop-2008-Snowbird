@@ -587,9 +587,27 @@ document {
      	  "kk = ZZ/101;",
      	  "S=kk[x_0..x_4];",
      	  "i=monomialCurveIdeal(S,{2,3,5,6})",
-     	  "time reesIdeal i;", -- 2.25 sec
-     	  "time reesIdeal(i,i_0);" --.3 sec
+     	  "time V1 = reesIdeal i;", -- 2.25 sec
+     	  "time V2 = reesIdeal(i,i_0);" --.3 sec
      	  },
+     "This example is particularly interesting upon a bit more
+     exploration.",
+     EXAMPLE { 
+	  "numgens V1",
+	  "numgens V2"
+	  },
+     "The difference is striking and, at least in part, explains the
+     difference in computing time.  Furthermore, if we compute a Grobner
+     basis for both and compare the two matrices, we see that we indeed got
+     the same ideal.",
+     EXAMPLE {
+	  "M1 = gens gb V1;",
+	  "M2 = gens gb V2;",
+	  "use ring M2",
+	  "M1 = substitute(M1, ring M2);",
+	  "M1 == M2",
+	  "numgens source M2"
+	  },
      "Another example illustrates the power and usage of the code.  We
      also show the output in this example.  While a bit messy, the
      user can see how we handle the degrees in both cases.",
@@ -606,9 +624,13 @@ document {
 	  "i=minors(2,m);",
 	  "time I=reesIdeal (i,i_0);" -- 22 sec
 	  },
+     "There is good evidence here, if we use reesIdeal i in the latter
+cases, they take less time, but have more generators.",
      SeeAlso => {symmetricKernel, reesAlgebra}
      }
 
+--I don't know
+--the goal of haveing the first part of this example
 
 -- needs updating, like most of this documentation.
 document {
@@ -778,13 +800,13 @@ document {
 
 end    
 
--- From M2 workshop
-///
--- Very Basic example 
 ///
 restart
-
 loadPackage "ReesAlgebra"
+///
+
+--- Very Basic Test/Example
+TEST///
 S=ZZ/101[x,y]
 i=ideal"x5,y5, x3y2"
 V1 = reesIdeal(i)
@@ -795,57 +817,22 @@ V2 = reesIdeal(i,i_0)
 use ring V2
 assert(V2 == ideal(-w_1*y^2+w_3*x^2,w_1*w_2*x-w_3^2*y,w_2*x^3-w_3*y^3,-w_1^2*w_2*y+w_3^3*x,w_1^3*w_
      2^2-w_3^5))
+///
 
-
---Examples for the ReesAlgebra package.                                                                                                                                                                                       
-kk=ZZ/101
+--- Checking that the two methods for getting a Rees Ideal yields the
+--- same answer.  Note that in this case M1 takes much longer than
+--- M2.  Also, initially, the first one has 119 gens and the second
+--- only 15!!  but both have 84 in the GB and have the same GB. This
+--- is now an example as well. 
+TEST///
 x = symbol x
-
---Example 1: a monomial ideal in 4-space.
-S=kk[x_0..x_4]
+S=ZZ/101[x_0..x_4]
 i=monomialCurveIdeal(S,{2,3,5,6})
-time reesIdeal i; -- 2.25 sec
-time reesIdeal(i,i_0); --.3 sec
-
---Example 2: determinantal ideals
-restart
-loadPackage "ReesAlgebra"
-kk=ZZ/101
-S=kk[a,b,c]
-m=matrix"a,0;b,a;0,b"
-i=minors(2,m)
-time reesIdeal i
-res i
-
-m=random(S^3,S^{4:-1})
-i=minors(3,m);
-time I=reesIdeal (i,i_0); -- .05 sec
-transpose gens I
-i=minors(2,m);
-time I=reesIdeal (i,i_0); -- .04 sec
-time I=reesIdeal(i)
-
-T. Roemer,  "Homological Properties of Bigraded Modules"
-Römer, Tim(D-ESSN)
-Homological properties of bigraded algebras. (English summary) 
-Illinois J. Math. 45 (2001), no. 4, 1361--1376. 
- Thm 5.3
-shows that if i is and ideal in the polynomial ring,
-generated in degree d (and maybe i is 
-primary to the maximal ideal) then
-  reg(I^j) = jd + b for m>-=j0
-where j0 is the max degree in the "new variables" of
-a bigeneric initial ideal of reesIdeal(i)
-(bigeneric means we allow general changes of coords in
-the new vars alone and in the old vars alone.)
-
-Eisenbud and Ulrich have shown that there is a similar bound
-in terms of the regularity with respect to the variables y
-(graded with the degrees of the generators of i). This is proven
-only in the case of ideals generated in a single degree and
-primary to the maximal ideal. 
-
-Research Problem: what's the situation in general?
+M1 = gens gb reesIdeal i; 
+M2 = gens gb reesIdeal(i,i_0);
+use ring M2
+M1 = substitute(M1, ring M2);
+assert(M2 == M1)
 ///
 
 
@@ -1155,6 +1142,31 @@ R = ZZ/101[x_0..x_3]
 f=map(S, R, matrix {{u^n, u^2, u*v,v}})
 I = kernel f
 *}
+
+///
+T. Roemer,  "Homological Properties of Bigraded Modules"
+Römer, Tim(D-ESSN)
+Homological properties of bigraded algebras. (English summary) 
+Illinois J. Math. 45 (2001), no. 4, 1361--1376. 
+ Thm 5.3
+shows that if i is and ideal in the polynomial ring,
+generated in degree d (and maybe i is 
+primary to the maximal ideal) then
+  reg(I^j) = jd + b for m>-=j0
+where j0 is the max degree in the "new variables" of
+a bigeneric initial ideal of reesIdeal(i)
+(bigeneric means we allow general changes of coords in
+the new vars alone and in the old vars alone.)
+
+Eisenbud and Ulrich have shown that there is a similar bound
+in terms of the regularity with respect to the variables y
+(graded with the degrees of the generators of i). This is proven
+only in the case of ideals generated in a single degree and
+primary to the maximal ideal. 
+
+Research Problem: what's the situation in general?
+///
+
 
 end
 restart
