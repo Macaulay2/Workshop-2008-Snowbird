@@ -735,8 +735,8 @@ doc ///
       kk = ZZ/101;
       S=kk[x_0..x_4];
       i=monomialCurveIdeal(S,{2,3,5,6})
-      time reesIdeal i; -- 2.25 sec
-      time reesIdeal(i,i_0); --.3 sec
+      time V1 = reesIdeal i; -- 2.25 sec
+      time V2 = reesIdeal(i,i_0); --.3 sec
    Text
       This example is particularly interesting upon a bit more
       exploration.
