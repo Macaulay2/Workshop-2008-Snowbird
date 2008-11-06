@@ -728,7 +728,7 @@ doc ///
       an ideal $I$ in a ring $R$, say) is used here to refer to the ring
       $R[It]\subset R[t]$ which is sometimes called the "blowup algebra"
       instead. (The origin of the name may be traced to a paper by David Rees,
-      (On a problem of Zariski. Illinois J. Math. (1958)145–149) where Rees
+      (On a problem of Zariski. Illinois J. Math. (1958)145â149) where Rees
       used the ring $R[It,t^{-1}$, now also called the ``extended Rees
       Algebra.'')
    Example
@@ -737,6 +737,28 @@ doc ///
       i=monomialCurveIdeal(S,{2,3,5,6})
       time reesIdeal i; -- 2.25 sec
       time reesIdeal(i,i_0); --.3 sec
+   Text
+      This example is particularly interesting upon a bit more
+      exploration.
+   Example
+      numgens V1
+      numgens V2
+   Text
+      The difference is striking and, at least in part, explains the
+      difference in computing time.  Furthermore, if we compute a Grobner
+      basis for both and compare the two matrices, we see that we indeed got
+      the same ideal.
+   Example
+      M1 = gens gb V1;,
+      M2 = gens gb V2;
+      use ring M2
+      M1 = substitute(M1, ring M2);
+      M1 == M2
+      numgens source M2
+   Text
+      Another example illustrates the power and usage of the code.  We
+      also show the output in this example.  While a bit messy, the
+      user can see how we handle the degrees in both cases.  
    Example
       S=kk[a,b,c]
       m=matrix{{a,0},{b,a},{0,b}}
@@ -1167,12 +1189,13 @@ assert((A==B)==true)
 assert((A==C)==false)
 ///
 
+
+--- A very basic tests of reesIdeal - a few more after this. 
 TEST///
 S=ZZ/101[x,y]
 i=ideal"x5,y5, x3y2"
 V1 = reesIdeal(i)
 use ring V1
-V2 = reesIdeal(i,i_0)
 assert(V1 == ideal(-w_1*y^2+w_3*x^2,w_1*w_2*x-w_3^2*y,w_2*x^3-w_3*y^3,-w_1^2*w_2*y+w_3^3*x,w_1^3*w_
      2^2-w_3^5))
 V2 = reesIdeal(i,i_0)
@@ -1181,9 +1204,68 @@ assert(V2 == ideal(-w_1*y^2+w_3*x^2,w_1*w_2*x-w_3^2*y,w_2*x^3-w_3*y^3,-w_1^2*w_2
      2^2-w_3^5))
 ///
 
+-- 3 very simple tests.  The first tests just reesIdeal, the second
+-- just reesAlgebra and the third tests both. 
+TEST///
+S = ZZ/101[x,y]
+M = module ideal(x,y)
+V = reesIdeal M
+use ring V
+assert(V == ideal (-w_1*y+w_2*x))
+use S
+M = module (ideal(x,y))^2
+R = reesAlgebra M
+assert(numgens R_0 == 5)
+use ring ideal R_0
+assert(ideal R_0 == ideal (-w_2*y+w_3*x, -w_1*y + w_2*x, w_2^2 - w_1*w_3))
+F = map(R_0, S, {x,y})
+assert(F == R_1)
+use S
+M = module (ideal (x,y))^3
+V = reesIdeal M
+use ring V
+assert(V == ideal (-w_3*y+w_4*x,-w_2*y+w_3*x,-w_1*y+w_2*x,w_3^2-w_2*w_4,w_2*w_3-w_1*w_4,w_2^2-w_1*w_3))
+R = reesAlgebra M
+assert(numgens R_0 == 6)
+use ring ideal R_0
+assert(ideal R_0 == ideal (-w_3*y+w_4*x,-w_2*y+w_3*x,-w_1*y+w_2*x,w_3^2-w_2*w_4,w_2*w_3-w_1*w_4,w_2^2-w_1*w_3))
+F = map(R_0, S, {x,y})
+assert(F == R_1)
+///
+
+--- Checking that the two methods for getting a Rees Ideal yields the
+--- same answer.  Note that in this case M1 takes much longer than
+--- M2.  Also, initially, the first one has 119 gens and the second
+--- only 15!!  but both have 84 in the GB and have the same GB. This
+--- is now an example as well. 
+TEST///
+x = symbol x
+S=ZZ/101[x_0..x_4]
+i=monomialCurveIdeal(S,{2,3,5,6})
+M1 = gens gb reesIdeal i; 
+M2 = gens gb reesIdeal(i,i_0);
+use ring M2
+M1 = substitute(M1, ring M2);
+assert(M2 == M1)
+///
+
+--- Testing analyticSpread
+TEST ///
+restart
+loadPackage "ReesAlgebra"
+R=QQ[a,b,c,d,e,f]
+M=matrix{{a,c,e},{b,d,f}}
+assert(analyticSpread image M == 3)
+///
+
+
+---- AT:  Anything Listed as a TEST below here is not really a TEST
+---- yet since it either has no asserts or it does not have enough and
+---- is more of an example.  Some of these examples are from a very
+---- long time ago.  
+
 --Examples for the ReesAlgebra package.                                                                                                                                                                                       
 
---For ReesIdeal, ReesAlgebra
 restart
 load "ReesAlgebra.m2"
 kk=ZZ/101
@@ -1192,14 +1274,6 @@ x = symbol x
 --Example 1: a monomial ideal in 4-space.
 S=kk[x_0..x_4]
 i=monomialCurveIdeal(S,{2,3,5,6})
-time I=reesIdeal i; -- 3.2 sec
-use S
-reesIdeal(i, Variable=>v)
-
-time I=reesIdeal(i,i_0); --.3 sec
-time (J=symmetricKernel gens i);
---time (J=symmetricKernel (gens i, i_0));
-use S
 isLinearType(i,i_0)
 isLinearType i
 ring i
@@ -1280,7 +1354,6 @@ reesAlgebra(M)
 reesIdeal M
 ///
 
-     
 TEST///
 restart
 loadPackage "ReesAlgebra"
@@ -1319,19 +1392,6 @@ reesAlgebra i
 reesIdeal i
 specialFiberIdeal i
 ///
-
----------------------
-
-
-
-TEST ///
-restart
-loadPackage "ReesAlgebra"
-R=QQ[a,b,c,d,e,f]
-M=matrix{{a,c,e},{b,d,f}}
-assert(analyticSpread image M == 3)
-///
-
 
 ///
 --Examples for reesIdeal
