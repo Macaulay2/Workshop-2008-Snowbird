@@ -728,15 +728,15 @@ doc ///
       an ideal $I$ in a ring $R$, say) is used here to refer to the ring
       $R[It]\subset R[t]$ which is sometimes called the "blowup algebra"
       instead. (The origin of the name may be traced to a paper by David Rees,
-      (On a problem of Zariski. Illinois J. Math. (1958)145â149) where Rees
+      (On a problem of Zariski. Illinois J. Math. (1958)145Ã¢ÂÂ149) where Rees
       used the ring $R[It,t^{-1}$, now also called the ``extended Rees
       Algebra.'')
    Example
       kk = ZZ/101;
       S=kk[x_0..x_4];
       i=monomialCurveIdeal(S,{2,3,5,6})
-      time V1 = reesIdeal i; -- 2.25 sec
-      time V2 = reesIdeal(i,i_0); --.3 sec
+      time V1 = reesIdeal i; 
+      time V2 = reesIdeal(i,i_0); 
    Text
       This example is particularly interesting upon a bit more
       exploration.
@@ -749,7 +749,7 @@ doc ///
       basis for both and compare the two matrices, we see that we indeed got
       the same ideal.
    Example
-      M1 = gens gb V1;,
+      M1 = gens gb V1;
       M2 = gens gb V2;
       use ring M2
       M1 = substitute(M1, ring M2);
