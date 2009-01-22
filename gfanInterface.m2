@@ -18,16 +18,17 @@ newPackage(
     	)
 
 export {
-     gfan, weightVector, initialIdeal, groebnerCone, groebnerFan, universalGroebnerBasis, renderStaircase, render, Symmetries
+     gfan, weightVector, initialIdeal, groebnerCone, groebnerFan, universalGroebnerBasis, 
+     renderStaircase, render, Symmetries
      }
 
 gfan'path = gfanInterface#Options#Configuration#"path"
 fig2dev'path = gfanInterface#Options#Configuration#"fig2devpath"
 
---needs "FourierMotzkin.m2"
 needsPackage "FourierMotzkin"
 needsPackage "Polymake"
-needsPackage "SimpleDoc"
+
+print (methods getProperty)
 
 wtvec = (inL,L) -> (
   W := flatten apply(#inL, i -> (
@@ -206,9 +207,14 @@ readGfanIdeals String := (f) -> (
 		)
 			
 
+-- The following routines are lifted from Polymake.m2, but should be taken out, once that package
+-- is ready for prime time.
+
+------------------------------------------------------------------------------
+
 readGroebnerfan= method()
 readGroebnerfan String := (f) -> (
-		 s := lines get f;
+		 f = lines get f;
 		 return new PolymakeObject from {
 				"AMBIENT_DIM" => value first removeComments getProperty(f,"AMBIENT_DIM"),
 				"DIM" => value first removeComments getProperty(f,"DIM"),
@@ -477,13 +483,12 @@ doc ///
 		Symmetries:List 
 			of permutations of the variables leaving the ideal invariant
 	Outputs
-		P:PolymakeObject
+		P:HashTable
 			containing all the data of the polyhedral fan of {\tt I}.
 	Caveat
 		Requires loading of the Polymake package to make the PolymakeObject type available.
 	Description
 		Example	
-			needsPackage "Polymake";
 	 		R = QQ[symbol a..symbol f];
 			I = pfaffians(4, genericSkewMatrix(R,4))
 			P = groebnerFan(I)
@@ -518,7 +523,7 @@ doc ///
 	 		R = QQ[a,b,c];
 			I = ideal(a+b,b+c);
 			gfan(I)
-		  gfan(I, Symmetries => {(c,b,a)})
+			gfan(I, Symmetries => {(c,b,a)})
 		
 		Text
 			Note that the use of symmetries above reduces the amount of output.

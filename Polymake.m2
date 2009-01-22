@@ -83,6 +83,7 @@ getProperty(String,String) := (filename, propertyname) -> (
      F := lines get filename;
      getProperty(F, propertyname)
      )
+print (methods getProperty)
 
 getMatrixProperty = method()
 getMatrixProperty(List, String) := (F, section) -> (
