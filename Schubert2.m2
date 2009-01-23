@@ -326,7 +326,7 @@ flagBundle(List,AbstractSheaf) := opts -> (bundleRanks,E) -> (
      X := variety E;
      dgs := splice apply(bundleRanks, r -> 1 .. r);
      S := intersectionRing X;
-     T := S(monoid [flatten varNames, Degrees => dgs, Global => false, MonomialOrder => apply(bundleRanks, n -> Ord => n), ConstantCoefficients => false]);
+     T := S(monoid [flatten varNames, Degrees => dgs, Global => false, MonomialOrder => apply(bundleRanks, n -> Ord => n), Join => false]);
      -- (A,F) := flattenRing T; G := F^-1 ;
      A := T; F := identity;
      chclasses := apply(varNames, x -> F (1 + sum(x,v -> T_v)));
