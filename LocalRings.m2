@@ -1,10 +1,11 @@
+-- -*- coding: utf-8 -*-
 newPackage(
 	"LocalRings",
     	Version => "1.0", 
     	Date => "September 27, 2006",
     	Authors => {
 	     {Name => "David Eisenbud", Email => "de@msri.org", HomePage => "http://www.msri.org/~de/"},
-	     {Name => "Mike Stillman", Email => "", HomePage => ""}
+	     {Name => "Mike Stillman", Email => "mike@math.cornell.edu", HomePage => "http://www.math.cornell.edu/~mike/"}
 	     },
     	Headline => "Local rings at the origin",
     	DebuggingMode => true
@@ -146,7 +147,6 @@ document {
 	  },     
      "The function adds new structure to the ring which specifies a maximal ideal which allows the user to employ local ring methods.",
      EXAMPLE lines ///
-	  loadPackage "LocalRings"
 	  R = ZZ/32003[x,y,z,w,SkewCommutative=>true]
 	  setMaxIdeal(ideal(x,y,z,w))
 	  ///,
@@ -168,7 +168,6 @@ document {
 	  },   
      "The function finds a splitting of the target of m as a direct sum of the image of m and the image of the output.",
      EXAMPLE lines ///
-	  loadPackage "LocalRings"
 	  R = ZZ/32003[x,y]
 	  m = matrix{{x,y-1},{0,x}}
 	  setMaxIdeal(ideal(x,y))
@@ -191,7 +190,6 @@ document {
      Consequences => {
 	  },     
      EXAMPLE lines ///
-	  loadPackage "LocalRings"
 	  R = ZZ/32003[x,y,z,w,SkewCommutative=>true]
 	  m = matrix{{x,y*z},{z*w,x}}
 	  setMaxIdeal(ideal(x,y,z,w))
@@ -216,7 +214,6 @@ document {
 	  },     
      "We get a minimal set for the homogeneous case, but not necessarily otherwise.",
      EXAMPLE lines ///
-     	  loadPackage "LocalRings"
 	  R=QQ[a,b]
 	  setMaxIdeal ideal gens R
 	  mingens image matrix{{a-1,a,b},{a-1,a,b}}
@@ -241,7 +238,6 @@ document {
 	  },     
      "The maps m and n must have the same target, and their sources and targets must be free. If m is null, then it is taken to be the identity. If n is null, it is taken to be zero.",
      EXAMPLE lines ///
-	  loadPackage "LocalRings"
 	  R = QQ[x,y,z]
 	  setMaxIdeal ideal vars R
 	  m = matrix {{x-1, y}}
@@ -267,7 +263,6 @@ document {
 	  },     
      "The output is a minimal presentation of the input.",
      EXAMPLE lines ///
-     	  loadPackage "LocalRings"
 	  R=QQ[a,b]
 	  setMaxIdeal ideal gens R
 	  m = matrix{{a-1,a,b},{a-1,a,b}}
@@ -293,7 +288,6 @@ document {
 	  },     
      PARA "This function iterates ", TO localsyz, " to obtain a resolution over the local ring.",
      EXAMPLE lines ///
-	  loadPackage "LocalRings"
 	  R = ZZ/32003[x,y,z,w,SkewCommutative=>true]
 	  m = matrix{{x,y*z},{z*w,x}}
 	  setMaxIdeal(ideal(x,y,z,w))
@@ -332,7 +326,7 @@ TEST ///
      --loadPackage "LocalRings"
      S=ZZ/101[t,x,y,z]
      setMaxIdeal ideal vars S
-     assert(S.residueMap == map(S,S,{0,0,0,0}))
+     assert(S.residueMap === map(S,S,{0,0,0,0}))
      m=matrix"x,y2;z3,x4"
      M=coker m
      assert(localsyz m == 0)
@@ -348,7 +342,7 @@ TEST ///
      ///
      
 TEST ///
-     loadPackage "LocalRings"
+     --loadPackage "LocalRings"
      kk = ZZ/32003
      R = kk[x,y,z,w,SkewCommutative=>true]
      m = matrix{{x,y*z},{z*w,x}}
@@ -367,7 +361,7 @@ loadPackage "LocalRings"
 kk=ZZ/101
 S=kk[t,x,y,z]
 setMaxIdeal ideal vars S
-assert(S.residueMap == map(S,S,{0,0,0,0}))
+assert(S.residueMap === map(S,S,{0,0,0,0}))
 
 m=matrix"x,y2;z3,x4"
 M=coker m
@@ -513,5 +507,5 @@ M = R^4
 C = res M
 
 -- Local Variables:
--- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages NAMEOFPACKAGE=Local install-one"
+-- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=Local pre-install"
 -- End:
