@@ -1,3 +1,4 @@
+-- -*- coding: utf-8 -*-
 newPackage(
      "PrimaryDecomposition",
      AuxiliaryFiles => true,
@@ -124,6 +125,30 @@ isPrimary(Ideal,Ideal) := (Q,P) -> (
      else false
      )
 
+
+beginDocumentation()
+
+document {
+     Key => PrimaryDecomposition,
+     "This package provides computations with components
+     of ideals, including minimal and associated primes, radicals, and
+     primary decompositions of ideals.",
+     Subnodes => {
+	  TO (associatedPrimes, Ideal),
+	  TO [associatedPrimes,Strategy],
+	  TO (localize,Ideal,Ideal),
+	  TO [localize,Strategy],
+	  TO (primaryComponent, Ideal, Ideal),
+	  TO [primaryComponent,Strategy],
+	  TO [primaryComponent,Increment],
+	  -- this is part of the Macaulay2 package, sorry! TO (primaryDecomposition, Ideal),
+	  TO [primaryDecomposition,Strategy]
+	  },
+     SeeAlso => { (primaryDecomposition, Ideal) }
+     }
+
+load "PrimaryDecomposition/doc.m2"
+
 TEST ///
      testResult = method()
      testResult(Ideal,List) := (I,L) -> (
@@ -179,29 +204,6 @@ TEST ///
 	  )
 ///
 
-beginDocumentation()
-
-document {
-     Key => PrimaryDecomposition,
-     "This package provides computations with components
-     of ideals, including minimal and associated primes, radicals, and
-     primary decompositions of ideals.",
-     Subnodes => {
-	  TO (associatedPrimes, Ideal),
-	  TO [associatedPrimes,Strategy],
-	  TO (localize,Ideal,Ideal),
-	  TO [localize,Strategy],
-	  TO (primaryComponent, Ideal, Ideal),
-	  TO [primaryComponent,Strategy],
-	  TO [primaryComponent,Increment],
-	  -- this is part of the Macaulay2 package, sorry! TO (primaryDecomposition, Ideal),
-	  TO [primaryDecomposition,Strategy]
-	  },
-     SeeAlso => { (primaryDecomposition, Ideal) }
-     }
-
-load "PrimaryDecomposition/doc.m2"
-
 -- Local Variables:
--- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages NAMEOFPACKAGE=PrimaryDecomposition install-one"
+-- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=PrimaryDecomposition pre-install"
 -- End:
