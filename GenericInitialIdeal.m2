@@ -52,7 +52,7 @@ gin(Ideal) := opts -> (I) -> (
      	  c=ZZ/p;
 	  )
      else c = coefficientRing ring I;
-     R := c[gens ring I, MonomialOrder => {if opts.MonomialOrder =!= null then opts.MonomialOrder else (options ring I).MonomialOrder}];--R has the specified MomomialOrder and Modular coeff field
+     R := c(monoid [gens ring I, MonomialOrder => {if opts.MonomialOrder =!= null then opts.MonomialOrder else (options ring I).MonomialOrder}]);--R has the specified MomomialOrder and Modular coeff field
      n := # gens R;
      f := map(R,ring I,gens R);
      I = f I; -- view I as an ideal of the new ring I;
@@ -74,7 +74,7 @@ gin(Ideal) := opts -> (I) -> (
 	  << "--potential generic ideal showed up "<< (tally attempts)#(genericI)<< " out of " << opts.AttemptCount << " times." << endl;
 	  print netList pairs tally attempts;
 	  );
-     use S;
+     --use S;
      generic       
      );
 
@@ -117,9 +117,9 @@ document {
      SeeAlso =>"lexgin",
      PARA {"Example: a complete intersection of type (3,3) in P^3"},
      EXAMPLE lines ///
-	  "R = QQ[a..d];",
-	  "I = ideal(a^3+c^2*d, b^3-a*d^2);",
-	  "gin(I)"
+	  R = QQ[a..d];
+	  I = ideal(a^3+c^2*d, b^3-a*d^2);
+	  gin(I)
 	  ///,
      PARA{"The Stanley-Reisner ideal of RP^2"},
      EXAMPLE lines ///
