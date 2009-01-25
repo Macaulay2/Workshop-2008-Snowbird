@@ -1,3 +1,4 @@
+-- -*- coding: utf-8 -*-
 newPackage(
 	"Points",
     	Version => "0.2", 
@@ -440,7 +441,6 @@ M = matrix{{1,2,3,4}}
 K = ZZ/32003
 M ** K
 
-
 -- Local Variables:
--- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages NAMEOFPACKAGE=Points install-one"
+-- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=Points pre-install"
 -- End:
