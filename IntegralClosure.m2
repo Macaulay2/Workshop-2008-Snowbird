@@ -121,7 +121,7 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
 	  -- If J_0 is a NZD then we continue setting f = J_0.
 	  -- Compute Hom_R(J,J), with R = S/I.
 	  -- From now on, we work in this quotient:
-	  (newPhi, fracs) := idealizerReal(J, J_0, Variable => newVar, Index => indexVar);  
+	  (newPhi, fracs) := idealizer(J, J_0, Variable => newVar, Index => indexVar);  
 	  targ := target newPhi;
 	  if targ == S then (
 	       return {newPhi*phi, join(fracs,fractions)})
@@ -161,7 +161,7 @@ I = ideal presentation target phi
 R = ring I
 J1 = trim(ideal(0_S):J_0)
 J1 != ideal(0_S) 
-(newPhi, fracs) = idealizerReal(J, J_0, Index => indexVar);
+(newPhi, fracs) = idealizer(J, J_0, Index => indexVar);
 targ = target newPhi
 targ == S 
 newI1 = trim ideal presentation targ
@@ -178,8 +178,8 @@ indexVar = indexVar + # gens targ - # gens source newPhi
 
 ///
 
-idealizerReal = method(Options=>{Variable => global w, Index => 0})
-idealizerReal (Ideal, Thing) := o -> (J, f) -> (
+idealizer = method(Options=>{Variable => global w, Index => 0})
+idealizer (Ideal, Thing) := o -> (J, f) -> (
      -- 3 arguments: An ideal J in the non normal locus of a ring R/I,
      -- f a non-zero divisor in R/I, and w is the new variable in use. 
      -- Return: a sequence consisting of a ring map from the ring of J to
@@ -410,91 +410,6 @@ intClI (RingElement, RingElement, ZZ) := Ideal => (a, D, N) -> (
      J
      )
 
-subMonoid = method(Options => {Degrees => null})
-subMonoid (Monoid, List) := o -> (M, l) -> (
-     -- 2 arguments: a monoid and a list that is a list of the
-     -- variables, or positions of the variables to be used in 
-     -- the new monoid.
-     -- return: A new monoid corresponding to the subset of the
-     -- variables in l.
-     --if not isPolynomialRing then error "input must be a polynomial ring.";
-     if #l == 0 then M else (
-     	  newM := new MutableHashTable from M.Options;
-     	  numVars := #newM#Variables;
-     	  count := 0;
-     	  if class l_0 === ZZ then newM#Variables = apply(l, i -> newM#Variables#i)
-     	  else (newM#Variables = l;
-	       l = l/index);
-     	  newM#MonomialOrder = subMonomialOrder(newM#MonomialOrder, l);
-     	  skewC := newM#SkewCommutative;
-     	  skewN := #newM#SkewCommutative;
-     	  if  skewN =!= 0 then (
-	       if skewN =!= numVars then (
-	       	    if class skewC#0 === IndexedVariable then skewC = skewC/index;
-	       	    L := (set l) * (set skewC);
-	       	    newM#SkewCommutative = toList L;
-	       	    );
-	       );
-	  if o.Degrees === null then newM#Degrees = apply(l, i -> newM#Degrees#i) 
-	  else (newM#DegreeRank = null;
-	       newM#Degrees = apply(l, i -> o.Degrees#i);
-	       );
-     	  OP := new OptionTable from newM;
-     	  monoid([OP])
-	  )
-     )
-	  
-subMonomialOrder = method()
-subMonomialOrder (List,List) := (Ord, l) -> (
-     -- 2 arguments: a monomial order, given as a list, and a list of
-     -- the positions of the variables to be used in the new ring.
-     -- return:  a new monomial order corresponding to the subset of 
-     --          of variables in l.
-     localListCheck = l_(#l-1);
-     subMonOrderHelper(Ord,l, 0, {})
-     )
-
-subMonOrderHelper = (Ord, l, count, newOrd) -> (
-     -- 4 arguments: a monomial order, given as a list, a list of the
-     -- positions of the variables to be used in the new ring, 
-     if #Ord == 0 then (
-	  if  localListCheck > count-1 then error("expected variable indices in range 0.." | count-1)
-	  else (
-	       newOrd = select(newOrd, i -> (i#1 =!= {} and i#1 =!= 0));
-	       return newOrd))
-     else(
-     	  if Ord#0#0 === Weights then (
-	       w := #Ord#0#1;  -- the old list of weights
-	       lw := select(l, i -> i <= w+count-1); 
-	       ww := apply(lw, i -> Ord#0#1#(i-count));
-	       return subMonOrderHelper(drop(Ord,1),l, count, append(newOrd, Ord#0#0 => ww)) 	   	     
-	       );
-     	  if Ord#0#0 === GRevLex then (
-	       w = #Ord#0#1;
-	       lw = select(l, i -> i <= #Ord#0#1+count-1);
-	       return subMonOrderHelper(drop(Ord,1), 
-		    drop(l, #lw), 
-		    count + #Ord#0#1, 
-		    append(newOrd, Ord#0#0 => apply(lw, i -> Ord#0#1#(i-1-count)))); 
-	       );    
-     	  if (Ord#0#0 === Lex or Ord#0#0 === RevLex or 
-	       Ord#0#0 === GroupLex or 
-	       Ord#0#0 ===  GroupRevLex) 
-     	  then ( 
-	       u = #(select(l, i -> i <= count + Ord#0#1 - 1));
-	       return subMonOrderHelper(drop(Ord, 1), 
-		    drop(l, u), 
-		    count + Ord#0#1, 
-		    append(newOrd, Ord#0#0 => u));
-	       );
-     	  if (Ord#0#0 === Position or Ord#0#0 === MonomialSize) then (
-	       return subMonOrderHelper(drop(Ord, 1), l, count, 
-		    append(newOrd, Ord#0#0 => Ord#0#1));
-	       );
-	  )
-     )
-
-
 ///
 restart
 loadPackage "IntegralClosure"
@@ -556,7 +471,7 @@ ideal V == ideal(a_5*a_9-a_6*a_10,a_4*a_8-a_0*a_9,a_1*a_4-a_6*a_10,a_0*a_4-a_1*a
 ///
 
 --------------------------------------------------------------------
---- integralClosure, idealizerReal, nonNormalLocus, Index,
+--- integralClosure, idealizer, nonNormalLocus, Index,
 --- isNormal, conductor, ICfractions, ICmap, icFracP, conductorElement,
 --- reportSteps, intClI, minPressy
 
@@ -710,9 +625,9 @@ document {
      }
 
 document {
-     Key => {idealizerReal, (idealizerReal, Ideal, Thing)},
+     Key => {idealizer, (idealizer, Ideal, Thing)},
      Headline => "Compute Hom(I,I) as quotient ring",
-     Usage => "idealizerReal(I, f)",
+     Usage => "idealizer(I, f)",
      Inputs => {"I" => {ofClass Ideal},
 	  "f" => {{ofClass Thing}, " that is a non-zero divisor in the
 	  ring of ", TT "I"}},
@@ -1259,7 +1174,7 @@ NNL = trim radical jf
 radJF == NNL
 NNL = radJF
 NNL = substitute(NNL,A)
-(phi,fracs) = idealizerReal(NNL,NNL_0)
+(phi,fracs) = idealizer(NNL,NNL_0)
 phi
 #fracs
 
