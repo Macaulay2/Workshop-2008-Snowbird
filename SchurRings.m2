@@ -1,3 +1,4 @@
+-- -*- coding: utf-8 -*-
 --		Copyright 1996-2002,2004 by Daniel R. Grayson
 
 newPackage(
@@ -41,8 +42,6 @@ degreeLength SchurRing := (RM) -> degreeLength monoid RM
 coefficientRing SchurRing := Ring => R -> last R.baseRings
 
 ck := i -> if i < 0 then error "expected decreasing row lengths" else i
-
-
 
 schur2monom = (a,Mgens) -> (
      if # a === 0 then 1_M
@@ -899,5 +898,5 @@ schur{1,1,1} % I
 exponents oo
 
 -- Local Variables:
--- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages NAMEOFPACKAGE=SchurRings install-one"
+-- compile-command: "make -C $M2BUILDDIR/Macaulay2/packages PACKAGES=SchurRings pre-install"
 -- End:
