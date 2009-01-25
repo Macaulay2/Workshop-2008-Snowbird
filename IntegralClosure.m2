@@ -143,8 +143,9 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
 
 idealizer = method(Options=>{Variable => global w, Index => 0})
 idealizer (Ideal, Thing) := o -> (J, f) -> (
-     -- 3 arguments: An ideal J in the non normal locus of a ring R/I,
-     -- f a non-zero divisor in R/I, and w is the new variable in use. 
+     -- 2 arguments: An ideal J in the non normal locus of a ring R/I,
+     -- f a non-zero divisor in R/I.
+     -- 2 Options: The new variable in use.  An index *****
      -- Return: a sequence consisting of a ring map from the ring of J to
      -- B/I, where B/I is isomorphic to Hom(J,J) = 1/f(f*J:J), and
      -- list of the fractions that are added to the ring of J to form B/I.   
@@ -552,6 +553,12 @@ document {
 	       in deJong's algorithm. Interested users might want to
 	       use this to investigate different choices for ", 
 	       TT "f", " in the algorithm."
+     }
+
+document {
+     Key => [idealizer,Variable],
+     Headline=> "Sets the name of the indexed variables introduced in computing 
+     the endomorphism ring Hom(J,J)."
      }
 
 document {
