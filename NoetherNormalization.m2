@@ -112,21 +112,6 @@ inverseSequence = (U,X) -> (
      return N;
      );
 
-inversePermutation = f -> (
-     N := {};
-     X := gens source f;
-     U := flatten entries matrix f;
-     for i to #X - 1 do (
-	  for j to #U - 1 do (
-	       if X_i == U_j then (
-		    N = N|{X_j};
-		    break;
-		    );
-	       );
-	  );
-     return map(source f, target f, N);
-     );
-
 --========================================================
 
 -- comments: randomSum is used to make the random linear
@@ -256,23 +241,6 @@ noetherNormalization(QuotientRing) := noetherNormalization(PolynomialRing) := op
      noetherNormalization(ideal R, Verbose => opts.Verbose)
      );
 
---======================================================================================================================
---Assertions
-
-TEST ///
-uninstallPackage "NoetherNormalization"
-installPackage "NoetherNormalization"
-A = QQ[x_1..x_4]
-I = ideal(x_1^2 + x_1*x_4+1,x_1*x_2*x_3*x_4+1)
-assert((noetherNormalization(I))_2=={x_4,x_3})
-///
-
-TEST ///
-loadPackage "NoetherNormalization"
-R = QQ[x,y]
-I = ideal (y^2-x^2*(x+1))
-assert(noetherNormalization I == (map(R,R,{x, y}), ideal(-x^3-x^2+y^2), {y}))
-///
 
 --=========================================================================--
 
@@ -370,3 +338,24 @@ document {
      }
 
 --=========================================================================--
+
+--======================================================================================================================
+--Assertions
+
+TEST ///
+  --uninstallPackage "NoetherNormalization"
+  --installPackage "NoetherNormalization"
+A = QQ[x_1..x_4]
+I = ideal(x_1^2 + x_1*x_4+1,x_1*x_2*x_3*x_4+1)
+assert((noetherNormalization(I))_2=={x_4,x_3})
+///
+
+TEST ///
+--loadPackage "NoetherNormalization"
+R = QQ[x,y]
+I = ideal (y^2-x^2*(x+1))
+(F,J,xs) = noetherNormalization I
+assert(F === map(R,R,{x, y}))
+assert(J == ideal(-x^3-x^2+y^2))
+assert(xs == {y})
+///
