@@ -1,9 +1,10 @@
+-- -*- coding: utf-8 -*-
 newPackage(
      "SymmetricPolynomials",
      Version => "0.1",
-     Date => "23 November 2007",
+     Date => "June 2008",
      Authors => {
-	  {Name => "Alexandra Seceleanu", HomePage => "http://www.math.uiuc.edu/~asecele2/"},
+	  {Name => "Alexandra Seceleanu", HomePage => "http://www.math.uiuc.edu/~asecele2/"}
 	  	  },
      Headline => "symmetric polynomials",
      DebuggingMode => true
@@ -68,10 +69,29 @@ elementalSymm (PolynomialRing):=  R->(
      return map(R,elementarySymmetricPolynomialRing R)
      )
 
-
-
 beginDocumentation()
 
-loadPackage "SimpleDoc"
+doc ///
+  Key
+    elementalSymm
+    (elementalSymm, RingElement)
+  Headline
+    Expresses a symmetric polynomial as a sum of elementary symmetric functions
+  Usage
+    elementalSymm(f)
+  Inputs
+    f:RingElement
+      A symmetric polynomial in n variables  
+  Outputs 
+    G:RingElement
+      The representation of f as a sum of elementary symmetric functions.
+  Description
+    Text    
+      Expresses a symmetric polynomial as a sum of elementary symmetric functions
+    
+    Example
+      R=QQ[x_0,x_1,x_2,x_3]
+      q=x_0^2*x_1^2*x_2^2+x_0^2*x_1^2*x_2*x_3+x_0^2*x_1*x_2^2*x_3+x_0*x_1^2*x_2^2*x_3+x_0^2*x_1^2*x_3^2+x_0^2*x_1*x_2*x_3^2+x_0*x_1^2*x_2*x_3^2+x_0^2*x_2^2*x_3^2+x_0*x_1*x_2^2*x_3^2+x_1^2*x_2^2*x_3^2
+      elementalSymm(q)
+///
 
-doc get (currentDirectory | "elementarySymm.txt")
