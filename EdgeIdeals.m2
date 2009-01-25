@@ -1,3 +1,4 @@
+-- -*- coding: utf-8 -*-
 
 needsPackage "SimplicialComplexes"
 
@@ -24,7 +25,6 @@ newPackage("EdgeIdeals",
 
 needsPackage "GenericInitialIdeal"
 needsPackage "SimplicialComplexes"
-needsPackage "SimpleDoc"
 
 export {HyperGraph, 
         hyperGraph, 
@@ -217,7 +217,7 @@ hyperGraph (Graph) := HyperGraph => (G) ->
 --------------------------------------------------------------
 
 HyperGraph == HyperGraph := (G,H) -> (
-     G#"ring" == H#"ring" and
+     G#"ring" === H#"ring" and
      set(G#"vertices") === set(H#"vertices") and
      set(apply(G#"edges", set)) === set(apply(H#"edges",set))
      ) 
@@ -1103,6 +1103,7 @@ vertexCovers HyperGraph := H -> (
 vertices = method();
 vertices HyperGraph := H -> H#"vertices";
 
+beginDocumentation()
 
 ---------------------------------------------------------
 ---------------------------------------------------------
@@ -4418,9 +4419,9 @@ assert(#(first edges G)==3)
 TEST///
 S = QQ[a..e]
 G = graph monomialIdeal(a*b,c*e)
-assert(ring G == S)
+assert(ring G === S)
 H = hyperGraph(S,{{a,b,c},{a,d}})
-assert(ring H == S)
+assert(ring H === S)
 ///
 
 -------------------------------------
@@ -4486,8 +4487,8 @@ assert(vertices(G) == {a,b,c,d,e,f})
 
 end
 
-restart
-installPackage ("EdgeIdeals", UserMode=>true)
-loadPackage "EdgeIdeals"
-viewHelp
+--restart
+--installPackage ("EdgeIdeals", UserMode=>true)
+--loadPackage "EdgeIdeals"
+--viewHelp
 
