@@ -109,11 +109,11 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
 	  (S2, S2Map) := flattenRing(R/trim(substitute(ideal(0_S):J1, R) + I));
 	  L := join(integralClosureHelper(nonNormalLocus (minimalPresentation S1), 
 	       	    fractions,
-		    (S1.cache.minimalPresentationMap)*(S1Map)*map(source S1Map, S)*phi, 
+		    (S1.minimalPresentationMap)*(S1Map)*map(source S1Map, S)*phi, 
 		    counter-1, newVar, indexVar),
 	       integralClosureHelper(nonNormalLocus (minimalPresentation S2), 
 			 fractions, 
-			 (S2.cache.minimalPresentationMap)*(S2Map)*map(source S2Map, S)*phi, 
+			 (S2.minimalPresentationMap)*(S2Map)*map(source S2Map, S)*phi, 
 			 counter-1, newVar, indexVar));
 	  return L
 	  )	
@@ -123,7 +123,7 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
 	  -- From now on, we work in this quotient:
 	  (newPhi, fracs) := idealizer(J, J_0, Variable => newVar, Index => indexVar);  
 	  targ := target newPhi;
-	  if targ == S then (
+	  if targ === S then (
 	       return {newPhi*phi, join(fracs,fractions)})
 	  else (
 	       newI1 := trim ideal presentation targ;
@@ -416,13 +416,16 @@ document {
 	  "This package computes the integral closure of a ring via the algorithm 
 	  in Theo De Jong's paper, ", EM "An Algorithm for 
 	  Computing the Integral Closure", ", J. Symbolic Computation, 
-	  (1998) 26, 273-277, for a ring in any characteristic and allows the
-	  option to use the algorithm of Anurag Singh and Irena Swanson given in
-	  ", EM "blah", ", arXiv:, for rings in positive characteristic p.
+	  (1998) 26, 273-277, for a ring in any characteristic. It
+	  also includes functions that uses 
+	  the algorithm of Anurag Singh and Irena Swanson given in
+	  arXiv:0901.0871 for rings in positive characteristic p.
 	  The fractions that generate the integral closure over R are obtained 
      	  with the command ", TT "ICfractions R", " if you use De
 	  Jong's algorithm via ", TT "integralClosure R", "and the output of
-	  Singh and Swanson's algorithm is already these fractions."
+	  Singh and Swanson's algorithm is already these
+	  fractions. ICfractions is currently not functioning.  Contact Amelia
+	  Taylor for the latest version."
 	  }
      }
 
@@ -887,7 +890,7 @@ TEST ///
 R = ZZ/101[symbol x..symbol z,Degrees=>{{1,2},{1,5},{1,6}}]/(z*y^2-x^5*z-x^8)
 time J = integralClosure (R,Variable=>symbol a) 
 use ring ideal J
-assert(ideal J == ideal(x^6+a_4*y+x^3*z-11*x*y^2,a_4*x^2-11*x^3*y+y*z,a_4^2-22*a_3*x*y-x^4*z+20*x^2*y^2-x*z^2))
+assert(ideal J == ideal(-x^6+a_3*y-x^3*z,-a_3*x^2+y*z,a_3^2-x^4*z-x*z^2))
 ///
 
 -- multigraded homogeneous test
@@ -961,48 +964,16 @@ assert(
 	     2*a^2*b^3*d^3*e^2-5*a*b*c^2*d^4*e^2+4*b^3*c^2*d^2*e^3-3*a*d^6*e^3+
 	     5*a^2*b*c*d^2*e^4-b^2*d^4*e^4-2*b*c^3*d*e^5-a^3*b*e^6+3*c*d^3*e^6-a*d*e^8)
 	)
- -- they are similar, but not the same...This happened when I changed
--- the order of the names of the new variables.    
--- This change is odd, but does not solve other problems. 
-F = map(QQ[X_0, X_1, a,b,c,d,e, Degrees =>
-{{5},{5},{1},{1},{1},{1},{1}}, MonomialOrder =>{GRevLex => {5,5},
-GRevLex => {1,1,1,1,1}}], ring ideal V)
-J = F ideal V
-   ideal(X_0*e-a^3*b^2*c+b*c^2*d^3+b^5*e+d^5*e-2*a*b*c*d*e^2,
-	X_0*d+a*b^2*c^3+a*b*c*d^2*e-a^2*b*e^3-d*e^5,
-      X_0*c+b^5*c+a^2*b^3*e-a*b*c^2*d*e-a*d^3*e^2,
-      X_0*b-b*c^5+2*a*b^2*c*d*e-c^3*d^2*e+a^3*d*e^2-b*e^5,
-      X_0*a-b^3*c^2*d+c*d^2*e^3,
-      X_1*e-a*b*c^4+b^4*c*d+a^2*b^2*d*e-a*c^2*d^2*e-b^2*c^2*e^2+b*d^2*e^3,
-      X_1*d+a^4*b*c-a*b^4*e-2*b^2*c^2*d*e+a^2*c*d*e^2+b*d^3*e^2,
-      X_1*c-a^2*b^2*c*d-b^2*c^3*e-a^4*d*e+2*b*c*d^2*e^2+a*b*e^4,
-      X_1*b+a*b*c^2*d^2-b^3*c^2*e+a*d^4*e-a^2*b*c*e^2+b^2*d^2*e^2-c*d*e^4,
-      X_1*a-b*c*d^4+c^4*d*e,
-      X_0^2+b^5*c^5+b^4*c^3*d^2*e+b*c^2*d^3*e^4+b^5*e^5+d^5*e^5,
-      X_1*X_0+b^3*c^4*d^3-b^2*c^7*e+b^2*c^2*d^5*e-b*c^5*d^2*e^2-
-          a*b^2*c*d^3*e^3+b^4*c*d*e^4+a^2*b^2*d*e^5-a*c^2*d^2*e^5-b^2*c^2*e^6+b*d^2*e^7,
-      X_1^2+b*c^3*d^6+2*b^5*c*d^3*e+c*d^8*e-b^4*c^4*e^2+
-          a^3*c^3*d^2*e^2+2*a^2*b^3*d^3*e^2-5*a*b*c^2*d^4*e^2+4*b^3*c^2*d^2*e^3-
-	  3*a*d^6*e^3+5*a^2*b*c*d^2*e^4-b^2*d^4*e^4-2*b*c^3*d*e^5-
-	  a^3*b*e^6+3*c*d^3*e^6-a*d*e^8,
-      a^2*b*c^2+b^2*c*d^2+a^2*d^2*e+a*b^2*e^2+c^2*d*e^2,
-      a*b^3*c+b*c^3*d+a^3*b*e+c*d^3*e+a*d*e^3,
-      a^5+b^5+c^5+d^5-5*a*b*c*d*e+e^5,
-      a^3*b^2*c*d-b*c^2*d^4+a*b^2*c^3*e-b^5*d*e-d^6*e+3*a*b*c*d^2*e^2-a^2*b*e^4-d*e^6,
-      a*b*c^5-b^4*c^2*d-2*a^2*b^2*c*d*e+a*c^3*d^2*e-a^4*d*e^2+b*c*d^2*e^3+a*b*e^5,
-      a*b^2*c^4-b^5*c*d-a^2*b^3*d*e+2*a*b*c^2*d^2*e+a*d^4*e^2-a^2*b*c*e^3-c*d*e^5,
-      b^6*c+b*c^6+a^2*b^4*e-3*a*b^2*c^2*d*e+c^4*d^2*e-a^3*c*d*e^2-a*b*d^3*e^2+b*c*e^5,
-      a^4*b^2*c-a*b*c^2*d^3-a*b^5*e-b^3*c^2*d*e-a*d^5*e+2*a^2*b*c*d*e^2+c*d^2*e^4)
 ///
 
 -- Test of ICfractions
 --TEST 
-///
-S = QQ [(symbol Y)_1, (symbol Y)_2, (symbol Y)_3, (symbol Y)_4, symbol x, symbol y, Degrees => {{7, 1}, {5, 1}, {6, 1}, {6, 1}, {1, 0}, {1, 0}}, MonomialOrder => ProductOrder {4, 2}]
-J = ideal(Y_3*y-Y_2*x^2,Y_3*x-Y_4*y,Y_1*x^3-Y_2*y^5,Y_3^2-Y_2*Y_4*x,Y_1*Y_4-Y_2^2*y^3)
-T = S/J       
-assert(ICfractions T == substitute(matrix {{(Y_2*y^2)/x, (Y_1*x)/y, Y_1, Y_2, Y_3, Y_4, x, y}}, frac T))
-///
+--///
+--S = QQ [(symbol Y)_1, (symbol Y)_2, (symbol Y)_3, (symbol Y)_4, symbol x, symbol y, Degrees => {{7, 1}, {5, 1}, {6, 1}, {6, 1}, {1, 0}, {1, 0}}, MonomialOrder => ProductOrder {4, 2}]
+--J = ideal(Y_3*y-Y_2*x^2,Y_3*x-Y_4*y,Y_1*x^3-Y_2*y^5,Y_3^2-Y_2*Y_4*x,Y_1*Y_4-Y_2^2*y^3)
+--T = S/J       
+--assert(ICfractions T == substitute(matrix {{(Y_2*y^2)/x, (Y_1*x)/y, Y_1, Y_2, Y_3, Y_4, x, y}}, frac T))
+--///
 
 -- Test of isNormal
 TEST ///
@@ -1015,7 +986,7 @@ assert(isNormal(integralClosure(S)) == true)
 TEST ///
 R = QQ[x,y,z]/ideal(x^6-z^6-y^2*z^4)
 J = integralClosure(R);
-F = R.ICmap
+F = R.icMap
 assert(conductor F == ideal((R_2)^3, (R_0)*(R_2)^2, (R_0)^3*(R_2), (R_0)^4))
 ---///
 
@@ -1173,8 +1144,8 @@ minimalPresentation J
 minimalPresentation S
 minimalPresentation T
 
-S.cache.minimalPresentationMap
-S.cache.minimalPresentationMapInv
+S.minimalPresentationMap
+S.minimalPresentationMapInv
 F = map(R, target I.cache.minimalPresentationMapInv)
 
 C=ZZ/101[x,y,z,Degrees => {2,3,1}]/ideal(x-x^2-y,z+x*y)
