@@ -54,10 +54,13 @@ needsPackage "Elimination"
 -- idealizer, or of different possibly choices that "work" for the
 -- nonNormalLocus. 
 
+--- Should Singh/Swanson be an option to integralClosure or its own
+--- program.  Right now it is well documented on its own.  I'm not
+--- sure what is best long term. 
+
 integralClosure = method(Options=>{
-	  Variable => global w, 
-	  Limit => infinity, 
-	  Strategy => null})
+	  Variable => global w,
+	  Limit => infinity})
 integralClosure Ring := Ring => o -> (R) -> (
      -- 1 argument: Quotient ring. 
      -- 3 options: the variable name for new variables, a limit on the
@@ -68,35 +71,37 @@ integralClosure Ring := Ring => o -> (R) -> (
      -- Method:  We work primarily with maps to ensure access to key
      -- information at the end.  This also makes it easier to keep
      -- track of ring flattenings and the recursion. 
-     if o.Strategy === null then (
-     	  M := flattenRing R;
-     	  ICout := integralClosureHelper(nonNormalLocus M_0, gens M_0 ,M_1,o.Limit, o.Variable, 0);
-     	  if #ICout == 2 then (
-	       R.icFractions = ICout#1;
-     	       R.icMap = ICout#0;
-     	       target ICout#0
-	       )
-     	  else (
-	       n := substitute((#ICout)/2, ZZ);
-	       ICout = apply(n-1, i -> {ICout#(2*i), ICout#(2*i+1)});
-	       R.icFractions = apply(ICout, i -> i#1);
-	       R.icMap = apply(ICout, i -> i#0);
-	       RIdeal := apply(R.icMap, i -> trim ideal target i);
-	       apply(RIdeal, i -> (ring i)/i)
-	       )
-     	  )
-     else icFracP(R)
+     M := flattenRing R;
+     ICout := integralClosureHelper(nonNormalLocus M_0, gens M_0, M_1,o.Limit, o.Variable, 0);
+     if #ICout == 2 then (
+	  R.icFractions = ICout#1;
+	  --R.icFractionsShort = ICout#2;
+	  R.icMap = ICout#0;
+	  target ICout#0
+	  )
+     else (
+	  n := substitute((#ICout)/2, ZZ);
+	  ICout = apply(n-1, i -> {ICout#(2*i), ICout#(2*i+1)});
+	  R.icFractions = apply(ICout, i -> i#1);
+	  R.icMap = apply(ICout, i -> i#0);
+	  RIdeal := apply(R.icMap, i -> trim ideal target i);
+	  apply(RIdeal, i -> (ring i)/i)
+	  )
      )
+    
 
 integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
      -- recursive helper function designed to build the integral
      -- closure of R = S/I.
      -- 6 arguments: J is in the non normal locus of the target of
-     -- phi, answer is a set containg the relevent maps, fractions is a
-     -- list of the fractions needed, numNewVars is a counter to keep
+     -- phi, is the composition of the relevent maps, fractions is a
+     -- list of the fractions being added, newVar is the letter used
+     -- for the new variables and indexVar keeps track of the current
+     -- index to be used for the new variables. 
      -- track of the number of new variables being added, counter
      -- keeps track of the depth of recursion.
      -- return:  a list consisting of maps and fractions.
+     if counter == 0 then return (phi, fractions);
      S := target phi;
      I := ideal presentation target phi;
      R := ring I;
@@ -122,6 +127,7 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
 	  -- Compute Hom_R(J,J), with R = S/I.
 	  -- From now on, we work in this quotient:
 	  (newPhi, fracs) := idealizer(J, J_0, Variable => newVar, Index => indexVar);  
+     	  --error "check targ";
 	  targ := target newPhi;
 	  if targ === S then (
 	       return {newPhi*phi, join(fracs,fractions)})
@@ -134,7 +140,7 @@ integralClosureHelper = (J, fractions, phi, counter, newVar, indexVar) -> (
 	       FF :=
 	       substitute(((newI1).cache.minimalPresentationMap).matrix, B2);
 	       F := map(B2,target newPhi, FF);
-	       --error("debug me");
+	       --error("check Maps");
 	       return integralClosureHelper(radical(F newJ1), join(fracs,fractions), F*newPhi*phi, counter-1,newVar,indexVar + # gens targ - # gens source newPhi )  
      	       );
      	  );
@@ -305,8 +311,11 @@ Y_1, Y_2, Y_3, Y_4, x, y}}, frac T))
 icFractions = method()
 icFractions(Ring) := Matrix => (R) -> (
      if isNormal R then vars R
-     else stuff
+     else (
+	  if not R.?icFractions then integralClosure R;
+     	  R.icFractions	  
      )
+)
 
 --------------------------------------------------------------------
 
@@ -422,10 +431,9 @@ document {
 	  arXiv:0901.0871 for rings in positive characteristic p.
 	  The fractions that generate the integral closure over R are obtained 
      	  with the command ", TT "ICfractions R", " if you use De
-	  Jong's algorithm via ", TT "integralClosure R", "and the output of
+	  Jong's algorithm via ", TT "integralClosure R", " and the output of
 	  Singh and Swanson's algorithm is already these
-	  fractions. ICfractions is currently not functioning.  Contact Amelia
-	  Taylor for the latest version."
+	  fractions."
 	  }
      }
 
@@ -457,6 +465,7 @@ document {
      Inputs => {
 	  "R" => {" that is reduced and presented as a quotient ring"},
 	  Variable => {" an unassigned symbol"},
+	  Limit => {" limits the depth of the recursion"},
 	  },
      Outputs => {{ofClass Ring, " that is the integral closure of ", TT "R", " in its total 
 	       ring of fractions when ", TT "R", " is a domain.  When ", TT "R", 
@@ -540,12 +549,20 @@ document {
      }
 
 document {
+     Key => [integralClosure,Limit],
+     Headline=> "Sets the recursion level for the program allowing the
+     user to see results without computing the full integral closure."
+     }
+
+document {
      Key => {idealizer, (idealizer, Ideal, Thing)},
      Headline => "Compute Hom(I,I) as quotient ring",
      Usage => "idealizer(I, f)",
      Inputs => {"I" => {ofClass Ideal},
 	  "f" => {{ofClass Thing}, " that is a non-zero divisor in the
-	  ring of ", TT "I"}},
+	  ring of ", TT "I"},
+	  Variable => {" an unassigned symbol"},
+	  Index => {" an integer"}},
      Outputs => {{ofClass Sequence, " where the first item is ", 
 	       ofClass RingMap, " from the ring of ", TT "I", " to a
 	       presentation of ", TT "Hom(I,I) = 1/f(f*J:J)", " and
@@ -565,11 +582,32 @@ document {
      }
 
 document {
+     Key => Index,
+     Headline => "Optional input for idealizer",
+     PARA{},
+     "This option allows the user to select the starting index for the
+     new variables added in computing Hom(J,J) as a ring.  The default
+     value is 0 and is what most users will use.  The option is needed
+     for the recurion implemented in integralClosure."
+}
+
+
+document {
+     Key => [idealizer, Index],
+     Headline=> "Sets the starting index on the new variables used to
+     build the endomorphism ring Hom(J,J). If the program idealizer is
+     used independently, the user will generally want to use the
+     default value of 0.  However, when used as part of the
+     integralClosure computation the number needs to start higher
+     depending on the level of recursion involved. "
+     }
+
+document {
      Key => {nonNormalLocus, (nonNormalLocus, Ring)},
      Headline => "an ideal containing the non normal locus of a ring",
      Usage => "nonNormalLocus R",
      Inputs => {"R" => {ofClass Ring}},
-     Outputs => {{ofClass Ideal, "an ideal containing the non-normal
+     Outputs => {{ofClass Ideal, " an ideal containing the non-normal
 	  locus of ", TT "R"}},
      	  "Primary use is as one step in deJong's algorithm for computing
      	  the integral closure of a reduced ring. If the presenting
@@ -620,27 +658,36 @@ document {
 	  "R" => {ofClass Ring, " that is an affine domain"},
 	  },
      Outputs => {
-  	  {ofClass Matrix, " whose entries are fractions that generate the integral 
+  	  {ofClass List, " whose entries are fractions that generate the integral 
      	       closure of ", TT "R", " over R."}
 	       },
     	  EXAMPLE {
 	       "R = QQ[x,y,z]/ideal(x^6-z^6-y^2*z^4);",
---     	       "icFractions R",
-	       "integralClosure(R,Variable => a)"
+	       "integralClosure(R,Variable => a)",
+	       "icFractions R"
 	       },
-     	  "Thus the new variables ", TT "w_7", " and ", TT "w_6", " correspond to the 
-     	  fractions respectively.  The program currently also returns the original 
+     	  "Thus the new variables ", TT "a_7", " and ", TT "a_6", " in
+	  the output from ", TT "integralClosure", " correspond to the 
+     	  last two fractions given.  The other fractions are those
+	  returned in intermediate recursive steps in the computation of the
+	  integral closure. ", TT "a_0", " for example corresponds to the first
+	  fraction to the left of the original ring variables.  
+	  The program currently also returns the original 
     	  variables as part of the matrix.  In this way the user can see if any are 
      	  simplified out of the ring during the process of computing the integral
      	  closure.",
      	  PARA{},
-     	  "The fractions returned correspond to the variables returned by the function 
-     	  integralClosure.  The function integralClosure eliminates redundant fractions 
-     	  during its iteration.  If the user would like to see all fractions generated 
-     	  during the computation, use the optional argument ", TT "Strategy => Long", " as 
-     	  illustrated here.",
---     	  EXAMPLE {
---	       "icFractions(R, Strategy => Long)"
+	  "A future version of icFractions will return only the
+	  fractions corresponding to the variables returned by the
+	  function integralClosure. Thus the general format will be
+	  much easier to use"
+--     	  "The fractions returned correspond to the variables returned by the function 
+--     	  integralClosure.  The function integralClosure eliminates redundant fractions 
+--     	  during its iteration.  If the user would like to see all fractions generated 
+--     	  during the computation, use the optional argument ", TT "Strategy => Long", " as 
+--     	  illustrated here.",
+--	      	  EXAMPLE {
+--	       "icFractions(R)"
 --	       },
      	  }
 
