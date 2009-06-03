@@ -1551,7 +1551,7 @@ doc ///
 		allEvenHoles
 		(allEvenHoles, Graph)
 	Headline 
-		returns all odd holes in a graph
+		returns all even holes in a graph
 	Usage
 		L = allEvenHoles G
 	Inputs
