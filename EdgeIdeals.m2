@@ -3,8 +3,8 @@
 needsPackage "SimplicialComplexes"
 
 newPackage("EdgeIdeals", 
-           Version => "0.1",
-           Date => "July 1, 2008",
+           Version => "0.1.1",
+           Date => "June 3, 2009",
            Authors => {
 		       {Name => "Chris Francisco", 
                         Email => "chris@math.okstate.edu",
@@ -25,6 +25,7 @@ newPackage("EdgeIdeals",
 
 needsPackage "GenericInitialIdeal"
 needsPackage "SimplicialComplexes"
+needsPackage "Text"
 
 export {HyperGraph, 
         hyperGraph, 
@@ -1114,6 +1115,8 @@ beginDocumentation()
 --*******************************************************
 -- DOCUMENTATION FOR PACKAGE
 --*******************************************************
+
+beginDocumentation()
 
 doc ///
        Key 
@@ -3915,10 +3918,10 @@ assert(G1 != G6)
 -----------------------------
 
 TEST///
-R = QQ[a..d]
-c4 = graph {a*b,b*c,c*d,d*a} -- 4-cycle plus an isolated vertex!!!!
+R = QQ[a..e]
+c4 = graph {a*b,b*c,c*d,d*a} -- 4-cycle plus an isolated vertex
 adjacencyMatrix c4
-m = matrix {{0,1,0,1},{1,0,1,0},{0,1,0,1},{1,0,1,0}}
+m = matrix {{0,1,0,1,0},{1,0,1,0,0},{0,1,0,1,0},{1,0,1,0,0}, {0,0,0,0,0}}
 assert(adjacencyMatrix c4 == m)
 ///
 
@@ -3953,7 +3956,7 @@ TEST///
 S= QQ[a..d]
 g = graph {a*c,b*d}
 assert(antiCycle(S) == g)
-assert(complementGraph antiCycle(S) == cycle(S))
+assert((complementGraph antiCycle(S)) == cycle(S))
 ///
 
 ------------------------
