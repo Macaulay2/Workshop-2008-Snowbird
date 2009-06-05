@@ -61,7 +61,7 @@ export {HyperGraph,
 	independenceComplex,
 	independenceNumber,
 	inducedHyperGraph,
-      	isBipartite,
+	isBipartite,
 	isChordal,
 	isCM,
 	isConnected,
@@ -77,7 +77,7 @@ export {HyperGraph,
 	neighbors,
 	numConnectedComponents,
 	numTriangles,
-     	randomGraph,
+	randomGraph,
 	randomUniformHyperGraph,
 	randomHyperGraph,
 	simplicialComplexToHyperGraph,
@@ -143,9 +143,9 @@ hyperGraph (List) := HyperGraph => (E) ->
 ( 
      M := null; 
      if all(E, e-> class e === List) then (
-	  if E == {} or E == {{}} then error "Use alternate construction with PolynomialRing to input empty hyperGraph" else
-     	  M = monomialIdeal apply(E, product);
-	  );
+          if E == {} or E == {{}} then error "Use alternate construction with PolynomialRing to input empty hyperGraph" else
+          M = monomialIdeal apply(E, product);
+     );
      if all(E, e-> class class e === PolynomialRing) then M = monomialIdeal E;
      if M === null then error "Edge must be represented by a list or a monomial.";
      if #E =!= numgens M then error "Edges satisfy an inclusion relation."; 
@@ -166,21 +166,21 @@ graph (PolynomialRing, List) := Graph => (R, E) ->
      H := hyperGraph(R, E);
      if not isGraph(H) then error "Edges must be of size two.";
      new Graph from H
-)	
+)
 
 graph (MonomialIdeal) := Graph => (I) -> 
 (
      H := hyperGraph(I);
      if not isGraph(H) then error "Ideal must have quadratic generators.";
      new Graph from H
-)	
+)
 
 graph (Ideal) := Graph => (I) -> 
 (
      H := hyperGraph(I);
      if not isGraph(H) then error "Ideal must have quadratic generators.";
      new Graph from H
-)	
+)
 
 graph List := Graph => E -> 
 (
@@ -188,18 +188,18 @@ graph List := Graph => E ->
      H := hyperGraph(E);
      if not isGraph(H) then error "Edges must be of size two.";
      new Graph from H
-)	
+)
 
 graph (HyperGraph) := Graph => (H) -> 
 (
      if not isGraph(H) then error "Edges must be of size two.";
      new Graph from H
-)	
+)
 
 hyperGraph (Graph) := HyperGraph => (G) -> 
 (
      new HyperGraph from G
-)	
+)
 
 
 -------------------------------------------------------------------
@@ -253,12 +253,12 @@ allEvenHoles Graph := G -> (
      count := 0;
      evenCycles := {};
      while count < numEdges do (
-	  newEdges := {{first(edges#count),newVar},{newVar,(edges#count)#1}};
-     	  tempEdges := apply(join(drop(edges,{count,count}),newEdges),i->apply(i,j->substitute(j,S)));
-	  tempGraph := graph(S,tempEdges);
-	  evenCycles = append(evenCycles,select(allOddHoles tempGraph,i->member(newVar,i)));
-	  count = count+1;
-	  );
+       newEdges := {{first(edges#count),newVar},{newVar,(edges#count)#1}};
+       tempEdges := apply(join(drop(edges,{count,count}),newEdges),i->apply(i,j->substitute(j,S)));
+       tempGraph := graph(S,tempEdges);
+       evenCycles = append(evenCycles,select(allOddHoles tempGraph,i->member(newVar,i)));
+       count = count+1;
+       );
      use R;
      apply(unique apply(flatten evenCycles,i->select(i,j->(j != newVar))),k->apply(k,l->substitute(l,R)))
      )
@@ -289,7 +289,7 @@ antiCycle (List) := Graph =>(L)-> (
      if #L < 3 then error "Cannot construct anticycles of length less than three";
      antiCycleEdgeSet := subsets(L,2) - set append(apply(#L-1, i-> {L#i,L#(i+1)}), {(first L),(last L)});
      graph(ring L#0,toList antiCycleEdgeSet)
-     )     	   
+     )
 
 
 ------------------------------------------------------------
@@ -322,8 +322,8 @@ chromaticNumber HyperGraph := H -> (
      m := product H#"vertices";
      j := coverIdeal H;
      while ((m^(Chi-1) % j^Chi) != 0) do (
-	  Chi = Chi + 1;
-	  );
+       Chi = Chi + 1;
+     );
      return (Chi); 
      )
 
@@ -401,21 +401,21 @@ completeMultiPartite (Ring, ZZ, ZZ) := Graph =>(R,N,M) ->
 
 completeMultiPartite (Ring, List) := Graph =>(R, L) -> (
      if all(L, l -> class l === ZZ) then (
-	if sum L > #gens(R) then 
-	    error "Too few variables in ring to make complete multipartite graph";	
-	N := 0;
-	L = for i from 0 to #L-1 list (
-	    E := toList apply(L#i, j -> R_(j+N));
-	    N = N+L#i;
-	    E
-	    );
+     if sum L > #gens(R) then 
+     error "Too few variables in ring to make complete multipartite graph";	
+     N := 0;
+     L = for i from 0 to #L-1 list (
+          E := toList apply(L#i, j -> R_(j+N));
+          N = N+L#i;
+          E
+          );
      );
      if all(L, l -> class l === List) then (
-	K := flatten for i from 0 to #L-2 list
-	    flatten for j from i+1 to #L-1 list
-		flatten for x in L#i list
-		    for y in L#j list {x,y};
-	return graph(R, K);
+     K := flatten for i from 0 to #L-2 list
+       flatten for j from i+1 to #L-1 list
+         flatten for x in L#i list
+           for y in L#j list {x,y};
+     return graph(R, K);
      ) else error "completeMultipartite must be passed a list of partition sizes or a list of partitions.";
      )
 
@@ -429,19 +429,19 @@ connectedComponents = method();
 connectedComponents HyperGraph := H -> (
      V := select(H#"vertices", v-> any(H#"edges", e -> member(v,e)));
      while #V > 0 list (
-	C := {V#0};
-	i := 0;
-	while i < #C do (
-	    N := select(neighbors(H, C#i), v-> not member(v,C));
-	    C = join(C,N);
-	    i = i+1;
-        );
-	V = select(V, v -> not member(v,C));
-	C
-     )
+       C := {V#0};
+       i := 0;
+       while i < #C do (
+         N := select(neighbors(H, C#i), v-> not member(v,C));
+         C = join(C,N);
+         i = i+1;
+       );
+       V = select(V, v -> not member(v,C));
+       C
+       )
      )
 
-
+connectedComponents Graph := G -> join(apply(isolatedVertices(G), v->{v}), connectedComponents hyperGraph G)
 
 ----------------------------------------------------------------------
 -- coverIdeal
@@ -754,6 +754,7 @@ isCM HyperGraph := H -> (
 
 isConnected = method();
 isConnected HyperGraph := H -> numConnectedComponents H == 1
+--isConnected Graph := G -> numConnectedComponents G == 1
 
 
 ------------------------------------------------------------
@@ -927,9 +928,11 @@ neighbors (HyperGraph, List) := (H,L) -> (
 
 numConnectedComponents = method();
 numConnectedComponents HyperGraph:= H -> (rank HH_0 hyperGraphToSimplicialComplex H)+1
+numConnectedComponents Graph := G -> 
+	(rank HH_0 hyperGraphToSimplicialComplex G)+1+#isolatedVertices(G)
 
 -----------------------------------------------------------
--- numTrianges
+-- numTriangles
 -- returns the number of triangles in a graph
 -----------------------------------------------------------
 
