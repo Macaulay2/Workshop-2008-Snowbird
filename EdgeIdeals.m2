@@ -43,6 +43,7 @@ export {HyperGraph,
 	completeGraph,
 	completeMultiPartite,
 	connectedComponents,
+	connectedGraphComponents,
 	cycle,
 	degreeVertex,
 	deleteEdges,
@@ -65,6 +66,7 @@ export {HyperGraph,
 	isChordal,
 	isCM,
 	isConnected,
+	isConnectedGraph,
 	isEdge,
 	isForest,
 	isGoodLeaf,
@@ -76,6 +78,7 @@ export {HyperGraph,
 	lineGraph,
 	neighbors,
 	numConnectedComponents,
+	numConnectedGraphComponents,
 	numTriangles,
 	randomGraph,
 	randomUniformHyperGraph,
@@ -368,8 +371,6 @@ complementGraph HyperGraph := H -> (
      )
 
 
-
-
 ----------------------------------------------------------------------
 -- completeGraph
 -- return graph of complete n-graph
@@ -441,7 +442,13 @@ connectedComponents HyperGraph := H -> (
        )
      )
 
-connectedComponents Graph := G -> join(apply(isolatedVertices(G), v->{v}), connectedComponents hyperGraph G)
+-----------------------------------------------------------------------
+-- connectedGraphComponents
+-- returns all the connected components of a graph
+----------------------------------------------------------------------
+
+connectedGraphComponents = method();
+connectedGraphComponents HyperGraph := H -> join(apply(isolatedVertices(H), v->{v}), connectedComponents H)
 
 ----------------------------------------------------------------------
 -- coverIdeal
@@ -754,8 +761,15 @@ isCM HyperGraph := H -> (
 
 isConnected = method();
 isConnected HyperGraph := H -> numConnectedComponents H == 1
---isConnected Graph := G -> numConnectedComponents G == 1
 
+------------------------------------------------------------
+-- isConnectedGraph
+-- checks if a graph is connected
+-- isolated vertices are considered separate components
+------------------------------------------------------------
+
+isConnectedGraph = method();
+isConnectedGraph HyperGraph := H -> numConnectedGraphComponents H == 1
 
 ------------------------------------------------------------
 -- isEdge
@@ -928,8 +942,16 @@ neighbors (HyperGraph, List) := (H,L) -> (
 
 numConnectedComponents = method();
 numConnectedComponents HyperGraph:= H -> (rank HH_0 hyperGraphToSimplicialComplex H)+1
-numConnectedComponents Graph := G -> 
-	(rank HH_0 hyperGraphToSimplicialComplex G)+1+#isolatedVertices(G)
+
+------------------------------------------------------------
+-- numConnectedGraphComponents
+-- the number of connected components of a (hyper)Graph
+-- this includes isolated vertices
+------------------------------------------------------------
+
+numConnectedGraphComponents = method();
+numConnectedGraphComponents HyperGraph := H -> 
+	(rank HH_0 hyperGraphToSimplicialComplex H)+1+#isolatedVertices(H)
 
 -----------------------------------------------------------
 -- numTriangles
