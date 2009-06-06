@@ -15,7 +15,7 @@ newPackage("EdgeIdeals",
                         HomePage => "http://andrew.infinitepigeons.org/"
                        },
 		       {Name => "Adam Van Tuyl", 
-                        Email => "avantuyl@sleet.lakeheadu.ca",
+                        Email => "avantuyl@lakeheadu.ca",
                         HomePage => "http://flash.lakeheadu.ca/~avantuyl/"
                        }
                       },
@@ -423,7 +423,7 @@ completeMultiPartite (Ring, List) := Graph =>(R, L) -> (
 
 -----------------------------------------------------------------------
 -- connectedComponents
--- returns all the connected components of a graph
+-- returns all the connected components of a hypergraph
 ----------------------------------------------------------------------
 
 connectedComponents = method();
@@ -860,6 +860,7 @@ isLeaf (HyperGraph, RingElement) := (H,V) -> (
 isolatedVertices = method();
 isolatedVertices (HyperGraph) := (H) -> ( 
      edgeUnion := sum apply(H#"edges", set);
+     if #(H#"edges")==0 then return H#"vertices" else
      select(H#"vertices", v -> not member(v, edgeUnion))
      )
 
@@ -1783,6 +1784,9 @@ doc ///
 		     chromaticNumber c4
 		     chromaticNumber c5
 		     chromaticNumber k6
+	Caveat
+	     This method should not be used with a hypergraph that has an edge of
+	     cardinality one since no coloring is possible.
 ///		      
 
 
@@ -2025,6 +2029,41 @@ doc ///
         SeeAlso
 	     isConnected
 	     numConnectedComponents
+	     isolatedVertices
+///	
+
+------------------------------------------------------------
+-- DOCUMENTATION connectedGraphComponents
+------------------------------------------------------------
+
+doc ///
+	Key
+		connectedGraphComponents
+		(connectedGraphComponents, HyperGraph)
+	Headline
+		returns the connected components of a graph
+	Usage
+		L = connectedGraphComponents G
+	Inputs
+		G:HyperGraph
+	Outputs
+		L:List
+			of lists of vertices. Each list of vertices is a connected component of G.
+	Description
+		Text
+			The connected components of a graph are sets of vertices in which
+			each vertex is connected to each other by a path. Each connected component
+			is disjoint. Vertices not contained in any edge are considered isolated
+			vertices and form their own connected component, unlike in the hypergraph
+			case, so this method is intended for use with graphs.
+		Example
+			R = QQ[a..k];
+			G = graph {a*b,b*c,c*d,a*d,f*g,h*i,j*k,h*k}
+			L = connectedGraphComponents G
+        SeeAlso
+	     connectedComponents
+	     isConnectedGraph
+	     numConnectedGraphComponents
 	     isolatedVertices
 ///	
 
@@ -2884,7 +2923,7 @@ doc ///
 	Usage
 	        b = isConnected H
 	Inputs
-	        H:Graph
+	        H:HyperGraph
 	Outputs
 	        b:Boolean
 		       returns {\tt true} if {\tt H} is connected, {\tt false} otherwise
@@ -2913,8 +2952,45 @@ doc ///
 		numConnectedComponents
 ///		      
 
+------------------------------------------------------------
+-- DOCUMENTATION isConnectedGraph
+------------------------------------------------------------
 
-
+doc ///
+        Key
+	        isConnectedGraph
+		(isConnectedGraph, HyperGraph)
+	Headline
+	        determines if a graph is connected
+	Usage
+	        b = isConnectedGraph G
+	Inputs
+	        G:HyperGraph
+	Outputs
+	        b:Boolean
+		       returns {\tt true} if {\tt G} is connected, {\tt false} otherwise
+        Description
+	        Text
+			This function checks whether the graph is connected. A graph is said to be
+			connected if it has exactly one connected component. A vertex that is not
+			in any edge is considered to be an isolated vertex, and hence graphs with 
+			isolated vertices are not connected. We have this separate method that is
+			intended for graphs because of the potential complication of edges of 
+			cardinality one in the hypergraph case.
+		Example
+		       S = QQ[a..e];
+		       g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
+     	       	       h = graph {a*b,b*c,c*d,a*d} -- 4-cycle with isolated vertex (not connected)	 
+		       k = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
+		       isConnectedGraph g
+		       isConnectedGraph h
+		       isConnectedGraph k
+	SeeAlso
+	        connectedGraphComponents
+		isConnected
+		isolatedVertices
+		numConnectedGraphComponents
+///		      
 
 
 
@@ -3329,6 +3405,46 @@ doc ///
 	     connectedComponents
 	     isConnected
 	     isolatedVertices
+///
+
+------------------------------------------------------------
+-- DOCUMENTATION numConnectedGraphComponents
+------------------------------------------------------------
+
+doc ///
+	Key
+		numConnectedGraphComponents
+		(numConnectedGraphComponents, HyperGraph)
+	Headline 
+		returns the number of connected components in a graph
+	Usage
+		d = numConnectedGraphComponents G
+	Inputs
+		G:HyperGraph
+	Outputs 
+		d:ZZ
+			the number of connected components of G
+	Description
+	     Text
+	     	  The function returns the number of connected components of a graph.  To count the number of components,
+		  the algorithm turns {\tt G} into a simplicial complex, and then computes the rank of the 0^{th} reduced
+		  homology group.  This number plus 1 gives us the number of connected components. Isolated vertices, 
+		  which are those not appearing in any edge, count as their own connected component. We have this 
+		  separate method intended for graphs because of the potential complication of edges of cardinality 
+		  one in the hypergraph case.
+	     Example
+	     	   S = QQ[a..e];
+		   g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
+		   h = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
+		   k = graph {a*b,b*c,c*d,a*d} -- 4-cycle and isolated vertex (not connected)
+		   numConnectedGraphComponents g
+		   numConnectedGraphComponents h
+		   numConnectedGraphComponents k
+	SeeAlso
+	     connectedGraphComponents
+	     isConnectedGraph
+	     isolatedVertices
+	     numConnectedComponents
 ///
 
 
@@ -4154,6 +4270,22 @@ assert(# connectedComponents(H) == 3 )
 ///
 
 -----------------------------
+-- Test connectedGraphComponents
+-----------------------------
+
+TEST///
+R = QQ[a..i]	   
+H = graph {a*b, b*c,c*d,d*e,a*e,f*g,g*h}
+assert(# connectedGraphComponents(H) == 3 )
+R = QQ[a..h]
+H = graph {a*b, b*c,c*d,d*e,a*e,f*g,g*h}
+assert(# connectedGraphComponents(H) == 2)
+R = QQ[a,b,c,d]
+G = graph {a*b,c*d}
+assert(# connectedGraphComponents(G) == 2 )
+///
+
+-----------------------------
 -- Test coverIdeal
 -----------------------------
 
@@ -4407,6 +4539,20 @@ assert(not isConnected h)
 ///
 
 -----------------------------
+-- Test isConnectedGraph
+-----------------------------
+
+TEST///
+S = QQ[a..e]
+g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
+h = graph {a*b,b*c,c*d,a*d} -- 4-cycle with isolated vertex (not connected)	 
+k = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
+assert(isConnectedGraph g)
+assert(not isConnectedGraph h)
+assert(not isConnectedGraph k)
+///
+
+-----------------------------
 -- Test isEdge 
 -----------------------------
 
@@ -4502,6 +4648,22 @@ g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
 h = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
 assert(numConnectedComponents g == 1) 
 assert(numConnectedComponents h == 2)
+///
+
+-----------------------------
+-- Test numConnectedGraphComponents
+-----------------------------
+TEST///
+S = QQ[a..e]
+g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
+h = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
+k = graph {a*b,b*c,c*d,a*d} -- 4-cycle and isolated vertex (not connected)
+numConnectedGraphComponents g
+numConnectedGraphComponents h
+numConnectedGraphComponents k
+assert(numConnectedGraphComponents g == 1) 
+assert(numConnectedGraphComponents h == 2)
+assert(numConnectedGraphComponents k == 2)
 ///
 
 -------------------------------------
