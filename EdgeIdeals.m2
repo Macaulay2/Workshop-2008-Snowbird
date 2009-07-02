@@ -107,8 +107,6 @@ export {HyperGraph,
 ----------------------------------------------------------------------------------------
 
 HyperGraph = new Type of HashTable;
-HyperGraph.synonym = "hypergraph";
-
 hyperGraph = method(TypicalValue => HyperGraph);
 
 hyperGraph (PolynomialRing, List) := HyperGraph => (R, E) -> ( 
@@ -117,7 +115,7 @@ hyperGraph (PolynomialRing, List) := HyperGraph => (R, E) -> (
      -- Assert: E is a List of Lists of variables of R or
      --         E is a List of square-free monomials in R 
      if any(E, e -> class e =!= List) and any(E, e -> class class e =!= PolynomialRing)
-     then ( print apply(E, e -> class e) ;error "Edges must be lists of variables or monomials.");
+     then ( print apply(E, e -> class e) ;error "Edges must be lists of varibles or monomials.");
 
      V := gens R;
      --- check needed for square free 
@@ -163,8 +161,6 @@ hyperGraph (List) := HyperGraph => (E) ->
 ----------------------------------------------------------------------------
 
 Graph = new Type of HyperGraph;
-
-Graph.synonym = "graph";
 
 graph = method(TypicalValue => Graph);
 
@@ -226,6 +222,7 @@ hyperGraph (Graph) := HyperGraph => (G) ->
 
 HyperGraph == HyperGraph := (G,H) -> (
      G#"ring" === H#"ring" and
+     set(G#"vertices") === set(H#"vertices") and
      set(apply(G#"edges", set)) === set(apply(H#"edges",set))
      ) 
 
@@ -239,7 +236,7 @@ adjacencyMatrix = method();
 adjacencyMatrix Graph := G -> (
      vert:= G#"vertices";
      n := #vert;
-     m := apply(n,i-> apply(n,j-> if isEdge(G,{vert_i,vert_j}) then 1 else 0));  
+     m := toList apply(0..n-1,i-> toList apply(0..n-1,j-> if isEdge(G,{vert_i,vert_j}) then 1 else 0));  
      return (matrix m)
      )
 
@@ -293,7 +290,7 @@ antiCycle (Ring, ZZ) := Graph =>(R, N) -> antiCycle(apply(N, i->R_i))
 
 antiCycle (List) := Graph =>(L)-> (
      if #L < 3 then error "Cannot construct anticycles of length less than three";
-     antiCycleEdgeSet := subsets(L,2) - set append(apply(#L-1, i-> {L#i,L#(i+1)}), {first L, last L});
+     antiCycleEdgeSet := subsets(L,2) - set append(apply(#L-1, i-> {L#i,L#(i+1)}), {(first L),(last L)});
      graph(ring L#0,toList antiCycleEdgeSet)
      )
 
@@ -324,6 +321,9 @@ changeRing (HyperGraph, PolynomialRing, List) :=  option -> (H, R, L) -> (
 
 chromaticNumber = method();
 chromaticNumber HyperGraph := H -> (
+     E = edges H;
+     s = toList(apply(E,e->#e));
+     if ((class H === HyperGraph) and (member(1,s))) then error "A hypergraph with an edge of cardinality one does not have a chromatic number";
      Chi := 2; -- assumes graph has at least one edge
      m := product H#"vertices";
      j := coverIdeal H;
@@ -441,7 +441,7 @@ connectedComponents HyperGraph := H -> (
          i = i+1;
        );
        V = select(V, v -> not member(v,C));
-       rsort C
+       C
        )
      )
 
@@ -517,8 +517,7 @@ deleteEdges (HyperGraph,List) := (H,E) -> (
 
 edgeIdeal = method();
 edgeIdeal HyperGraph := H -> (
-     if H#"edges" == {} then return monomialIdeal(0_(H#"ring"));
-     if H#"edges" == {{}} then return monomialIdeal(1_(H#"ring"));
+     if H#"edges" == {} or H#"edges" == {{}} then return monomialIdeal(0_(H#"ring"));
      monomialIdeal apply(H#"edges",product)) 
 
 
@@ -560,7 +559,7 @@ getCliques Graph := G -> (
 
 ------------------------------------------------------------
 -- getEdge
--- returns a specific edge
+-- return a specific edge
 ------------------------------------------------------------
 
 getEdge = method();
@@ -642,7 +641,7 @@ hasOddHole Graph := G -> (
 
 --------------------------------------------------
 -- hyperGraphToSimplicialComplex
--- make a simplicialComplex from a (hyper)graph 
+-- change the type of a (hyper)graph to a simplicial complex
 ---------------------------------------------------
 hyperGraphToSimplicialComplex = method()
 hyperGraphToSimplicialComplex HyperGraph := H -> (
@@ -662,8 +661,8 @@ incidenceMatrix = method();
 incidenceMatrix HyperGraph := H -> (
      v:= H#"vertices";
      e := H#"edges";
-     m := apply(#v,i-> apply(#e,j-> if member(v_i,e_j) then 1 else 0));  
-     matrix m
+     m := toList apply(0..#v-1,i-> toList apply(0..#e-1,j-> if member(v_i,e_j) then 1 else 0));  
+     return (matrix m)
      )
 
 
@@ -728,12 +727,12 @@ isChordal = method(); -- based upon Froberg's characterization of chordal graphs
 isChordal Graph := G -> (
      I := edgeIdeal complementGraph G;
      graphR := G#"ring";
-     if I == ideal(0_graphR) then return true;
+     if I == ideal(0_graphR) then return (true);
      D := min flatten degrees I;
      B := coker gens I;
      R := regularity(B);
-     if D-1 =!= R then return false;
-     return true;
+     if D-1 =!= R then return (false);
+     return(true);
      )
 
 -------------------------------------------------------------
@@ -829,7 +828,7 @@ isGoodLeaf (HyperGraph, ZZ) := (H,N) -> (
 
 isGraph = method();
 isGraph HyperGraph := Boolean => (H) -> (
-		H#"edges" == {} or all(H#"edges", e-> #e === 2 )
+		H#"edges" == {{}} or H#"edges" == {} or all(H#"edges", e-> #e === 2 )
 	)
 
 
@@ -1041,7 +1040,7 @@ ring HyperGraph := H -> H#"ring"
 
 --------------------------------------------------
 -- simplicialComplexToHyperGraph
--- make a (hyper)graph from a simplicial complex 
+-- change the type of a simplicial complex to a (hyper)graph
 ---------------------------------------------------
 
 simplicialComplexToHyperGraph = method()
@@ -1057,13 +1056,13 @@ simplicialComplexToHyperGraph SimplicialComplex := D -> (
 smallestCycleSize = method();
 
 smallestCycleSize Graph := G -> (
-     if numTriangles G =!= 0 then return 3;
+     if numTriangles G =!= 0 then return(3);
      R :=  res edgeIdeal complementGraph G;
      smallestCycle := 0;
      i := 1;
      -- this loop determines if there is a non-linear syzygy
      -- the first non-linear syzygy tells us the smallest induced
-     -- cycle has length >= 4.  This is based upon 
+     -- cycle has lenght >= 4.  This is based upon 
      -- the paper of Eisenbud-Green-Hulek-Popescu,
      -- "Restricting linear syzygyies: algebra and geometry"
      while  ((smallestCycle == 0) and (i <= pdim betti R)) do (
@@ -1203,7 +1202,7 @@ document {
 		"make a graph or hypergraph is by ", TO (graph, PolynomialRing, List), " and ", TO (hyperGraph, PolynomialRing, List), ".",
 		"The list parameter must contain edges which themselves are lists of variables in the ring."},
 	EXAMPLE {"R = QQ[x,y,z,w];","G = graph(R, {{x,y},{x,z},{y,z},{x,w}})", "H = hyperGraph(R, {{x,y,z},{x,w}})"},
-	PARA { "Probably the most convenient may of specifying edges is as a list of monomials. Using the ", TO (graph, List), " and ",
+	PARA { "Probably the most convenient may of specifying edges is as a list of monomial. Using the ", TO (graph, List), " and ",
 	       TO (hyperGraph, List), " methods implicitly defines the ring of the (hyper)graph to be the ring containing the monomials ",
 	       " in the ", TO List, ". The following example gives the same hypergraphs as before."},
 	EXAMPLE { "R = QQ[x,y,z,w];", "G = graph {x*y, x*z, y*z, x*w}", "H = hyperGraph {x*y*z, x*w}" },
@@ -1246,7 +1245,7 @@ document {
 	PARA {  EM "Cycles", " can be constructed using ", TO cycle, " which, depending on the parameters, uses all or some of the variables",
 		" in the ring to define a graph cycle."},
 	EXAMPLE { "R = QQ[x,y,z,w];", "cycle R", "cycle(R,3)", "cycle {x,y,w} "},
-	PARA {  EM "Anti-Cycles", ", the graph complements of cycles, can be constructed using ", TO antiCycle, " which has takes parameters",
+	PARA {  EM "Anti-Cycles", ", the graph complements cycles, can be constructed using ", TO antiCycle, " which has takes parameters",
 		" similar to those of ", TO cycle, "."},
 	EXAMPLE { "R = QQ[x,y,z,w];", "antiCycle R"},
 	PARA {  EM "Complete graphs", " can be constructed using ", TO completeGraph, " which defines a graph with every possible edge between",
@@ -1288,7 +1287,7 @@ doc ///
 		Text
 			This class represents hypergraphs. A hypergraph is a tuple {\tt (V,E)} of vertices {\tt V} and edges {\tt E} 
 			which are subsets of the vertices. In this package, all hypergraphs have the additional property that no edge
-			is a subset of any other edge. Hypergraphs of this form are often referred to as clutters.
+			is subset of any other edge. Hypergraphs of this form are often referred to as clutters.
 		Example
 			R = QQ[w,x,y,z];
 			H = hyperGraph(R, {{w,x},{w,y,z},{x,y,z}});
@@ -1345,11 +1344,7 @@ doc ///
 	Headline 
 		constructor for HyperGraph.
 	Usage
-		H = hyperGraph(R,E)
-		H = hyperGraph(I)
-		H = hyperGraph(J)
-		H = hyperGraph(E)
-		H = hyperGraph(G)
+		H = hyperGraph(R,E) \n H = hyperGraph(I) \n H = hyperGraph(E) \n H = hyperGraph(G)
 	Inputs
 		R:PolynomialRing
 			whose variables correspond to vertices of the hypergraph.
@@ -1379,43 +1374,45 @@ doc ///
 			E = {{a,b,c},{b,c,d},{c,d,e},{e,d,f}}
 			h = hyperGraph (R,E)
 		Text
-		        Alternatively, if the polynomial ring has already been defined, it suffices to simply enter
+		        Altenatively, if the polynomial ring has already been defined, it suffices to simply enter
 			the list of the edges.
 		Example
 		        S = QQ[z_1..z_8]
 			E1 = {{z_1,z_2,z_3},{z_2,z_4,z_5,z_6},{z_4,z_7,z_8},{z_5,z_7,z_8}}
-			E2 = {{z_2,z_3,z_4},{z_4,z_5}}
+			E2 = {{z_2,z_3,z_4},{z_4,z_8},{z_7,z_6,z_8},{z_1,z_2}}
 			h1 = hyperGraph E1
 			h2 = hyperGraph E2      
 		Text
-			The list of edges could also be entered as a list of square-free monomials.
+		        The list of edges could also be entered as a list of square-free monomials.
 		Example
-			T = QQ[w,x,y,z]
+		        T = QQ[w,x,y,z]
 			e = {w*x*y,w*x*z,w*y*z,x*y*z}
 			h = hyperGraph e           
 		Text
-			Another option for defining an hypergraph is to use an @TO ideal @ or @TO monomialIdeal @.
+		        Another option for defining an hypergraph is to use an @TO ideal @ or @TO monomialIdeal @.
 		Example
-			C = QQ[p_1..p_6]
+		        C = QQ[p_1..p_6]
 			i = monomialIdeal (p_1*p_2*p_3,p_3*p_4*p_5,p_3*p_6)
 			hyperGraph i
 			j = ideal (p_1*p_2,p_3*p_4*p_5,p_6)
 			hyperGraph j
 		Text
-			From any graph we can make a hypergraph with the same edges.
+		        Since a graph is specific type of hypergraph, we can change the type
+			of a graph to hypergraph.
 		Example
-			D = QQ[r_1..r_5]
+		        D = QQ[r_1..r_5]
 			g = graph {r_1*r_2,r_2*r_4,r_3*r_5,r_5*r_4,r_1*r_5}	
-			h = hyperGraph g
+		        h = hyperGraph g
 		Text
-			Not all hypergraph constructors are able to make the empty hypergraph, that is, the hypergraph with no
-			edges. Specifically, the constructors which take only a list cannot make the empty hypergraph because
-			the underlying ring is not given. To define the empty hypergraph, give an explicit polynomial ring or give the (monomial) ideal.
+		        Some special care is needed it construct the empty hypergraph, that is, the hypergraph with no
+			edges.  In this case, the input cannot be a list (since the constructor does not
+		        know which ring to use).  To define the empty graph, use a polynomial ring and (monomial) ideal.
 		Example
-			E = QQ[m,n,o,p]
-			hyperGraph(E, {})
-			hyperGraph monomialIdeal(0_E)  -- the zero element of E (do not use 0)
-			hyperGraph ideal (0_E)
+		        E = QQ[m,n,o,p]
+			i = monomialIdeal(0_E)  -- the zero element of E (do not use 0)
+			hyperGraph i
+			j = ideal (0_E)
+			hyperGraph j
         SeeAlso
        	        graph
 		"Constructor Overview"
@@ -1437,11 +1434,7 @@ doc ///
 	Headline 
 		constructor for Graph.
 	Usage
-		G = graph(R,E)
-		G = graph(I)
-		G = graph(J)
-		G = graph(E)
-		G = graph(H)
+		G = graph(R,E) \n G = graph(I) \n G = graph(E) \\ G = graph(H)
 	Inputs
 		R:PolynomialRing
 			whose variables correspond to vertices of the hypergraph.
@@ -1464,47 +1457,49 @@ doc ///
 			For the first possiblity, the user inputs a polynomial ring, which specifices the vertices
 			of graph, and a list of the edges of the graph.  The edges are represented as lists.
 		Example
-		        R = QQ[a..f];
+		        R = QQ[a..f]
 			E = {{a,b},{b,c},{c,f},{d,a},{e,c},{b,d}}
 			g = graph (R,E) 
 		Text
-		        As long as the edge list is not empty, the ring can be omitted.
-			When a ring is not passed to the constructor, the underlying hypergraph takes its ring from the first variable found.
+		        Altenatively, if the polynomial ring has already been defined, it suffices to simply enter
+			the list of the edges.
 		Example
-			S = QQ[z_1..z_8];
+		        S = QQ[z_1..z_8]
 			E1 = {{z_1,z_2},{z_2,z_3},{z_3,z_4},{z_4,z_5},{z_5,z_6},{z_6,z_7},{z_7,z_8},{z_8,z_1}}
-			E2 = {{z_1,z_2},{z_2,z_3}}
+			E2 = {{z_1,z_3},{z_3,z_4},{z_5,z_2},{z_2,z_4},{z_7,z_8}}
 			g1 = graph E1
 			g2 = graph E2      
 		Text
-			The list of edges could also be entered as a list of square-free quadratic monomials.
+		        The list of edges could also be entered as a list of square-free quadratic monomials.
 		Example
-			T = QQ[w,x,y,z];
+		        T = QQ[w,x,y,z]
 			e = {w*x,w*y,w*z,x*y,x*z,y*z}
 			g = graph e           
 		Text
-			Another option for defining an graph is to use an @TO ideal @ or @TO monomialIdeal @.
+		        Another option for defining an graph is to use an @TO ideal @ or @TO monomialIdeal @.
 		Example
-			C = QQ[p_1..p_6];
+		        C = QQ[p_1..p_6]
 			i = monomialIdeal (p_1*p_2,p_2*p_3,p_3*p_4,p_3*p_5,p_3*p_6)
 			graph i
 			j = ideal (p_1*p_2,p_1*p_3,p_1*p_4,p_1*p_5,p_1*p_6)
 			graph j
 		Text
-			A graph can be made from any hypergraph whose edges are all of size two.
+		        If a hypergraph has been defined that is also a graph, one can change the type of the hypergraph 
+			into a graph.
 		Example
-			D = QQ[r_1..r_5];
-			h = hyperGraph {r_1*r_2,r_2*r_4,r_3*r_5,r_5*r_4,r_1*r_5}
-			g = graph h
+		        D = QQ[r_1..r_5]
+			h = hyperGraph {r_1*r_2,r_2*r_4,r_3*r_5,r_5*r_4,r_1*r_5}	
+		        g = graph h
 		Text
-			Not all graph constructors are able to make the empty graph, that is, the graph with no
-			edges. Specifically, the constructors which take only a list cannot make the empty graph because
-			the underlying ring is not given. To define the empty graph, give an explicit polynomial ring or give the (monomial) ideal.
+		        Some special care is needed it construct the empty graph, that is, the graph with no
+			edges.  In this case, the input cannot be a list (since the constructor does not
+		        know which ring to use).  To define the empty graph, use a polynomial ring and (monomial) ideal.
 		Example
-			E = QQ[m,n,o,p]
-			graph(E, {})
-			graph monomialIdeal(0_E)  -- the zero element of E (do not use 0)
-			graph ideal(0_E)
+		        E = QQ[m,n,o,p]
+			i = monomialIdeal(0_E)  -- the zero element of E (do not use 0)
+			graph i
+			j = ideal (0_E)
+			graph j
         SeeAlso
        	        hyperGraph
 		"Constructor Overview"
@@ -1571,7 +1566,7 @@ doc ///
 		       the adjacency matrix of the graph
         Description
 	        Text
-		       This function returns the adjacency matrix of the given graph {\tt G}.  The (i,j)^{th} position
+		       This function returns the adjacency matrix of the inputed graph.  The (i,j)^{th} position
 		       of the matrix is 1 if there is an edge between the i^{th} vertex and j^{th} vertex,
 		       and 0 otherwise.  The rows and columns are indexed by the variables of the ring and uses the 
 		       ordering of the variables for determining the order of the rows and columns.
@@ -1614,9 +1609,6 @@ doc ///
 		  in the graph, one at a time, and pick out all the odd holes containing the additional 
 		  vertex. Dropping this vertex from each of the odd holes gives all the even holes in 
 		  the original graph.
-
-		  See C.A. Francisco, H.T. Ha, A. Van Tuyl, "Algebraic methods for detecting odd holes in a graph." 
-		  (2008) Preprint. {\tt arXiv:0806.1159v1}.
 	     Example
 	     	  R = QQ[a..f];
 		  G = cycle(R,6);
@@ -1647,12 +1639,9 @@ doc ///
 			returns all odd holes contained in {\tt G}.
 	Description
 	     Text
-		  An odd hole is an odd induced cycle of length at least 5.
 	     	  The method is based on work of Francisco-Ha-Van Tuyl, looking at the associated primes
-		  of the square of the Alexander dual of the edge ideal. 
-
-		  See C.A. Francisco, H.T. Ha, A. Van Tuyl, "Algebraic methods for detecting odd holes in a graph." 
-		  (2008) Preprint. {\tt arXiv:0806.1159v1}.
+		  of the square of the Alexander dual of the edge ideal. An odd hole is an odd induced
+		  cycle of length at least 5.
 	     Example
 	     	  R = QQ[x_1..x_6];
 		  G = graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
@@ -1678,9 +1667,7 @@ doc ///
 	Headline
 		returns a graph of an anticycle.
 	Usage
-		C = antiCycle R 
-		C = antiCycle(R,N)
-		C = antiCycle L
+		C = antiCycle R or C = antiCycle(R,N) or C = antiCycle L
 	Inputs
 		R:Ring
 		N:ZZ
@@ -1691,17 +1678,17 @@ doc ///
 		C:Graph
 			which is a anticycle on the vertices in {\tt L} or on the variables of {\tt R}.
 	Description
-		Text
-				This function returns the graph that is the complement of the cycle
-				obtained from {\tt L} by applying the function @TO cycle@.
+	        Text
+		        This function is the reverse of the function @TO cycle @ by returning
+			the graph which is the complement of a cycle.
 		Example
 			R = QQ[a,b,c,d,e];
 			antiCycle R
 			antiCycle(R,4)
 			antiCycle {e,c,d,b}
 			complementGraph antiCycle R == cycle R
-	SeeAlso
-		cycle
+        SeeAlso	    
+	        cycle
 		"Constructor Overview"
 ///	
 
@@ -1718,8 +1705,7 @@ doc ///
 	Headline
 	        replaces vertices with variables of a different ring
 	Usage
-	        G = changeRing(H,R,L)
-		G = changeRing(H,R,L, MaximalEdges => B)
+	        G = changeRing(H,R,L) or G = changeRing(H,R,L, MaximalEdges => B)
 	Inputs
 	        H:HyperGraph
 	        R:PolynomialRing
@@ -1787,11 +1773,11 @@ doc ///
 	Inputs
 	        H:HyperGraph
 	Outputs
-	        c:ZZ
+	        i:ZZ
 		       the chromatic number of {\tt H}
         Description
 	        Text
-		     Returns the chromatic number, the smallest number of colors needed to color the vertices of a graph.  This method
+		     Returns the chromatic number, the smallest number of colors needed to color vertices of a graph.  This method
 		     is based upon a result of Francisco-Ha-Van Tuyl which relates the chromatic number to an ideal membership problem.
 		Example
 		     S = QQ[a..f];
@@ -1801,9 +1787,11 @@ doc ///
 		     chromaticNumber c4
 		     chromaticNumber c5
 		     chromaticNumber k6
+		    
 	Caveat
 	     This method should not be used with a hypergraph that has an edge of
 	     cardinality one since no coloring is possible.
+     	        
 ///		      
 
 
@@ -1860,7 +1848,7 @@ doc ///
 	Inputs
 	        G:Graph
 	Outputs
-	        c:ZZ
+	        i:ZZ
 		       the clique number of {\tt G}
         Description
 	        Text
@@ -1894,8 +1882,7 @@ doc ///
 	Headline
 	        returns the complement of a graph or hypergraph 
 	Usage
-	        g = complementGraph G
-		h = complementGraph H
+	        g = complementGraph G \n h = complementGraph H
 	Inputs
 	        G:Graph
 		H:HyperGraph
@@ -1908,7 +1895,7 @@ doc ///
         Description
 	        Text
 		       The function complementGraph finds the complement of a graph and hypergraph.  Note
-		       that this function behaves differently depending upon the type of input.  When applied to a graph,
+		       that function behaves differently depending upon the type.  When applied to a graph,
 		       complementGraph returns the graph whose edge set is the set of edges not in G.
 		       When applied to a hypergraph, the edge set is found by taking the complement of 
 		       each edge of H in the vertex set.
@@ -1935,9 +1922,7 @@ doc ///
 	Headline
 		returns a complete graph.
 	Usage
-		K = completeGraph R
-		K = completeGraph(R,n)
-		K = completeGraph L
+		K = completeGraph R \n K = completeGraph(R,n) \n K = completeGraph L
 	Inputs
 		R:Ring
 		n:ZZ
@@ -1974,8 +1959,7 @@ doc ///
 	Headline
 		returns a complete multipartite graph.
 	Usage
-		K = completeMultiPartite(R,n,m)
-		K = completeMultiPartite(R,L)
+		K = completeMultiPartite(R,n,m) \n K = completeMultiPartite(R,L)
 	Inputs
 		R:Ring
 		n:ZZ
@@ -2140,9 +2124,7 @@ doc ///
 	Headline
 		returns a graph cycle
 	Usage
-		C = cycle R
-		C = cycle(R,n)
-		C = cycle L
+		C = cycle R \n C = cycle(R,n) \n C = cycle L
 	Inputs
 		R:Ring
 		n:ZZ
@@ -2181,8 +2163,7 @@ doc ///
 	Headline 
 		returns the degree of a vertex.
 	Usage
-		d = degreeVertex(H,n)
-		d = degreeVertex(H,V)
+		d = degreeVertex(H,n) \n d = degreeVertex(H,V)
 	Inputs
 		H:HyperGraph
 		n:ZZ
@@ -2346,8 +2327,7 @@ doc ///
 	Headline 
 		returns cliques in a graph
 	Usage
-		C = getCliques(G,d)
-		C = getCliques G
+		C = getCliques(G,d) or C = getCliques G
 	Inputs
 		G:Graph
 		d:ZZ
@@ -2419,8 +2399,7 @@ doc ///
 	Headline 
 		finds the index of an edge in a HyperGraph
 	Usage
-		n = getEdgeIndex(H,E)
-		n = getEdgeIndex(H,M)
+		n = getEdgeIndex(H,E) or n = getEdgeIndex(H,M)
 	Inputs
 		H:HyperGraph
 		E:List
@@ -2436,7 +2415,7 @@ doc ///
 		        This function returns the index of the edge of the (hyper)graph, where the ordering
 			is determined by the internal ordering of the edges. Note that the internal order of the
 			edges may not be preserved by methods which change the hypergraph 
-			(i.e., @TO inducedHyperGraph@, @TO changeRing@, @TO (hyperGraph, MonomialIdeal)@, etc.).
+			(i.e. @TO inducedHyperGraph@, @TO changeRing@, @TO (hyperGraph, MonomialIdeal)@, etc.).
 		Example
 		     	S = QQ[z_1..z_8];
 			h = hyperGraph {z_2*z_3*z_4,z_6*z_8,z_7*z_5,z_1*z_6*z_7,z_2*z_4*z_8}
@@ -2470,8 +2449,7 @@ doc ///
 		Text
 			A good leaf of a hypergraph {\tt H} is an edge {\tt L} whose intersections
 			with all other edges form a totally ordered set. It follows that
-			{\tt L} must have a free vertex, i.e., a vertex contained in no other edges. 
-			In the graph setting, a good leaf is 
+			{\tt L} must have a free vertex. In the graph setting, a good leaf is 
 			an edge containing a vertex of degree one.  The notion of a good
 			leaf was introduced by X. Zheng in her PhD thesis (2004).
 		Example
@@ -2609,9 +2587,6 @@ doc ///
 		  An odd hole is an odd induced cycle of length at least 5.
 	     	  The method is based on work of Francisco-Ha-Van Tuyl, looking at the associated primes
 		  of the square of the Alexander dual of the edge ideal. 
-
-		  See C.A. Francisco, H.T. Ha, A. Van Tuyl, "Algebraic methods for detecting odd holes in a graph." 
-		  (2008) Preprint. {\tt arXiv:0806.1159v1}.
 	     Example
 	     	  R = QQ[x_1..x_6];
 		  G = graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
@@ -2633,7 +2608,7 @@ doc ///
 		hyperGraphToSimplicialComplex
 		(hyperGraphToSimplicialComplex, HyperGraph)
 	Headline 
-		makes a simplicial complex from a (hyper)graph
+		turns a (hyper)graph into a simplicial complex
 	Usage
 		D = hyperGraphToSimplicialComplex H
 	Inputs
@@ -2642,18 +2617,18 @@ doc ///
 		D:SimplicialComplex
 			whose facets are given by the edges of H
 	Description
-		Text
-			This function produces a simplicial complex from a (hyper)graph.
-			The facets of the simplicial complex are given by the edge set of the (hyper)graph.
-			This function is the reverse of @TO simplicialComplexToHyperGraph @ and enables users
-			to make use of functions in the package @TO SimplicialComplexes @.
-		Example
-			R = QQ[x_1..x_6];
-			G = graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
-			DeltaG = hyperGraphToSimplicialComplex G
-			hyperGraphDeltaG = simplicialComplexToHyperGraph DeltaG
-			GPrime = graph(hyperGraphDeltaG)
-			G === GPrime
+	     Text
+	     	  This function changes the type of a (hyper)graph to a simplicial complex where
+		  the facets of the simplicial complex are given by the edge set of the (hyper)graph.
+		  This function is the reverse of @TO simplicialComplexToHyperGraph @.  This function enables the users
+		  to make use of the functions in the package @TO SimplicialComplexes @
+	     Example
+	     	  R = QQ[x_1..x_6];
+		  G = graph({x_1*x_2,x_2*x_3,x_3*x_4,x_4*x_5,x_1*x_5,x_1*x_6,x_5*x_6}) --5-cycle and a triangle
+		  DeltaG = hyperGraphToSimplicialComplex G
+		  hyperGraphDeltaG = simplicialComplexToHyperGraph DeltaG
+	          GPrime = graph(hyperGraphDeltaG)
+		  G === GPrime
 	SeeAlso
 		simplicialComplexToHyperGraph     
 		"Constructor Overview"
@@ -2679,7 +2654,7 @@ doc ///
 		       the incidence matrix of the hypergraph
         Description
 	        Text
-			This function returns the incidence matrix of the given hypergraph {\tt H}. 
+			This function returns the incidence matrix of the inputed hypergraph. 
 			The rows of the matrix are indexed by the variables of the hypergraph 
 			and the columns are indexed by the edges. The (i,j)^{th} entry in the 
 			matrix is 1 if vertex i is contained in edge j, and is 0 otherwise.
@@ -2792,7 +2767,7 @@ doc ///
 	Headline
 		returns the induced subgraph of a (hyper)graph.
 	Usage
-		h = inducedHyperGraph(H, L)
+		h = inducedHyperGraph(H,L) 
 	Inputs
 		H:HyperGraph
 		L:List
@@ -3039,8 +3014,7 @@ doc ///
 	Headline 
 		determines if an edge is in a (hyper)graph
 	Usage
-		b = isEdge(H,E)
-		b = isEdge(H,M)
+		b = isEdge(H,E) \n b = isEdge(H,M)
 	Inputs
 		H:HyperGraph
 		E:List
@@ -3077,8 +3051,7 @@ doc ///
 	Headline 
 		determines whether a (hyper)graph is a forest
 	Usage
-		b = isForest G
-		b = isForest H
+		b = isForest G or b = isForest H
 	Inputs
 		G:Graph
 		H:HyperGraph
@@ -3175,9 +3148,7 @@ doc ///
 	Headline 
 		determines if an edge (or vertex) is a leaf of a (hyper)graph
 	Usage
-		b = isLeaf(G,N)
-		b = isLeaf(H,n)
-		b = isLeaf(H,V)
+		b = isLeaf(G,N) or b = isLeaf(H,n) or b = isLeaf(H,V)
 	Inputs
 		G:Graph
 		H:HyperGraph
@@ -3372,9 +3343,7 @@ doc ///
 	Headline 
 		returns the neighbors of a vertex or list of vertices
 	Usage
-		N = neighbors(H,V)
-		N = neighbors(H,n)
-		N = neighbors(H,L)
+		N = neighbors(H,V) or N = neighbors(H,n) or N = neighbors(H,L)
 	Inputs
 		H:HyperGraph
 		V:RingElement
@@ -3676,26 +3645,26 @@ doc ///
 		simplicialComplexToHyperGraph
 		(simplicialComplexToHyperGraph, SimplicialComplex)
 	Headline 
-		makes a (hyper)graph from a simplicial complex
+		change the type of a simplicial complex to a (hyper)graph
 	Usage
 		H = simplicialComplexToHyperGraph(D) 
 	Inputs
 		D:SimplicialComplex
-			the input
-	Outputs
-		H:HyperGraph
+		        the input
+	Outputs 		
+	        H:HyperGraph
 			whose edges are the facets of D
-	Description
-		Text
-			This function makes HyperGraph from a SimplicialComplexes.
-			The edges of the HyperGraph are given by the facets of the SimplicialComplex.
-			This is the reverse of the function @TO hyperGraphToSimplicialComplex @.
+        Description
+ 	        Text
+		        This function takes a simplicial complex and changes it type to a HyperGraph by
+			returning a hypergraph whose edges are defined by the facets of the simplicial
+			complex.  This is the reverse of the function @TO hyperGraphToSimplicialComplex @
 		Example
-			S = QQ[a..f];
+	                S = QQ[a..f];
 			Delta = simplicialComplex {a*b*c,b*c*d,c*d*e,d*e*f}
-			H = simplicialComplexToHyperGraph Delta
-	SeeAlso
-		hyperGraphToSimplicialComplex
+                        H = simplicialComplexToHyperGraph Delta
+        SeeAlso
+	        hyperGraphToSimplicialComplex
 		"Constructor Overview"
 ///
  
@@ -4062,7 +4031,7 @@ doc ///
      	       	    The @TO randomHyperGraph@ method follows a backtracking algorithm
 		    to generate edges with no inclusions between them. As it may take 
 		    a long time to terminate, a time limit is imposed on the method.
-		    The {\tt TimeLimit} option is the amount of time, in seconds, that 
+		    The {\tt TimeLimit} option is the amound of time, in seconds, that 
 		    the method @TO randomHyperGraph@ will take before terminating.
 		    A value of 0 is interpreted as one day. The default value is 5 (seconds).
 	SeeAlso
