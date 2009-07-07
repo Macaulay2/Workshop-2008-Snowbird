@@ -651,6 +651,7 @@ hasOddHole Graph := G -> (
 ---------------------------------------------------
 hyperGraphToSimplicialComplex = method()
 hyperGraphToSimplicialComplex HyperGraph := H -> (
+     if H#"edges" == {} then return simplicialComplex monomialIdeal 1_(ring H);
      simplicialComplex flatten entries gens edgeIdeal H
      )
 
@@ -963,7 +964,10 @@ neighbors (HyperGraph, List) := (H,L) -> (
 ------------------------------------------------------------
 
 numConnectedComponents = method();
-numConnectedComponents HyperGraph:= H -> (rank HH_0 hyperGraphToSimplicialComplex H)+1
+numConnectedComponents HyperGraph:= H -> (
+     if (H#"edges" == {}) or (H#"edges"== {{}}) then return 0;
+     (rank HH_0 hyperGraphToSimplicialComplex H)+1
+     )
 
 ------------------------------------------------------------
 -- numConnectedGraphComponents
@@ -972,8 +976,12 @@ numConnectedComponents HyperGraph:= H -> (rank HH_0 hyperGraphToSimplicialComple
 ------------------------------------------------------------
 
 numConnectedGraphComponents = method();
-numConnectedGraphComponents HyperGraph := H -> 
-	(rank HH_0 hyperGraphToSimplicialComplex H)+1+#isolatedVertices(H)
+numConnectedGraphComponents HyperGraph := H -> (
+     if (H#"edges" == {}) or (H#"edges"== {{}}) then (
+	  return (rank HH_0 hyperGraphToSimplicialComplex H)+#isolatedVertices(H);
+	  );
+     (rank HH_0 hyperGraphToSimplicialComplex H)+1+#isolatedVertices(H)
+     )
 
 -----------------------------------------------------------
 -- numTriangles
@@ -1194,6 +1202,9 @@ doc ///
 		    {\it Monomial Algebras} by R. Villarreal and the survey paper
 		    of T. Ha and A. Van Tuyl ("Resolutions of square-free monomial ideals via facet ideals: a survey," 
 		    Contemporary Mathematics. 448 (2007) 91-117). 
+	       
+	       	    See the @TO "Constructor Overview"@ and the @TO "Extended Example"@ for some illustrations of 
+		    ways to use this package.
 		    
 		    
 		    {\bf Note:} We require all hypergraphs to be clutters, which are hypergraphs in which no 
@@ -1283,8 +1294,50 @@ document {
 		  "randomHyperGraph(R,{3,2,1})"},
 	PARA { "The ", TO randomHyperGraph, " method is not guaranteed to return a hypergraph; sometimes it returns null.",
 	       " Please see the documentation of this method for more details."},
-	SeeAlso => { Graph, HyperGraph, graph, hyperGraph, simplicialComplexToHyperGraph, hyperGraphToSimplicialComplex, cycle, antiCycle, completeGraph, 
+	SeeAlso => { "Extended Example", Graph, HyperGraph, graph, hyperGraph, simplicialComplexToHyperGraph, hyperGraphToSimplicialComplex, cycle, antiCycle, completeGraph, 
 		     completeMultiPartite, randomGraph, randomUniformHyperGraph, randomHyperGraph}
+}
+
+document {
+	Key => "Extended Example",
+	Headline => "an extended example using EdgeIdeals",
+	PARA {"This is an example from the write-up of the ", EM "EdgeIdeals", " package in the ", EM "Journal of 
+	     Software for Algebra and Geometry: Macaulay 2", "."},
+	PARA {"At the heart of the ", EM "EdgeIdeals", " package are two new classes that are entitled ", TO HyperGraph, 
+	     " and ", TO Graph, ". The ", TO HyperGraph, " class can only be used to represent hypergraphs. The 
+	     class ", TO Graph, " extends from ", TO HyperGraph," and inherits all of the methods of ", TO HyperGraph,
+	     ". Functions have been made that accept objects of either type as input."},
+	PARA {"In our example below, we illustrate Theorem 6.4.7 from R. Villarreal's ", EM "Monomial Algebras", 
+	      ", which says that the independence complex of a Cohen-Macaulay bipartite graph has a simplicial 
+	      shelling. We begin by creating a graph and verifying the Cohen-Macaulay and bipartite properties."},
+	EXAMPLE { "R = QQ[x_1..x_3,y_1..y_3];",
+	     	  "G = graph(R,{x_1*y_1,x_2*y_2,x_3*y_3, x_1*y_2,x_1*y_3,x_2*y_3})",
+		  "isCM G and isBipartite G"},
+	PARA {"When defining a (hyper)graph, the user specifies the vertex set by defining a polynomial ring, 
+	     while the edges are written as a list of square-free monomials (there are alternative ways of listing 
+	     the edges).  A (hyper)graph is stored as a hash table which contains the list of edges, the polynomial 
+	     ring, and the list of vertices."},
+     	EXAMPLE { "L = getGoodLeaf(G)",
+	     	  "degreeVertex(G,y_1)",
+		  "H = inducedHyperGraph(G, vertices(G) - set(L))"},
+	PARA {"A Cohen-Macaulay bipartite graph must contain a leaf, which we retrieve above. We remove the 
+	     leaf, to form the induced graph, and at the same time, we identify the vertex of degree one in 
+	     the leaf."},
+        EXAMPLE { "K = simplicialComplexToHyperGraph independenceComplex H;",
+	     	  "edges K"},
+     	PARA {"Above, we formed the independence complex of ", TT "H", ", that is, the simplicial complex whose 
+	     facets correspond to the maximal independent sets of ", TT "H", ".  We then change the type from a 
+	     simplicial complex to a hypergraph, which we call ", TT "K", ". Notice that these edges give a shelling."},
+	EXAMPLE { "use ring K;",
+	     	  "A = apply(edges(K), e->append(e, y_1));",
+		  "B = apply(edges inducedHyperGraph(K, {x_2,x_3}), e-> append(e, x_1));",
+		  "shelling = join(A,B)",
+		  "independenceComplex(G)"},
+	PARA {"Using the method found in the proof of Theorem 6.4.7 from R. Villarreal's ", 
+	     EM "Monomial Algebras", ", we now can form a shelling of the original independence complex. Notice 
+	     that our shelling is a permutation of the facets of the independence complex defined from ", TT "G", "."},
+	SeeAlso => { "Constructor Overview", Graph, HyperGraph, graph, hyperGraph, isCM, isBipartite, getGoodLeaf, 
+	     	     degreeVertex, inducedHyperGraph, simplicialComplexToHyperGraph, edges, independenceComplex}
 }
 
 --*******************************************************
@@ -3506,7 +3559,10 @@ doc ///
 	     Text
 	     	  The function returns the number of connected components of a (hyper)graph.  To count the number of components,
 		  the algorithm turns {\tt H} into a simplicial complex, and then computes the rank of the 0^{th} reduced
-		  homology group.  This number plus 1 gives us the number of connected components.
+		  homology group.  This number plus 1 gives us the number of connected components. We depart from 
+		  this method in two cases: We define the hypergraph with only the empty edge (corresponding to the 
+		  irrelevant simplicial complex) and the hypergraph with empty edge set (corresponding to the void 
+		  simplicial complex) to have 0 connected components.
 	     Example
 	     	   S = QQ[a..e];
 		   g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
