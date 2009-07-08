@@ -1209,7 +1209,7 @@ doc ///
 		    
 		    {\bf Note:} We require all hypergraphs to be clutters, which are hypergraphs in which no 
 		    edge is a subset of another. If $H$ is a hypergraph that is not a clutter, then the edge 
-		    ideal of $H$ is indistinguishable from the edge ideal of the largest clutter contained 
+		    ideal of $H$ is indistinguishable from the edge ideal of the clutter of minimal edges 
 		    in $H$. (Edges of $H$ that are supersets of other edges would not appear as minimal 
 		    generators of the edge ideal of $H$.) The edge ideal of a hypergraph is similar to the 
 	            facet ideal of a simplicial complex, as defined by S. Faridi in  "The facet ideal of a 
