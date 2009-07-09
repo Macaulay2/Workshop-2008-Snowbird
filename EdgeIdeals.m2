@@ -978,9 +978,9 @@ numConnectedComponents HyperGraph:= H -> (
 numConnectedGraphComponents = method();
 numConnectedGraphComponents HyperGraph := H -> (
      if (H#"edges" == {}) or (H#"edges"== {{}}) then (
-	  return (rank HH_0 hyperGraphToSimplicialComplex H)+#isolatedVertices(H);
+	  return #isolatedVertices(H);
 	  );
-     (rank HH_0 hyperGraphToSimplicialComplex H)+1+#isolatedVertices(H)
+     numConnectedComponents(H) + #isolatedVertices(H)
      )
 
 -----------------------------------------------------------
@@ -1339,6 +1339,63 @@ document {
 	SeeAlso => { "Constructor Overview", Graph, HyperGraph, graph, hyperGraph, isCM, isBipartite, getGoodLeaf, 
 	     	     degreeVertex, inducedHyperGraph, simplicialComplexToHyperGraph, edges, independenceComplex}
 }
+
+doc ///
+	Key
+		"Connected Components Tutorial"
+	Headline 
+		clarifying the difference between graph and hypergraph components
+	Description
+		Text
+			In this tutorial, we discuss the various methods that deal with connected components 
+			of graphs and hypergraphs. Our main objective is to make a distinction between the
+			two different definitions of connected components that are used in the @TO EdgeIdeals@ package.
+
+			A vertex of a (hyper)graph {\tt H} said to be an isolated vertex if
+			it is not contained in any edge of {\tt H}. In particular, if a vertex of {\tt H} 
+			is contained in a edge of size one then it is not considered isolated.
+
+		Example
+			R = QQ[u,v,x,y,z];
+			H = hyperGraph({{u,v},{x}});
+			isolatedVertices H
+		Text
+			@EM "Graph Components"@. 
+	     		A connected component of a graph is any maximal set of vertices which 
+			are pairwise connected by a (possibly trivial) path. The most important part of this
+			definition is that isolated vertices count as connected components. 
+
+			The following methods use this definition of a connected component: @TO connectedGraphComponents@,
+			@TO numConnectedGraphComponents@ and @TO isConnectedGraph@. 
+
+			@EM "Hypergraph Components"@.
+	     		A connected component of a hypergraph is any maximal set of vertices which 
+			are pairwise connected by a non-trivial path. Here isolated vertices do not count as connected components. 
+			
+			The following methods use the hypergraph definition of a connected component: @TO connectedComponents@,
+			@TO numConnectedComponents@ and @TO isConnected@.
+
+			The next example uses all of these methods on a graph to illustrate the difference between the two definitions.
+
+		Example
+			R = QQ[u,v,x,y,z];
+			G = graph({{x,y},{y,z}});
+			isolatedVertices G
+			connectedGraphComponents G
+			numConnectedGraphComponents G
+			isConnectedGraph G
+			connectedComponents G
+			numConnectedComponents G
+			isConnected G
+	SeeAlso
+		connectedComponents
+		connectedGraphComponents
+		isConnected
+		isConnectedGraph
+		isolatedVertices
+		numConnectedComponents
+		numConnectedGraphComponents
+///
 
 --*******************************************************
 -- DOCUMENTATION FOR TYPES
@@ -2108,7 +2165,8 @@ doc ///
 			The connected components of a hypergraph are sets of vertices in which
 			each vertex is connected to each other by a path. Each connected component
 			is disjoint, and vertices that are not contained in any edge do not appear in
-			any connected component.
+			any connected component. See the @TO "Connected Components Tutorial"@ for 
+			more information.
 		Example
 			R = QQ[a..l];
 			H = hyperGraph {a*b*c, c*d, d*e*f, h*i, i*j, l}
@@ -2124,6 +2182,7 @@ doc ///
                         connectedComponents H
 			isolatedVertices H	
         SeeAlso
+	     "Connected Components Tutorial"
 	     connectedGraphComponents
 	     isConnected
 	     numConnectedComponents
@@ -2153,12 +2212,14 @@ doc ///
 			each vertex is connected to each other by a path. Each connected component
 			is disjoint. Vertices not contained in any edge are considered isolated
 			vertices and form their own connected component, unlike in the hypergraph
-			case, so this method is intended for use with graphs.
+			case, so this method is intended for use with graphs. See the @TO "Connected Components Tutorial"@
+			for more details.
 		Example
 			R = QQ[a..k];
 			G = graph {a*b,b*c,c*d,a*d,f*g,h*i,j*k,h*k}
 			L = connectedGraphComponents G
         SeeAlso
+	     "Connected Components Tutorial"
 	     connectedComponents
 	     isConnectedGraph
 	     numConnectedGraphComponents
@@ -3097,7 +3158,8 @@ doc ///
         Description
 	        Text
 			This function checks if the (hyper)graph is connected. A (hyper)graph is said to be
-			connected if it has exactly one connected component. 
+			connected if it has exactly one connected component. See the @TO "Connected Components Tutorial"@
+			for more information.
 		Example
 		       S = QQ[a..e];
 		       g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
@@ -3114,6 +3176,7 @@ doc ///
 		       isolatedVertices g
 		       isConnected g
 	SeeAlso
+		"Connected Components Tutorial"
 		isConnectedGraph
 		connectedComponents
 		isolatedVertices
@@ -3144,7 +3207,8 @@ doc ///
 			in any edge is considered to be an isolated vertex, and hence graphs with 
 			isolated vertices are not connected. We have this separate method that is
 			intended for graphs because of the potential complication of edges of 
-			cardinality one in the hypergraph case.
+			cardinality one in the hypergraph case. See the @TO "Connected Components Tutorial"@
+			for further clarification.
 		Example
 		       S = QQ[a..e];
 		       g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
@@ -3154,6 +3218,7 @@ doc ///
 		       isConnectedGraph h
 		       isConnectedGraph k
 	SeeAlso
+		"Connected Components Tutorial"
 	        connectedGraphComponents
 		isConnected
 		isolatedVertices
@@ -3557,12 +3622,26 @@ doc ///
 			the number of connected components of {\tt H}
 	Description
 	     Text
-	     	  The function returns the number of connected components of a (hyper)graph.  To count the number of components,
-		  the algorithm turns {\tt H} into a simplicial complex, and then computes the rank of the 0^{th} reduced
-		  homology group.  This number plus 1 gives us the number of connected components. We depart from 
-		  this method in two cases: We define the hypergraph with only the empty edge (corresponding to the 
-		  irrelevant simplicial complex) and the hypergraph with empty edge set (corresponding to the void 
-		  simplicial complex) to have 0 connected components.
+	     	  The function returns the number of connected components of a hypergraph. 
+		  A connected component of a hypergraph is any maximal set of vertices which 
+		  are pairwise connected by a non-trivial path.  Isolated vertices, which are those 
+		  not appearing in any edge, do not count as connected components. 
+		  This is in contrast to @TO numConnectedGraphComponents@ in which isolated 
+		  vertices are counted as connected components. See the @TO "Connected Components Tutorial"@
+		  for more information.
+
+		  The algorithm used by {\tt numConnectedComponents} turns {\tt H} 
+		  into a simplicial complex, and then computes the rank of the 0^{th} reduced
+		  homology group. This number plus 1 gives the number of connected components of {\tt H}. 
+
+		  We depart from this method in two cases: We define the hypergraph with only 
+		  the empty edge (corresponding to the irrelevant simplicial complex) and the 
+		  hypergraph with empty edge set (corresponding to the void simplicial complex) 
+		  to have 0 connected components.
+
+		  Although this method can be applied to graphs, its output does not match the 
+		  most common meaning for the number of connected components of a graph. Instead,
+		  one should use @TO numConnectedGraphComponents@.
 	     Example
 	     	   S = QQ[a..e];
 		   g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
@@ -3570,17 +3649,16 @@ doc ///
 		   numConnectedComponents g
 		   numConnectedComponents h
 	     Text
-			Isolated vertices are not considered to be in any connected component while
-			vertices in an edge of size one are in a connected component. If you wish to include
-			isolated vertices in the count, use @TO numConnectedGraphComponents@.
+		   The following example contains a hypergraph with an edge of size one. The vertex in this edge
+		   is not considered isolated and does count as a connected component.
 	     Example
 		       S = QQ[a..d];
 		       H = hyperGraph {a*b,c} 
 		       isolatedVertices H
 		       connectedComponents H
 		       numConnectedComponents H
-		       numConnectedGraphComponents H
 	SeeAlso
+	     "Connected Components Tutorial"
 	     connectedComponents
 	     numConnectedGraphComponents
 	     isConnected
@@ -3606,12 +3684,22 @@ doc ///
 			the number of connected components of G
 	Description
 	     Text
-	     	  The function returns the number of connected components of a graph.  To count the number of components,
-		  the algorithm turns {\tt G} into a simplicial complex, and then computes the rank of the 0^{th} reduced
-		  homology group.  This number plus 1 gives us the number of connected components. Isolated vertices, 
-		  which are those not appearing in any edge, count as their own connected component. We have this 
-		  separate method intended for graphs because of the potential complication of edges of cardinality 
-		  one in the hypergraph case.
+	     	  The function returns the number of connected components of a graph. 
+		  A connected component of a graph is any maximal set of vertices which 
+		  are pairwise connected by a path.  Isolated vertices, which are those 
+		  not appearing in any edge, count as connected components. 
+		  This is in contrast to @TO numConnectedComponents@ in which isolated 
+		  vertices are not counted as connected components. See the @TO "Connected Components Tutorial"@
+		  for more information.
+
+		  The algorithm used by {\tt numConnectedGraphComponents} turns {\tt G} 
+		  into a simplicial complex, and then computes the rank of the 0^{th} reduced
+		  homology group. This number plus 1 plus the number of isolated vertices of 
+		  {\tt G} gives the number of connected components of {\tt G}. 
+
+		  This method is intended to match the most common meaning for the number of
+		  connected components of a graph. This method can also be used on
+		  hypergraphs.
 	     Example
 	     	   S = QQ[a..e];
 		   g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
@@ -3621,6 +3709,7 @@ doc ///
 		   numConnectedGraphComponents h
 		   numConnectedGraphComponents k
 	SeeAlso
+	     "Connected Components Tutorial"
 	     connectedGraphComponents
 	     isConnectedGraph
 	     isolatedVertices
