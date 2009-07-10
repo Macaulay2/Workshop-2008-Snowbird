@@ -248,7 +248,7 @@ adjacencyMatrix Graph := G -> (
 ------------------------------------------------------------
 -- allEvenHoles
 -- returns a list of even induced cycles
--- NOTE:  this function will be SLOWWW!
+-- NOTE: This function is slow.
 -----------------------------------------------------------
 
 allEvenHoles = method();
@@ -2039,7 +2039,7 @@ doc ///
 		       edge of H in the vertex set
         Description
 	        Text
-		       The function complementGraph finds the complement of a graph and hypergraph.  Note
+		       The function {\tt complementGraph} finds the complement of a graph and hypergraph.  Note
 		       that this function behaves differently depending upon the type of input.  When applied to a graph,
 		       complementGraph returns the graph whose edge set is the set of edges not in G.
 		       When applied to a hypergraph, the edge set is found by taking the complement of 
@@ -2162,25 +2162,30 @@ doc ///
 			of lists of vertices. Each list of vertices is a connected component of H.
 	Description
 		Text
-			The connected components of a hypergraph are sets of vertices in which
-			each vertex is connected to each other by a path. Each connected component
-			is disjoint, and vertices that are not contained in any edge do not appear in
-			any connected component. See the @TO "Connected Components Tutorial"@ for 
-			more information.
+			This function returns the connected components of a hypergraph. 
+			A connected component of a hypergraph is any maximal set of vertices which 
+			are pairwise connected by a non-trivial path. Isolated vertices, which are those 
+			not appearing in any edge, do not appear in any connected components. 
+			This is in contrast to @TO connectedGraphComponents@ in which isolated 
+			vertices form their own connected components. See the @TO "Connected Components Tutorial"@
+			for more information.
+
 		Example
 			R = QQ[a..l];
 			H = hyperGraph {a*b*c, c*d, d*e*f, h*i, i*j, l}
 			L = connectedComponents H
 			apply(L, C -> inducedHyperGraph(H,C))
+
 		Text
-			As the isolated vertices of a graph are contained in no edges, they do not appear in any connected
-			component. However, in a hypergraph, vertices in edges of size one are in their own connected component.
-			If you want to treat isolated vertices as components, use @TO connectedGraphComponents@.
+			In the following example, hypergraph {\tt H} contains the isolated vertex 
+			{\tt d} and the vertex {\tt c} which is in an edge of size one. Notice that 
+			{\tt d} does not appear in any connected component while {\tt c} does.
+
 		Example
 			R = QQ[a,b,c,d];
                         H = hyperGraph {a*b, c}
                         connectedComponents H
-			isolatedVertices H	
+			isolatedVertices H
         SeeAlso
 	     "Connected Components Tutorial"
 	     connectedGraphComponents
@@ -2208,16 +2213,30 @@ doc ///
 			of lists of vertices. Each list of vertices is a connected component of G.
 	Description
 		Text
-			The connected components of a graph are sets of vertices in which
-			each vertex is connected to each other by a path. Each connected component
-			is disjoint. Vertices not contained in any edge are considered isolated
-			vertices and form their own connected component, unlike in the hypergraph
-			case, so this method is intended for use with graphs. See the @TO "Connected Components Tutorial"@
-			for more details.
+			This function returns the connected components of a graph. 
+			A connected component of a graph is any maximal set of vertices which 
+			are pairwise connected by a (possibly trivial) path. Isolated vertices, which are those 
+			not appearing in any edge, form their own connected components. 
+			This is in contrast to @TO connectedComponents@ in which isolated 
+			vertices do not appear in any connected components. See the @TO "Connected Components Tutorial"@
+			for more information.
+
 		Example
 			R = QQ[a..k];
 			G = graph {a*b,b*c,c*d,a*d,f*g,h*i,j*k,h*k}
 			L = connectedGraphComponents G
+
+		Text
+			In the following example, graph {\tt G} contains the isolated vertex 
+			{\tt d}. Notice that {\tt d} appears in its own connected component and hence {\tt G}
+			is not connected.
+
+		Example
+			R = QQ[a,b,c,d];
+			G = graph {a*b, b*c}
+			connectedGraphComponents G
+			isolatedVertices G
+			isConnectedGraph G
         SeeAlso
 	     "Connected Components Tutorial"
 	     connectedComponents
@@ -2677,7 +2696,7 @@ doc ///
 			of cliques of maximal size contained in {\tt G}
 	Description
 	     	Text
-		     The function returns all cliques of maximal size in a graph as a list of lists. For more details, see @TO getCliques@.
+		     This function returns all cliques of maximal size in a graph as a list of lists. For more details, see @TO getCliques@.
 		Example
 		     	R = QQ[a..d];
 			G = completeGraph R 
@@ -2940,7 +2959,7 @@ doc ///
 	Description
 		Text
 			This function returns the induced subgraph of a graph on a specified set of vertices. 
-			The function enables the user to create subgraphs of the original graph. 
+			This function enables the user to create subgraphs of the original graph. 
 			{\tt inducedGraph} accepts a @TO Graph@ as input and returns a @TO Graph@ as well. 
 			Use @TO inducedHyperGraph@ for a @TO HyperGraph@ instead.
 			
@@ -2995,8 +3014,8 @@ doc ///
 			the induced subgraph of {\tt H} whose edges are contained in {\tt L}
 	Description
 		Text
-			This function returns the induced subgraph of a (hyper)graph on a specified set of vertices.  The function 
-			enables the user to create subgraphs of the original (hyper)graph. 
+			This function returns the induced subgraph of a (hyper)graph on a specified set of vertices.  
+			This function enables the user to create subgraphs of the original (hyper)graph. 
 			
 			The default option is for the ring of the induced subgraph to contain only 
 			variables in {\tt L}. Then the current ring must be changed before working with the induced subgraph.
@@ -3157,24 +3176,29 @@ doc ///
 		       {\tt true} if {\tt H} is connected, {\tt false} otherwise
         Description
 	        Text
-			This function checks if the (hyper)graph is connected. A (hyper)graph is said to be
-			connected if it has exactly one connected component. See the @TO "Connected Components Tutorial"@
-			for more information.
+			This function checks if the given (hyper)graph {\tt H} is connected. A (hyper)graph is said to be
+			connected if it has exactly one connected component. 
+
+			Isolated vertices do not count as connected components and will not make this
+			method return {\tt false}. This is in contrast to @TO isConnectedGraph@ in which isolated vertices
+			form their own connected components. See the @TO "Connected Components Tutorial"@ for more information.
+
 		Example
-		       S = QQ[a..e];
-		       g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
-		       h = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
-		       isConnected g
-		       isConnected h
+			S = QQ[a..e];
+			G = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
+			H = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
+			isConnected G
+			isConnected H
+
 		Text
-			As isolated vertices are not
-			considered to be in any connected component, a graph with isolated vertices may still
-			be connected. To treat isolated vertices as separate components, use @TO isConnectedGraph@.
+			In the following example, the graph {\tt G} has the isolated vertex {\tt d}. As {\tt d}
+			is not considered to be in any connected component, this graph is connected.
+
 		Example
-		       S = QQ[a..e];
-		       g = graph {a*b,b*c,c*d} 
-		       isolatedVertices g
-		       isConnected g
+			S = QQ[a,b,c,d];
+			G = graph {a*b,b*c} 
+			isolatedVertices G
+			isConnected G
 	SeeAlso
 		"Connected Components Tutorial"
 		isConnectedGraph
@@ -3202,21 +3226,29 @@ doc ///
 		       {\tt true} if {\tt G} is connected, {\tt false} otherwise
         Description
 	        Text
-			This function checks whether the graph is connected. A graph is said to be
-			connected if it has exactly one connected component. A vertex that is not
-			in any edge is considered to be an isolated vertex, and hence graphs with 
-			isolated vertices are not connected. We have this separate method that is
-			intended for graphs because of the potential complication of edges of 
-			cardinality one in the hypergraph case. See the @TO "Connected Components Tutorial"@
-			for further clarification.
+			This function checks if the given graph {\tt G} is connected. A graph is said to be
+			connected if it has exactly one connected component. 
+
+			Isolated vertices form their own connected components and will cause 
+			this method return {\tt false}. This is in contrast to @TO isConnected@ in which isolated vertices
+			are not in any connected components. See the @TO "Connected Components Tutorial"@ for more information.
+
 		Example
-		       S = QQ[a..e];
-		       g = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
-     	       	       h = graph {a*b,b*c,c*d,a*d} -- 4-cycle with isolated vertex (not connected)	 
-		       k = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
-		       isConnectedGraph g
-		       isConnectedGraph h
-		       isConnectedGraph k
+			S = QQ[a..e];
+			G = graph {a*b,b*c,c*d,d*e,a*e} -- the 5-cycle (connected)
+			H = graph {a*b,b*c,c*a,d*e} -- a 3-cycle and a disjoint edge (not connected)
+			isConnectedGraph G
+			isConnectedGraph H
+
+		Text
+			In the following example, the graph {\tt G} has the isolated vertex {\tt e}. As {\tt d}
+			forms its own connected component, this graph is not connected.
+
+		Example
+			S = QQ[a..e];
+     	       		G = graph {a*b,b*c,c*d,a*d} -- 4-cycle with isolated vertex (not connected)	 
+		       	isolatedVertices G
+		       	isConnectedGraph G
 	SeeAlso
 		"Connected Components Tutorial"
 	        connectedGraphComponents
@@ -3622,7 +3654,7 @@ doc ///
 			the number of connected components of {\tt H}
 	Description
 	     Text
-	     	  The function returns the number of connected components of a hypergraph. 
+	     	  This function returns the number of connected components of a hypergraph. 
 		  A connected component of a hypergraph is any maximal set of vertices which 
 		  are pairwise connected by a non-trivial path.  Isolated vertices, which are those 
 		  not appearing in any edge, do not count as connected components. 
@@ -3684,7 +3716,7 @@ doc ///
 			the number of connected components of G
 	Description
 	     Text
-	     	  The function returns the number of connected components of a graph. 
+	     	  This function returns the number of connected components of a graph. 
 		  A connected component of a graph is any maximal set of vertices which 
 		  are pairwise connected by a path.  Isolated vertices, which are those 
 		  not appearing in any edge, count as connected components. 
@@ -3736,8 +3768,8 @@ doc ///
 			the number of triangles contained in {\tt G}
 	Description
 	     Text
-	     	  The method is based on work of Francisco-Ha-Van Tuyl, looking at the associated primes
-		  of the square of the Alexander dual of the edge ideal. The function counts the number
+	     	  This method is based on work of Francisco-Ha-Van Tuyl, looking at the associated primes
+		  of the square of the Alexander dual of the edge ideal. The algorithm counts the number
 		  of these associated primes of height 3.
 		  
 		  See C.A. Francisco, H.T. Ha, A. Van Tuyl, "Algebraic methods for detecting odd holes in a graph." 
