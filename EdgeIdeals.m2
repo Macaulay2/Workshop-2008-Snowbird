@@ -3,8 +3,8 @@
 needsPackage "SimplicialComplexes"
 
 newPackage("EdgeIdeals", 
-           Version => "0.1.2",
-           Date => "July 6, 2009",
+           Version => "1.0.0",
+           Date => "July 13, 2009",
            Authors => {
 		       {Name => "Chris Francisco", 
                         Email => "chris@math.okstate.edu",
@@ -12,7 +12,7 @@ newPackage("EdgeIdeals",
                        },
 		       {Name => "Andrew Hoefel", 
                         Email => "handrew@mathstat.dal.ca",
-                        HomePage => "http://andrew.infinitepigeons.org/"
+                        HomePage => "http://www.mathstat.dal.ca/~handrew/"
                        },
 		       {Name => "Adam Van Tuyl", 
                         Email => "avantuyl@lakeheadu.ca",
