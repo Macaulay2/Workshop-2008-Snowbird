@@ -26,8 +26,9 @@ newPackage("EdgeIdeals",
 needsPackage "GenericInitialIdeal"
 needsPackage "SimplicialComplexes"
 
-export {HyperGraph, 
-        hyperGraph, 
+export {
+	HyperGraph, 
+	hyperGraph, 
 	Graph,
 	graph,
 	adjacencyMatrix,
@@ -61,7 +62,7 @@ export {HyperGraph,
 	incidenceMatrix,
 	independenceComplex,
 	independenceNumber,
-     	inducedGraph,
+	inducedGraph,
 	inducedHyperGraph,
 	isBipartite,
 	isChordal,
@@ -1183,120 +1184,207 @@ beginDocumentation()
 --*******************************************************
 
 doc ///
-       Key 
-       	       EdgeIdeals
-       Headline
-       	       A package for working with the edge ideals of (hyper)graphs
-       Description
-      	       Text
-               	    {\em EdgeIdeals} is a package to work with the edge ideals of (hyper)graphs.
-		    
-		    An edge ideal is a square-free monomial ideal where the generators of the monomial ideal correspond to the edges
-		    of the (hyper)graph.  An edge ideal complements the Stanley-Reisner correspondence 
-		    (see @TO SimplicialComplexes @) by providing an alternative combinatorial interpretation of the 
-		    monomial generators.  
-		    
-		    This package exploits the correspondence between square-free monomial ideals and the combinatorial
-		    objects, by using commutative algebra routines to derive information about (hyper)graphs.
-		    For some of the mathematical background on this material, see Chapter 6 of the textbook 
-		    {\it Monomial Algebras} by R. Villarreal and the survey paper
-		    of T. Ha and A. Van Tuyl ("Resolutions of square-free monomial ideals via facet ideals: a survey," 
-		    Contemporary Mathematics. 448 (2007) 91-117). 
-	       
-	       	    See the @TO "Constructor Overview"@ and the @TO "Extended Example"@ for some illustrations of 
-		    ways to use this package.
-		    
-		    
-		    {\bf Note:} We require all hypergraphs to be clutters, which are hypergraphs in which no 
-		    edge is a subset of another. If $H$ is a hypergraph that is not a clutter, then the edge 
-		    ideal of $H$ is indistinguishable from the edge ideal of the clutter of minimal edges 
-		    in $H$. (Edges of $H$ that are supersets of other edges would not appear as minimal 
-		    generators of the edge ideal of $H$.) The edge ideal of a hypergraph is similar to the 
-	            facet ideal of a simplicial complex, as defined by S. Faridi in  "The facet ideal of a 
-		    simplicial complex," Manuscripta Mathematica 109, 159-174 (2002).
+	Key 
+		EdgeIdeals
+	Headline
+		A package for working with the edge ideals of (hyper)graphs
+	Description
+		Text
+			@EM "EdgeIdeals"@ is a package to work with the edge ideals of (hyper)graphs.
+
+			An edge ideal is a square-free monomial ideal where the generators of the monomial ideal correspond to the edges
+			of the (hyper)graph.  An edge ideal complements the Stanley-Reisner correspondence 
+			(see @TO SimplicialComplexes @) by providing an alternative combinatorial interpretation of the 
+			monomial generators.  
+
+			This package exploits the correspondence between square-free monomial ideals and the combinatorial
+			objects, by using commutative algebra routines to derive information about (hyper)graphs.
+			For some of the mathematical background on this material, see Chapter 6 of the textbook 
+			{\it Monomial Algebras} by R. Villarreal and the survey paper
+			of T. Ha and A. Van Tuyl ("Resolutions of square-free monomial ideals via facet ideals: a survey," 
+			Contemporary Mathematics. 448 (2007) 91-117). 
+
+			See the @TO "Constructor Overview"@ and the @TO "Extended Example"@ for some illustrations of 
+			ways to use this package.
+
+			{\bf Note:} We require all hypergraphs to be clutters, which are hypergraphs in which no 
+			edge is a subset of another. If $H$ is a hypergraph that is not a clutter, then the edge 
+			ideal of $H$ is indistinguishable from the edge ideal of the clutter of minimal edges 
+			in $H$. (Edges of $H$ that are supersets of other edges would not appear as minimal 
+			generators of the edge ideal of $H$.) The edge ideal of a hypergraph is similar to the 
+			facet ideal of a simplicial complex, as defined by S. Faridi in  "The facet ideal of a 
+			simplicial complex," Manuscripta Mathematica 109, 159-174 (2002).
 ///
 
-document {
-	Key => "Constructor Overview",
-	Headline => "a summary of the many ways of making graphs and hypergraphs",
-	PARA { "The following is separated into four sections:"},
-	UL {"Basic Constructors", "Converting Types", "Special Graphs", "Random (Hyper)Graphs"},
-	SUBSECTION "Basic Constructors",
-	PARA { 
-		"The main way of constructing ", TO "Graph", " and " , TO "HyperGraph", " objects is to use the ",
-		TO "graph", " and ", TO "hyperGraph", " methods. These methods are overriden to provide many ways ",
-		"of specifying edges." },
-	PARA { "For the purposes of the EdgeIdeals package, every graph and hypergraph is associated to a ring ",
-		"whose variables correspond to the vertices of the (hyper)graph. Thus, the most explicit way to ",
-		"make a graph or hypergraph is by ", TO (graph, PolynomialRing, List), " and ", TO (hyperGraph, PolynomialRing, List), ".",
-		"The list parameter must contain edges which themselves are lists of variables in the ring."},
-	EXAMPLE {"R = QQ[x,y,z,w];","G = graph(R, {{x,y},{x,z},{y,z},{x,w}})", "H = hyperGraph(R, {{x,y,z},{x,w}})"},
-	PARA { "Probably the most convenient way of specifying edges is as a list of monomials. Using the ", TO (graph, List), " and ",
-	       TO (hyperGraph, List), " methods implicitly defines the ring of the (hyper)graph to be the ring containing the monomials ",
-	       " in the ", TO List, ". The following example gives the same hypergraphs as before."},
-	EXAMPLE { "R = QQ[x,y,z,w];", "G = graph {x*y, x*z, y*z, x*w}", "H = hyperGraph {x*y*z, x*w}" },
-	PARA { "The ", TO "graph", " and ", TO "hyperGraph", " constructors can also be used to make (hyper)graphs from square-free monomial ideals.",
-	       "The minimal generators of the ideal become the edges of the (hyper)graph. The ideal must be generated by quadratics if the ", TO "graph",
-	       " constructor is used."},
-	EXAMPLE  "G = graph ideal(x*y, x*z, y*z, x*w)",
-	SUBSECTION "Converting Types",
-	PARA { "In this section, we will see how to convert between ", TO SimplicialComplex ,"es and ", TO HyperGraph, 
-	       "s, as well as between ", TO Graph, "s and ", TO HyperGraph, "s."},
-	PARA { "The methods ", TO simplicialComplexToHyperGraph, " and ", TO hyperGraphToSimplicialComplex, 
-	       " accomplish the former conversion in the following way. In ", TO simplicialComplexToHyperGraph,
-	       " facets of the simplicial complex become the edges of the hypergraph, while in ", TO hyperGraphToSimplicialComplex,
-	       " the edges of the hypergraph become the facets of the new simplicial complex."
-	},
-	EXAMPLE { "R = QQ[x,y,z,w];", 
-		  "H = hyperGraph {x*y*z,x*w};", 
-		  "D = hyperGraphToSimplicialComplex H", 
-		  "simplicialComplexToHyperGraph D"},
-	PARA { "The conversion of a graph into a hypergraph and vice versa use the constructors ", TO "graph", " and ", TO "hyperGraph", ". ",
-	       "Any graph can be converted to a hyperGraph, but when a hyperGraph is converted into a graph, a check is run to ensure ",
-	       "that the edges are all of size two. An error will be produced if this is not the case."},
-	EXAMPLE { "R = QQ[x,y,z,w];", 
-		  "G = graph {x*y, x*z, y*z, x*w};", 
-		  "H = hyperGraph G", 
-		  "graph H"},
-	PARA {  "Since the ", TO Graph, " type is a subclass of ", TO HyperGraph, ", any method that takes a ", TO HyperGraph, 
-		" will also work on ", TO Graph, "s. So the conversion from graph to hypergraph is seldom needed; it is ",
-		"only needed when a method works differently on graphs than on hypergraphs (see ", TO complementGraph, " for an example)."},
-	PARA {  "On the other hand, the conversion from hypergraph to graph is very important as many methods are only defined on graphs. ",
-		"In the following example, we use the ", TO isChordal, " method which only applies to graphs and hence necessitates a ",
-		"conversion of types."},
-	EXAMPLE { "R = QQ[x,y,z,w];", 
-		  "D = simplicialComplex {x*y, x*z, y*z, x*w};", 
-		  "H = simplicialComplexToHyperGraph D", 
-		  "G = graph H", 
-		  "isChordal G "},
-	SUBSECTION "Special Graphs",
-	PARA {  "In addition to the more general constructors, there a number of methods which produce certain special graphs."},
-	PARA {  EM "Cycles", " can be constructed using ", TO cycle, " which, depending on the parameters, uses all or some of the variables",
-		" in the ring to define a graph cycle."},
-	EXAMPLE { "R = QQ[x,y,z,w];", "cycle R", "cycle(R,3)", "cycle {x,y,w} "},
-	PARA {  EM "Anti-Cycles", ", the graph complements of cycles, can be constructed using ", TO antiCycle, ", which takes parameters",
-		" similar to those of ", TO cycle, "."},
-	EXAMPLE { "R = QQ[x,y,z,w];", "antiCycle R"},
-	PARA {  EM "Complete graphs", " can be constructed using ", TO completeGraph, ", which defines a graph with every possible edge between",
-		" a given set a vertices."},
-	EXAMPLE { "R = QQ[x,y,z,w];", "completeGraph R", "completeGraph(R,3)", "completeGraph {x,y,w} "},
-	PARA {  EM "Complete multipartite graphs", " can be constructed using ", TO completeMultiPartite, ", which defines a graph with every ",
-		"possible edge between certain partitions of the vertices. See ", TO completeMultiPartite, " for more details."},
-	EXAMPLE { "R = QQ[a,b,x,y];", "completeMultiPartite(R,2,2)"},
-	SUBSECTION "Random (Hyper)Graphs",
-	PARA { "Three methods are provided for the construction of random (hyper)graphs."},
-	UL{ TOH randomGraph, TOH randomUniformHyperGraph, TOH randomHyperGraph},
-	PARA { "Each method allows you to specify the number of edges desired. For the random hypergraph methods, the sizes of the edges must",
-	       " also be specified."},
-	EXAMPLE { "R = QQ[x,y,z,u,v];", 
-		  "randomGraph(R,3)", 
-		  "randomUniformHyperGraph(R,2,3)",
-		  "randomHyperGraph(R,{3,2,1})"},
-	PARA { "The ", TO randomHyperGraph, " method is not guaranteed to return a hypergraph; sometimes it returns null.",
-	       " Please see the documentation of this method for more details."},
-	SeeAlso => { "Extended Example", Graph, HyperGraph, graph, hyperGraph, simplicialComplexToHyperGraph, hyperGraphToSimplicialComplex, cycle, antiCycle, completeGraph, 
-		     completeMultiPartite, randomGraph, randomUniformHyperGraph, randomHyperGraph}
-}
+doc ///
+	Key
+		"Constructor Overview"
+	Headline
+		a summary of the many ways of making graphs and hypergraphs
+	Description
+		Text
+			The following is separated into four sections:
+			@UL {"Basic Constructors", "Converting Types", "Special Graphs", "Random (Hyper)Graphs"}@
+
+			@SUBSECTION "Basic Constructors"@
+			The main way of constructing @TO Graph@ and @TO HyperGraph@ objects is to use the
+			@TO graph@ and @TO hyperGraph@ methods. These methods are overriden to provide many ways 
+			of specifying edges.
+
+			For the purposes of the EdgeIdeals package, every graph and hypergraph is associated 
+			to a ring whose variables correspond to the vertices of the (hyper)graph. Thus, the 
+			most explicit way to make a graph or hypergraph is 
+			by @TO (graph, PolynomialRing, List)@ and @TO (hyperGraph, PolynomialRing, List)@.
+			The list parameter must contain edges which themselves are lists of variables 
+			in the ring.
+
+		Example
+			R = QQ[x,y,z,w];
+			G = graph(R, {{x,y},{x,z},{y,z},{x,w}})
+			H = hyperGraph(R, {{x,y,z},{x,w}})"}
+
+		Text
+			Probably the most convenient way of specifying edges is as a list of monomials. 
+			Using the @TO (graph, List)@ and @TO (hyperGraph, List)@ 
+			methods implicitly defines the ring of the (hyper)graph to be the ring 
+			containing the monomials in the @TO List@. The following example gives 
+			the same hypergraphs as before.
+		Example
+			R = QQ[x,y,z,w];
+			G = graph {x*y, x*z, y*z, x*w}
+			H = hyperGraph {x*y*z, x*w}" }
+
+		Text
+			The @TO graph@ and @TO hyperGraph@ constructors can also be used to make 
+			(hyper)graphs from square-free monomial ideals. The minimal generators 
+			of the ideal become the edges of the (hyper)graph. The ideal must be 
+			generated by quadratics if the @TO graph@ constructor is used.
+
+		Example
+			G = graph ideal(x*y, x*z, y*z, x*w)
+
+		Text
+			@SUBSECTION "Converting Types"@
+			In this section, we will see how to convert between @TO SimplicialComplex@es and 
+			@TO HyperGraph@s, as well as between @TO Graph@s and @TO HyperGraph@s.
+
+			The methods @TO simplicialComplexToHyperGraph@ and @TO hyperGraphToSimplicialComplex@ 
+			accomplish the former conversion in the following way. In 
+			@TO simplicialComplexToHyperGraph@ facets of the simplicial complex become 
+			the edges of the hypergraph, while in @TO hyperGraphToSimplicialComplex@
+			the edges of the hypergraph become the facets of the new simplicial complex.
+
+		Example 
+			R = QQ[x,y,z,w];
+			H = hyperGraph {x*y*z,x*w};
+			D = hyperGraphToSimplicialComplex H
+			simplicialComplexToHyperGraph D
+
+		Text
+			The conversion of a graph into a hypergraph and vice versa use the constructors 
+			@TO graph@ and @TO hyperGraph@. Any graph can be converted to a hyperGraph, 
+			but when a hyperGraph is converted into a graph, a check is run to ensure 
+			that the edges are all of size two. An error will be produced if this is not the case.
+
+		Example
+			R = QQ[x,y,z,w];
+			G = graph {x*y, x*z, y*z, x*w};
+			H = hyperGraph G 
+			graph H
+
+		Text
+			Since the @TO Graph@ type is a subclass of @TO HyperGraph@ any method that takes a 
+			@TO HyperGraph@ will also work on @TO Graph@s. So the conversion from graph to 
+			hypergraph is seldom needed; it is only needed when a method works differently 
+			on graphs than on hypergraphs (see @TO complementGraph@ for an example).
+
+			On the other hand, the conversion from hypergraph to graph is very important as 
+			many methods are only defined on graphs. In the following example, we use the 
+			@TO isChordal@ method which only applies to graphs and hence necessitates a 
+			conversion of types.
+
+		Example
+			R = QQ[x,y,z,w];
+			D = simplicialComplex {x*y, x*z, y*z, x*w};
+			H = simplicialComplexToHyperGraph D
+			G = graph H
+			isChordal G
+
+		Text
+			@SUBSECTION "Special Graphs"@
+			In addition to the more general constructors, there a number of methods which 
+			produce certain special graphs.
+
+			@EM "Cycles"@ can be constructed using @TO cycle@ which, depending on 
+			the parameters, uses all or some of the variables in the ring to define a graph cycle.
+
+		Example
+			R = QQ[x,y,z,w];
+			cycle R
+			cycle(R,3)
+			cycle {x,y,w} 
+
+		Text
+			@EM "Anti-Cycles"@, the graph complements of cycles, can be constructed using 
+			@TO antiCycle@, which takes parameters similar to those of @TO cycle@.
+
+		Example
+			R = QQ[x,y,z,w];
+			antiCycle R
+
+		Text
+			@EM "Complete graphs"@ can be constructed using @TO completeGraph@, which 
+			defines a graph with every possible edge between a given set a vertices.
+
+		Example 
+			R = QQ[x,y,z,w];
+			completeGraph R
+			completeGraph(R,3)
+			completeGraph {x,y,w} 
+
+		Text
+			@EM "Complete multipartite graphs"@ can be constructed using @TO completeMultiPartite@,
+			which defines a graph with every possible edge between certain partitions of the 
+			vertices. See @TO completeMultiPartite@ for more details.
+
+		Example
+			R = QQ[a,b,x,y];
+			completeMultiPartite(R,2,2)
+
+		Text
+			@SUBSECTION "Random (Hyper)Graphs"@
+			Three methods are provided for the construction of random (hyper)graphs.
+			@UL{ TOH randomGraph, TOH randomUniformHyperGraph, TOH randomHyperGraph}@
+
+			Each method allows you to specify the number of edges desired. 
+			For the random hypergraph methods, the sizes of the edges must
+			also be specified.
+
+		Example
+			R = QQ[x,y,z,u,v];
+			randomGraph(R,3)
+			randomUniformHyperGraph(R,2,3)
+			randomHyperGraph(R,{3,2,1})
+
+		Text
+			The @TO randomHyperGraph@ method is not guaranteed to return a hypergraph; sometimes 
+			it returns null. Please see the documentation of this method for more details.
+	SeeAlso 
+		"Extended Example"
+		Graph
+		HyperGraph
+		graph
+		hyperGraph
+		simplicialComplexToHyperGraph
+		hyperGraphToSimplicialComplex
+		cycle
+		antiCycle
+		completeGraph
+		completeMultiPartite
+		randomGraph
+		randomUniformHyperGraph
+		randomHyperGraph
+///
 
 document {
 	Key => "Extended Example",
@@ -1361,7 +1449,7 @@ doc ///
 			isolatedVertices H
 		Text
 			@EM "Graph Components"@. 
-	     		A connected component of a graph is any maximal set of vertices which 
+			A connected component of a graph is any maximal set of vertices which 
 			are pairwise connected by a (possibly trivial) path. The most important part of this
 			definition is that isolated vertices count as connected components. 
 
@@ -1369,7 +1457,7 @@ doc ///
 			@TO numConnectedGraphComponents@ and @TO isConnectedGraph@. 
 
 			@EM "Hypergraph Components"@.
-	     		A connected component of a hypergraph is any maximal set of vertices which 
+			A connected component of a hypergraph is any maximal set of vertices which 
 			are pairwise connected by a non-trivial path. Here isolated vertices do not count as connected components. 
 			
 			The following methods use the hypergraph definition of a connected component: @TO connectedComponents@,
@@ -1494,19 +1582,19 @@ doc ///
 			which is to be converted to a HyperGraph
 	Outputs 
 		H:HyperGraph
-        Description
-	        Text	 
-		        The function {\tt hyperGraph} is a constructor for @TO HyperGraph @.  The user
+	Description
+		Text 
+			The function {\tt hyperGraph} is a constructor for @TO HyperGraph @.  The user
 			can input a hypergraph in a number of different ways, which we describe below.
 			The information decribing the hypergraph is stored in a hash table. We require that
 			there be no inclusion relations between the edges of a hypergraph; that is, that it
 			be a clutter. The reason is that this package is designed for edge ideals, which would
 			lose any information about edges that are supersets of other edges.			
-			
+
 			For the first possiblity, the user inputs a polynomial ring, which specifices the vertices
 			of graph, and a list of the edges of the graph.  The edges are represented as lists.
 		Example
-		        R = QQ[a..f]
+			R = QQ[a..f]
 			E = {{a,b,c},{b,c,d},{c,d,e},{e,d,f}}
 			h = hyperGraph (R,E)
 		Text
@@ -1547,8 +1635,8 @@ doc ///
 			hyperGraph(E, {})
 			hyperGraph monomialIdeal(0_E)  -- the zero element of E (do not use 0)
 			hyperGraph ideal (0_E)
-        SeeAlso
-       	        graph
+	SeeAlso
+		graph
 		"Constructor Overview"
 ///
 
@@ -1717,7 +1805,7 @@ doc ///
 	SeeAlso
 	    incidenceMatrix
 	    vertices
-///		      
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION allEvenHoles
@@ -1835,7 +1923,7 @@ doc ///
 	SeeAlso
 		cycle
 		"Constructor Overview"
-///	
+///
 
 
 	      
@@ -1900,7 +1988,7 @@ doc ///
 			one to get the maximal edges instead.
 	SeeAlso
 		inducedHyperGraph
-///		      
+///
 
 
 	      
@@ -1936,7 +2024,7 @@ doc ///
 	Caveat
 	     This method should not be used with a hypergraph that has an edge of
 	     cardinality one since no coloring is possible.
-///		      
+///
 
 
 
@@ -1973,7 +2061,7 @@ doc ///
 	     cliqueNumber
 	     getCliques
 	     getMaxCliques
-///		      
+///
 
 
 
@@ -2010,7 +2098,7 @@ doc ///
 	     getCliques
 	     getMaxCliques
 	     
-///		      
+///
 
 
 	      
@@ -2052,7 +2140,7 @@ doc ///
 		       complementGraph c5hypergraph
 	Caveat
 	        Notice that {\tt complementGraph} works differently on graphs versus hypergraphs.
-///	
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION completeGraph
@@ -2092,7 +2180,7 @@ doc ///
 	SeeAlso
 		completeMultiPartite
 		"Constructor Overview"
-///	
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION completeMulitPartite
@@ -2141,7 +2229,7 @@ doc ///
         SeeAlso
      	        completeGraph 
 		"Constructor Overview"
-///	
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION connectedComponents
@@ -2192,7 +2280,7 @@ doc ///
 	     isConnected
 	     numConnectedComponents
 	     isolatedVertices
-///	
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION connectedGraphComponents
@@ -2243,7 +2331,7 @@ doc ///
 	     isConnectedGraph
 	     numConnectedGraphComponents
 	     isolatedVertices
-///	
+///
 
  
 	      
@@ -2280,7 +2368,7 @@ doc ///
 	        edgeIdeal
 		vertexCoverNumber
 		vertexCovers
-///		      
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION cycle
@@ -2322,7 +2410,7 @@ doc ///
 	SeeAlso
 	        antiCycle
 		"Constructor Overview"
-///	
+///
 
 
 ------------------------------------------------------------
@@ -2399,7 +2487,7 @@ doc ///
 		       h = hyperGraph {a*b*c,c*d*e,a*e}
 		       T = edges h
                        hprime = deleteEdges (h,T)
-///	
+///
 
 
 
@@ -2451,7 +2539,7 @@ doc ///
 		  edgeIdeal h
         SeeAlso
 	     coverIdeal
-///		      
+///
 
 
 
@@ -2896,8 +2984,8 @@ doc ///
                        Delta1 == Delta2
 	SeeAlso
 	         independenceNumber       	  
-///	
-	      
+///
+     
 
 
 
@@ -2934,8 +3022,8 @@ doc ///
 		       
         SeeAlso
 	        independenceComplex
-///	
-	      
+///
+
 ------------------------------------------------------------
 -- DOCUMENTATION inducedGraph
 ------------------------------------------------------------
@@ -2991,7 +3079,7 @@ doc ///
 	        deleteEdges
 	        inducedHyperGraph
 ///   
-	      
+
 ------------------------------------------------------------
 -- DOCUMENTATION inducedHyperGraph
 ------------------------------------------------------------
@@ -3050,7 +3138,6 @@ doc ///
 ///   
 
 
-
 ------------------------------------------------------------
 -- DOCUMENTATION isBipartite
 ------------------------------------------------------------
@@ -3083,8 +3170,7 @@ doc ///
 		       isBipartite c5
 	SeeAlso
 	        chromaticNumber
-///		      
-
+///
 
 
 ------------------------------------------------------------
@@ -3120,7 +3206,7 @@ doc ///
 		    isChordal D
                     E = completeGraph S; 
 		    isChordal E
- ///		      
+///
 
 
 ------------------------------------------------------------
@@ -3155,7 +3241,7 @@ doc ///
 	SeeAlso
 		isSCM
 		edgeIdeal
-///		      
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION isConnected
@@ -3205,7 +3291,7 @@ doc ///
 		connectedComponents
 		isolatedVertices
 		numConnectedComponents
-///		      
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION isConnectedGraph
@@ -3255,7 +3341,7 @@ doc ///
 		isConnected
 		isolatedVertices
 		numConnectedGraphComponents
-///		      
+///
 
 
 
@@ -3392,7 +3478,7 @@ doc ///
 		    isGraph(hyperGraph {a*b,b*c,c*d})
 		    isGraph(hyperGraph {a*b,b*c*d})
 		    isGraph(hyperGraph {a*b,b*c,d})
-///		      
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION isLeaf
@@ -3558,7 +3644,7 @@ doc ///
 	SeeAlso
 		isCM
 		edgeIdeal
-///		      
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION lineGraph
@@ -4194,7 +4280,7 @@ doc ///
 		    discussion at @TO isSCM@.
 	  SeeAlso
 	       isSCM
-///	       
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION BranchLimit
@@ -4323,7 +4409,7 @@ doc ///
 	  SeeAlso
 	       inducedGraph
 	       inducedHyperGraph
-///	       
+///
 
 ------------------------------------------------------------
 -- DOCUMENTATION TimeLimit
@@ -5093,7 +5179,9 @@ V = vertices(G)
 assert(vertices(G) == {a,b,c,d,e,f})
 ///
 
+
 end
+
 
 --restart
 --installPackage ("EdgeIdeals", UserMode=>true)
