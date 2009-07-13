@@ -12,24 +12,15 @@ newPackage(
 			Configuration => { 
 			 "path" => "",
 			 "fig2devpath" => "",
-			"keep files" => true
+	     "keep files" => true
 	      },
     	DebuggingMode => true
     	)
 
 export {
-    gfan, 
-    weightVector, 
-    initialIdeal, 
-    groebnerCone, 
-    groebnerFan, 
-    universalGroebnerBasis, 
-    renderStaircase, 
-    render, 
-    Symmetries,
-    gfanBuchberger,
-    gfanB
-    }
+     gfan, weightVector, initialIdeal, groebnerCone, groebnerFan, universalGroebnerBasis, 
+     renderStaircase, render, Symmetries
+     }
 
 gfan'path = gfanInterface#Options#Configuration#"path"
 fig2dev'path = gfanInterface#Options#Configuration#"fig2devpath"
@@ -171,27 +162,6 @@ writeGfanIdeal(String,Ideal,List) := (filename,I,symms) -> (
      F << close;
      )
 
-gfanIdealToString = method()
-gfanIdealToString() := (I) -> (
-     out := "{";
-     n := numgens I - 1;
-     for i from 0 to n do (
-     	  out = out | toExternalString(I_i);
-	  if i < n then out = out | "," else out = out | "}";
-	  out = out | newline;
-	  );
-     return out;
-     )
-
-gfanRingToString = method()
-gfanRingToString() := (I) -> (
-    R := ring I;
-    p := char R;
-    out := if p === 0 then "Q" else "Z/"|p|"Z";
-    out = out | toExternalString(new Array from gens R) | newline;
-    return out;
-    )
-
 writeGfanIdealList = method()
 writeGfanIdealList(String,List) := (filename,L) -> (
      F := openOut filename;
@@ -236,22 +206,6 @@ readGfanIdeals String := (f) -> (
      apply(H, s -> value("{"|s|"}"))
 		)
 			
-parseGfanIdeals = method()
-parseGfanIdeals String := (s) -> (
-     G := separate("\n,",s);
-
-     firstLine := G#0;
-		 firstLine = separate("\n", firstLine);
-		 firstLine = drop(firstLine, 1);  -- remove the ring from the first line
-		 tempStr  := "";
-		 apply(firstLine, t -> tempStr = concatenate(tempStr, "\n", t)); -- build the firstline
-
-     G = drop(G,1);  -- drop the old first entry
-		 G = prepend(tempStr, G); -- and then add the first entry minus the ring
-     H := apply(G, t -> replace(///[\{\}]*///,"",t));
-     apply(H, s -> value("{"|s|"}"))
-		)
-			
 
 -- The following routines are lifted from Polymake.m2, but should be taken out, once that package
 -- is ready for prime time.
@@ -276,9 +230,6 @@ readGroebnerfan String := (f) -> (
 		)
 			
 
-
-gfanB = method(Options=>{Symmetries=>{}})
-gfanB Ideal := opts -> (I) -> ( "hi")
 
 gfan = method(Options=>{Symmetries=>{}})
 gfan Ideal := opts -> (I) -> (
@@ -305,30 +256,6 @@ gfan Ideal := opts -> (I) -> (
      M := readGfanIdeals(f | ".lt");
      (M,L)
      )
-
-runGfanCommand = (cmd, args, data) -> (
-    tmpName := temporaryFileName();
-    << "using temporary file " << f << endl;
-    ex = gfan'path | cmd | args | " < " | tmpName | " > " | tmpName | ".out";
-    tmpFile := openOut tmpName;
-    tmpFile << data << close;     
-    run ex;
-    get tmpName | ".out"
-)
-
-gfanBuchberger = method(Options=>{w=>false, r=>false, W=>false, g=>false, help=>false})
-gfanBuchberger Ideal := opts -> (I) -> (
-    args := "";
-    if w then args = args | " -w"; 
-    if r then args = args | " -r"; 
-    if W then args = args | " -W"; 
-    if g then args = args | " -W"; 
-    if help then args = args | " -help";
-    out := runGfanCommand("gfan_buchberger", 
-			  args, 
-			  gfanRingToString(ring I) | gfanIdealToString(I));
-    return parseGfanIdeals(out);
-)
 
 universalGroebnerBasis = method(Options=>{Symmetries=>{}})
 universalGroebnerBasis Ideal := opts -> (I) -> (
